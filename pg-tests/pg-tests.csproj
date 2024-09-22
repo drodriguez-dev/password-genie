@@ -2,13 +2,22 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>pg.tests</RootNamespace>
+    <RootNamespace>PG.Tests</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\pg-console-genpwd\Resources\Dictionaries\words_alpha_enUS.txt" Link="Resources\Dictionaries\words_alpha_enUS.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\pg-console-genpwd\Resources\Dictionaries\words_alpha_esES.txt" Link="Resources\Dictionaries\words_alpha_esES.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
@@ -19,6 +28,17 @@
 
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Interface\" />
+    <Folder Include="Deployables\" />
+    <Folder Include="Business\" />
+    <Folder Include="Resources\Dictionaries\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\pg-data-files\pg-data-files.csproj" />
   </ItemGroup>
 
 </Project>
