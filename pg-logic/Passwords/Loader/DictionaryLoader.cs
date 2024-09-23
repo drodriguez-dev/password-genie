@@ -1,12 +1,13 @@
 ﻿using PG.Data.Files.Dictionaries;
 using PG.Logic.Passwords.Loader.Entities;
+using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Loader
 {
 	internal class DictionaryLoader(IDictionariesData data)
 	{
-		private const int _minimumWordLength = 2;
-		private readonly HashSet<char> _vowelsAndDiacritics = [
+		private const int MINIMUM_WORD_LENGTH = 2;
+		private readonly HashSet<char> VOWEL_AND_DIACRITIC_CHARS = [
 				'a', 'e', 'i', 'o', 'u',
 				'á', 'é', 'í', 'ó', 'ú',
 				'à', 'è', 'ì', 'ò', 'ù',
@@ -37,35 +38,35 @@ namespace PG.Logic.Passwords.Loader
 
 		public IDictionariesData DictionariesData { get; set; } = data;
 
-		/// <summary>
-		/// Load the dictionary from the specified file path into a tree-like structure.
-		/// </summary>
-		/// <param name="dictionaryFullPath">Full path to the dictionary file.</param>
-		/// <returns>Root node of the dictionary tree structure representing the dictionary.</returns>
-		public WordDictionary Load(string dictionaryFullPath)
-		{
-			if (!File.Exists(dictionaryFullPath))
-				throw new FileNotFoundException($"Dictionary file not found: {dictionaryFullPath}");
+		public WordDictionary WordDictionary { get; set; } = new();
 
-			var dictionary = new WordDictionary();
+		/// <summary>
+		/// Loads the dictionary from the specified file path into a tree-like structure.
+		/// </summary>
+		/// <param name="dictionaryFilePath">Full path to the dictionary file.</param>
+		/// <returns>Root node of the dictionary tree structure representing the dictionary.</returns>
+		public void Load(string dictionaryFilePath)
+		{
+			if (!File.Exists(dictionaryFilePath))
+				throw new FileNotFoundException($"Dictionary file not found: {dictionaryFilePath}");
+
+			WordDictionary = new WordDictionary();
 
 			foreach (var word in DictionariesData.FetchAllWords())
 			{
 				// Skip words that are too short
-				if (word.Length < _minimumWordLength) continue;
+				if (word.Length < MINIMUM_WORD_LENGTH) continue;
 				// Skip words that contains symbols or numbers
 				if (word.Any(c => !char.IsLetter(c))) continue;
 				// Skip words that contains only diacritics
-				if (word.All(c => _vowelsAndDiacritics.Contains(c))) continue;
+				if (word.ToLowerInvariant().All(c => VOWEL_AND_DIACRITIC_CHARS.Contains(c))) continue;
 
-				dictionary.Words.Add(word);
-				AddWordToTree(dictionary.Root, word);
+				WordDictionary.Words.Add(word);
+				AddWordToTree(WordDictionary.Root, word);
 			}
 
-			if (dictionary.Words.Count == 0)
-				throw new InvalidOperationException($"Dictionary file '{dictionaryFullPath}' does not contain any valid words. Words must be at least {_minimumWordLength} characters long and contain only letters.");
-
-			return dictionary;
+			if (WordDictionary.Root.Children.Count == 0)
+				throw new InvalidDictionaryException($"Dictionary file '{dictionaryFilePath}' does not contain any valid words. Words must be at least {MINIMUM_WORD_LENGTH} characters long and contain only letters.");
 		}
 
 		private static void AddWordToTree(TreeRoot<char> root, string word)

@@ -32,7 +32,7 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			Debug.WriteLine("Starting password generation...");
 			RandomPasswordGenerator passwordGenerator = new(options);
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine);
+			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 			Debug.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in passwords)

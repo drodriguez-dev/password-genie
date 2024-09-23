@@ -1,7 +1,4 @@
-﻿using PG.Logic.Passwords.Loader.Entities;
-using System.Text;
-
-namespace PG.Logic.Passwords.Generators
+﻿namespace PG.Logic.Passwords.Generators
 {
 	public abstract class PasswordGeneratorBase : IPasswordGenerator
 	{
@@ -21,12 +18,26 @@ namespace PG.Logic.Passwords.Generators
 
 		public abstract string Generate();
 
+		protected abstract string BuildPasswordPart();
+
 		protected static Random GetRandomNumberGenerator()
 		{
 			if (_random.Value == null)
 				throw new InvalidOperationException("Random number generator is not initialized.");
 
 			return _random.Value;
+		}
+
+		protected virtual IEnumerable<string> BuildPasswordParts(int numberOfPasswords, int minimumLength)
+		{
+			foreach (int _ in Enumerable.Range(0, numberOfPasswords))
+			{
+				string passwordPart;
+				do { passwordPart = BuildPasswordPart(); }
+				while (passwordPart.Length < minimumLength);
+
+				yield return passwordPart;
+			}
 		}
 
 		/// <summary>
@@ -38,73 +49,6 @@ namespace PG.Logic.Passwords.Generators
 
 			foreach (int _ in Enumerable.Range(0, length))
 				yield return random.Next(0, 10).ToString();
-		}
-
-		/// <summary>
-		/// Generates a random set of letters
-		/// </summary>
-		protected static IEnumerable<char> GenerateLetters(int length)
-		{
-			Random random = GetRandomNumberGenerator();
-
-			foreach (int _ in Enumerable.Range(0, length))
-				yield return _letters[random.Next(0, _letters.Length)];
-		}
-
-		/// <summary>
-		/// Generates a random set of words based on the dictionary provided.
-		/// </summary>
-		internal IEnumerable<string> GenerateWords(WordDictionary dictionary, int numberofWords, int averageLength)
-		{
-			foreach (int _ in Enumerable.Range(0, numberofWords))
-			{
-				string? word;
-
-				do { word = GenerateWord(dictionary.Root, averageLength); }
-				while (dictionary.Words.Contains(word, StringComparer.InvariantCultureIgnoreCase));
-
-				yield return word;
-			}
-		}
-
-		/// <summary>
-		/// Generates a word based on the dictionary provided. Word length is variable depending on the average word length, it's variance half of the 
-		/// average length.
-		/// </summary>
-		/// <remarks>
-		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
-		/// </remarks>
-		private string GenerateWord(ITreeNodeWithChildren<char> root, int averageLength)
-		{
-			if (averageLength < 2)
-				throw new ArgumentOutOfRangeException(nameof(averageLength), "Average length must be at least 2.");
-
-			Random random = GetRandomNumberGenerator();
-
-			var wordBuilder = new StringBuilder();
-
-			// The variance is half of the average length. For example, if the average length is 8, the variance is 4; so the word length can be
-			// between 4 and 12.
-			var wordLengthVariance = Math.Max(1, averageLength / 2);
-
-			var node = root;
-			foreach (int _ in Enumerable.Range(0, averageLength + (random.Next(wordLengthVariance * 2) - wordLengthVariance)))
-			{
-				var children = node.Children.Select(n => n.Value).ToList();
-				if (RemoveHighAsciiCharacters)
-					children = children.Where(c => c.Value < 128).ToList();
-
-				if (children.Count == 0) break;
-
-				var next = children[random.Next(children.Count)];
-				wordBuilder.Append(next.Value);
-
-				node = next;
-			}
-
-			// Return the word with the first letter capitalized.
-			string word = wordBuilder.ToString();
-			return char.ToUpper(word[0]) + word[1..];
 		}
 
 		/// <summary>

@@ -10,5 +10,12 @@ namespace PG.Logic.ErrorHandling
 			public InvalidOptionException(string message) : base(message) { }
 			public InvalidOptionException(string message, Exception innerException) : base(message, innerException) { }
 		}
+
+		public class InvalidDictionaryException : BusinessException
+		{
+			public InvalidDictionaryException() { }
+			public InvalidDictionaryException(string message) : base(message) { }
+			public InvalidDictionaryException(string message, Exception innerException) : base(message, innerException) { }
+		}
 	}
 }

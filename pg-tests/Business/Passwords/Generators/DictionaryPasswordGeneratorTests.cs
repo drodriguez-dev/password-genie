@@ -35,8 +35,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8);
 
 			Debug.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options) { DictionariesData = data };
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine);
+			DictionaryPasswordGenerator passwordGenerator = new(options, data);
+			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 			Debug.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in passwords)
@@ -72,8 +72,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8);
 
 			Debug.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options) { DictionariesData = data };
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine);
+			DictionaryPasswordGenerator passwordGenerator = new(options, data);
+			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 			Debug.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in passwords)

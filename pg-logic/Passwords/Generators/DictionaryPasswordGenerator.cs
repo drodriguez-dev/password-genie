@@ -8,30 +8,30 @@ using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options) : PasswordGeneratorBase
+	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, IDictionariesData dictionariesData) : PasswordGeneratorBase
 	{
+		private const int WORD_VARIANCE_DIVIDER = 2;
 		private readonly DictionaryPasswordGeneratorOptions _options = options;
+		private readonly DictionaryLoader dictionary = new(dictionariesData);
+
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
 		protected override bool IncludeSeparatorSymbols => _options.IncludeSeparatorSymbols;
 		protected override char[] CustomSpecialChars => _options.CustomSpecialCharacters;
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
 
-		public required IDictionariesData DictionariesData { get; set; }
-
 		public override string Generate()
 		{
-			var dictionary = new DictionaryLoader(DictionariesData).Load(_options.File);
+			dictionary.Load(_options.File);
 
 			StringBuilder passwords = new();
-			foreach (var passwordPart in GeneratePasswordParts(dictionary))
+			foreach (var passwordPart in GeneratePasswordParts())
 				passwords.AppendLine(passwordPart);
 
-			// Convert the StringBuilder to a string and remove the last line break.
-			return passwords.ToString().Remove(passwords.Length - Environment.NewLine.Length, Environment.NewLine.Length);
+			return passwords.ToString();
 		}
 
-		private IEnumerable<string> GeneratePasswordParts(WordDictionary dictionary)
+		private IEnumerable<string> GeneratePasswordParts()
 		{
 			if (_options.NumberOfPasswords < 1)
 				throw new InvalidOptionException("At least one password must be requested");
@@ -46,26 +46,15 @@ namespace PG.Logic.Passwords.Generators
 			if (_options.MinimumLength > totalCharacterCount)
 				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({totalCharacterCount}).");
 
-			return BuildPasswordParts(dictionary);
+			return BuildPasswordParts(_options.NumberOfPasswords, _options.MinimumLength);
 		}
 
-		private IEnumerable<string> BuildPasswordParts(WordDictionary dictionary)
-		{
-			foreach (int _ in Enumerable.Range(0, _options.NumberOfPasswords))
-			{
-				string passwordPart;
-				do { passwordPart = BuildPasswordPart(dictionary); }
-				while (passwordPart.Length < _options.MinimumLength);
-
-				yield return passwordPart;
-			}
-		}
-
-		private string BuildPasswordPart(WordDictionary dictionary)
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "Too complex")]
+		protected override string BuildPasswordPart()
 		{
 			Random random = GetRandomNumberGenerator();
 
-			List<string> words = GenerateWords(dictionary, _options.NumberOfWords, _options.AverageWordLength).ToList();
+			List<string> words = GenerateWords(_options.NumberOfWords, _options.AverageWordLength).ToList();
 			List<string> numbers = GenerateNumbers(_options.NumberOfNumbers).ToList();
 			List<string> symbols = GenerateSymbols(_options.NumberOfSpecialCharacters)
 				.OrderBy(s => EndsWithWhitespace(s) ? int.MinValue : int.MaxValue).ToList();
@@ -100,6 +89,63 @@ namespace PG.Logic.Passwords.Generators
 
 				return position;
 			}
+		}
+
+		/// <summary>
+		/// Generates a random set of words based on the dictionary provided.
+		/// </summary>
+		internal IEnumerable<string> GenerateWords(int numberOfWords, int averageLength)
+		{
+			foreach (int _ in Enumerable.Range(0, numberOfWords))
+			{
+				string? word;
+
+				do { word = GenerateWord(dictionary.WordDictionary.Root, averageLength); }
+				while (dictionary.WordDictionary.Words.Contains(word, StringComparer.InvariantCultureIgnoreCase));
+
+				yield return word;
+			}
+		}
+
+		/// <summary>
+		/// Generates a word based on the dictionary provided. Word length is variable depending on the average word length, it's variance half of the 
+		/// average length.
+		/// </summary>
+		/// <remarks>
+		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
+		/// </remarks>
+		private string GenerateWord(ITreeNodeWithChildren<char> root, int averageLength)
+		{
+			if (averageLength < 2)
+				throw new ArgumentOutOfRangeException(nameof(averageLength), "Average length must be at least 2.");
+
+			Random random = GetRandomNumberGenerator();
+
+			var wordBuilder = new StringBuilder();
+
+			// The variance is half of the average length. For example, if the average length is 8, the variance is 4; so the word length can be
+			// between 4 and 12.
+			var wordLengthVariance = Math.Max(1, averageLength / WORD_VARIANCE_DIVIDER);
+			int wordLength = averageLength + (random.Next(wordLengthVariance * 2) - wordLengthVariance);
+
+			var node = root;
+			foreach (int _ in Enumerable.Range(0, wordLength))
+			{
+				var children = node.Children.Select(n => n.Value).ToList();
+				if (RemoveHighAsciiCharacters)
+					children = children.Where(c => c.Value < 128).ToList();
+
+				if (children.Count == 0) break;
+
+				var next = children[random.Next(children.Count)];
+				wordBuilder.Append(next.Value);
+
+				node = next;
+			}
+
+			// Return the word with the first letter capitalized.
+			string word = wordBuilder.ToString();
+			return char.ToUpper(word[0]) + word[1..];
 		}
 	}
 }

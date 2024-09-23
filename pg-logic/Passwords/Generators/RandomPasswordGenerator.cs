@@ -21,7 +21,7 @@ namespace PG.Logic.Passwords.Generators
 				passwords.AppendLine(passwordPart);
 
 			// Convert the StringBuilder to a string and remove the last line break
-			return passwords.ToString().Remove(passwords.Length - Environment.NewLine.Length, Environment.NewLine.Length);
+			return passwords.ToString();
 		}
 
 		private IEnumerable<string> GeneratePasswordParts()
@@ -36,22 +36,11 @@ namespace PG.Logic.Passwords.Generators
 			if (_options.MinimumLength > totalCharacterCount)
 				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({totalCharacterCount}).");
 
-			return BuildPasswordParts();
+			return BuildPasswordParts(_options.NumberOfPasswords, _options.MinimumLength);
 		}
 
-		private IEnumerable<string> BuildPasswordParts()
-		{
-			foreach (int _ in Enumerable.Range(0, _options.NumberOfPasswords))
-			{
-				string passwordPart;
-				do { passwordPart = BuildPasswordPart(); }
-				while (passwordPart.Length < _options.MinimumLength);
-
-				yield return passwordPart;
-			}
-		}
-
-		private string BuildPasswordPart()
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "Too complex")]
+		protected override string BuildPasswordPart()
 		{
 			Random random = GetRandomNumberGenerator();
 
@@ -89,6 +78,17 @@ namespace PG.Logic.Passwords.Generators
 
 				return position;
 			}
+		}
+
+		/// <summary>
+		/// Generates a random set of letters
+		/// </summary>
+		protected static IEnumerable<char> GenerateLetters(int length)
+		{
+			Random random = GetRandomNumberGenerator();
+
+			foreach (int _ in Enumerable.Range(0, length))
+				yield return _letters[random.Next(0, _letters.Length)];
 		}
 	}
 }
