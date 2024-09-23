@@ -5,6 +5,6 @@
 	/// </summary>
 	public interface IDictionariesData
 	{
-		IEnumerable<string> GetWords();
+		IEnumerable<string> FetchAllWords();
 	}
 }

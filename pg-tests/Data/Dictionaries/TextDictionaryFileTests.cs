@@ -16,7 +16,7 @@ namespace PG.Tests.Data.Dictionaries
 				Assert.Fail($"File not found: {filePath}");
 
 			IDictionariesData dictionary = new DictionariesDataFactory().CreateForFile(filePath, Encoding.UTF8);
-			Assert.IsTrue(dictionary.GetWords().Any());
+			Assert.IsTrue(dictionary.FetchAllWords().Any());
 		}
 	}
 }

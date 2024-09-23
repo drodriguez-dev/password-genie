@@ -49,7 +49,7 @@ namespace PG.Logic.Passwords.Loader
 
 			var dictionary = new WordDictionary();
 
-			foreach (var word in DictionariesData.GetWords())
+			foreach (var word in DictionariesData.FetchAllWords())
 			{
 				// Skip words that are too short
 				if (word.Length < _minimumWordLength) continue;

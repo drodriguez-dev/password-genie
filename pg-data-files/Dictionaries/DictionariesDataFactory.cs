@@ -13,9 +13,9 @@ namespace PG.Data.Files.Dictionaries
 		/// <exception cref="NotSupportedException">Thrown when the file extension is not supported.</exception>
 		public IDictionariesData CreateForFile(string filePath, Encoding encoding)
 		{
-			string extension = Path.GetExtension(filePath).ToLower();
+			string extension = Path.GetExtension(filePath);
 
-			return extension switch
+			return extension.ToLower() switch
 			{
 				".txt" => new TextDictionaryFile(filePath, encoding),
 				//".csv" => new CsvDictionariesData(filePath, encoding),

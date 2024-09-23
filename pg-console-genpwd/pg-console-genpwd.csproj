@@ -2,10 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>pg.console.genpwd</RootNamespace>
+    <RootNamespace>PG.Console.PasswordGenie</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>genpwd</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Dictionaries\" />
+  </ItemGroup>
 
 </Project>
