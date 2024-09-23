@@ -9,6 +9,9 @@ namespace PG.Logic.Passwords.Generators
 		protected static readonly ThreadLocal<Random> _random = new(() => new Random(Interlocked.Increment(ref _seed)));
 
 		protected static readonly char[] _letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+		protected static readonly char[] _setSymbols = @"()[]{}<>".ToCharArray();
+		protected static readonly char[] _markSymbols = @"!@#$%^*+=|;:\""?".ToCharArray();
+		protected static readonly char[] _separatorSymbols = @" -_/\&,.".ToCharArray();
 
 		protected abstract bool IncludeSetSymbols { get; }
 		protected abstract bool IncludeMarkSymbols { get; }
@@ -107,13 +110,13 @@ namespace PG.Logic.Passwords.Generators
 
 			List<char> symbols = [];
 			if (IncludeSetSymbols)
-				symbols.AddRange(@"()[]{}<>".ToCharArray());
+				symbols.AddRange(_setSymbols);
 
 			if (IncludeMarkSymbols)
-				symbols.AddRange(@"!@#$%^*+=|;:\""?".ToCharArray());
+				symbols.AddRange(_markSymbols);
 
 			if (IncludeSeparatorSymbols)
-				symbols.AddRange(@" -_/\&,.".ToCharArray());
+				symbols.AddRange(_separatorSymbols);
 
 			if (symbols.Count == 0)
 				throw new InvalidOperationException("No symbols are selected to generate.");
