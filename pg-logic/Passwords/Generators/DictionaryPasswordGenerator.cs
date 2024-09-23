@@ -1,4 +1,5 @@
 ﻿using PG.Data.Files.Dictionaries;
+using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
 using PG.Logic.Passwords.Loader.Entities;
@@ -10,9 +11,10 @@ namespace PG.Logic.Passwords.Generators
 {
 	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, IDictionariesData dictionariesData) : PasswordGeneratorBase
 	{
+		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 		private const int WORD_VARIANCE_DIVIDER = 2;
 		private readonly DictionaryPasswordGeneratorOptions _options = options;
-		private readonly DictionaryLoader dictionary = new(dictionariesData);
+		private readonly WordDictionaryLoader _dictionary = new(dictionariesData);
 
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
@@ -22,7 +24,7 @@ namespace PG.Logic.Passwords.Generators
 
 		public override string Generate()
 		{
-			dictionary.Load(_options.File);
+			_dictionary.Load(_options.File);
 
 			StringBuilder passwords = new();
 			foreach (var passwordPart in GeneratePasswordParts())
@@ -39,6 +41,9 @@ namespace PG.Logic.Passwords.Generators
 			if (_options.NumberOfWords < 1)
 				throw new InvalidOptionException("At least one word must be requested");
 
+			if (_options.AverageWordLength < MINIMUM_AVERAGE_WORD_LENGTH)
+				throw new ArgumentOutOfRangeException(nameof(_options.AverageWordLength), "Average length must be at least 2.");
+
 			int totalCharacterCount = (_options.AverageWordLength * _options.NumberOfWords) + _options.NumberOfNumbers + _options.NumberOfSpecialCharacters;
 			if (totalCharacterCount <= 0)
 				throw new InvalidOptionException("At least one character group must be included.");
@@ -54,7 +59,7 @@ namespace PG.Logic.Passwords.Generators
 		{
 			Random random = GetRandomNumberGenerator();
 
-			List<string> words = GenerateWords(_options.NumberOfWords, _options.AverageWordLength).ToList();
+			List<string> words = GenerateWords(_options.NumberOfWords, _options.AverageWordLength, _options.DepthLevel).ToList();
 			List<string> numbers = GenerateNumbers(_options.NumberOfNumbers).ToList();
 			List<string> symbols = GenerateSymbols(_options.NumberOfSpecialCharacters)
 				.OrderBy(s => EndsWithWhitespace(s) ? int.MinValue : int.MaxValue).ToList();
@@ -94,14 +99,19 @@ namespace PG.Logic.Passwords.Generators
 		/// <summary>
 		/// Generates a random set of words based on the dictionary provided.
 		/// </summary>
-		internal IEnumerable<string> GenerateWords(int numberOfWords, int averageLength)
+		internal IEnumerable<string> GenerateWords(int numberOfWords, int averageLength, int depthLevel)
 		{
 			foreach (int _ in Enumerable.Range(0, numberOfWords))
 			{
 				string? word;
+				int iterations = 0;
 
-				do { word = GenerateWord(dictionary.WordDictionary.Root, averageLength); }
-				while (dictionary.WordDictionary.Words.Contains(word, StringComparer.InvariantCultureIgnoreCase));
+				// Generate a word that is not already in the dictionary and that does not start with any of the words in the dictionary.
+				do { word = GenerateWord(averageLength, depthLevel); }
+				while (iterations++ <= Constants.MAX_ITERATIONS && _dictionary.IsLeafNodeReached(word));
+
+				if (iterations > Constants.MAX_ITERATIONS)
+					throw new InvalidOperationException("Could not generate a word that is not already in the dictionary with the current settings.");
 
 				yield return word;
 			}
@@ -114,11 +124,8 @@ namespace PG.Logic.Passwords.Generators
 		/// <remarks>
 		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
 		/// </remarks>
-		private string GenerateWord(ITreeNodeWithChildren<char> root, int averageLength)
+		private string GenerateWord(int averageLength, int depthLevel)
 		{
-			if (averageLength < 2)
-				throw new ArgumentOutOfRangeException(nameof(averageLength), "Average length must be at least 2.");
-
 			Random random = GetRandomNumberGenerator();
 
 			var wordBuilder = new StringBuilder();
@@ -128,12 +135,12 @@ namespace PG.Logic.Passwords.Generators
 			var wordLengthVariance = Math.Max(1, averageLength / WORD_VARIANCE_DIVIDER);
 			int wordLength = averageLength + (random.Next(wordLengthVariance * 2) - wordLengthVariance);
 
-			var node = root;
+			ITreeNodeWithChildren<char> node = _dictionary.WordTree.Root;
 			foreach (int _ in Enumerable.Range(0, wordLength))
 			{
-				var children = node.Children.Select(n => n.Value).ToList();
-				if (RemoveHighAsciiCharacters)
-					children = children.Where(c => c.Value < 128).ToList();
+				var children = node.Children.Select(kvp => kvp.Value)
+						.Where(tn => !RemoveHighAsciiCharacters || tn.Value < 128)
+						.ToList();
 
 				if (children.Count == 0) break;
 
@@ -141,6 +148,8 @@ namespace PG.Logic.Passwords.Generators
 				wordBuilder.Append(next.Value);
 
 				node = next;
+				if (wordBuilder.Length >= depthLevel && !_dictionary.TrySearchLastPossibleLeafNode(wordBuilder.ToString(), depthLevel, out node))
+					break;
 			}
 
 			// Return the word with the first letter capitalized.

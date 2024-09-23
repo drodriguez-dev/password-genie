@@ -16,5 +16,23 @@
 		/// Determines if a character is any type of space
 		/// </summary>
 		public static bool IsWhitespace(this char c) => WhitespaceCharacters.Contains(c);
+
+		/// <summary>
+		/// Returns the rightmost n characters of a string.
+		/// </summary>
+		public static string Right(this string value, int length)
+		{
+			if (length <= 0)
+				throw new ArgumentOutOfRangeException(nameof(length), "Length must be greater than zero.");
+
+			if (string.IsNullOrEmpty(value))
+				return value;
+
+			if (length >= value.Length)
+				return value;
+
+			//return value[..length];
+			return value[^length..];
+		}
 	}
 }

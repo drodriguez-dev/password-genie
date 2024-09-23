@@ -1,8 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PG.Data.Files.Dictionaries;
+﻿using PG.Data.Files.Dictionaries;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
-using PG.Shared.Extensions;
 using System.Diagnostics;
 using System.Text;
 
@@ -13,7 +11,7 @@ namespace PG.Tests.Business.Passwords.Generators
 	{
 		[DataTestMethod]
 		[DataRow(8, 2, 4, 2, 2)]
-		[DataRow(4, 2, 2, 0, 0)]
+		[DataRow(4, 2, 5, 0, 0)]
 		[DataRow(12, 2, 6, 0, 0)]
 		public void PasswordGenerationTest(int minLength, int numberOfWords, int averageWordLength, int numberOfNumbers, int numberOfSpecials)
 		{
@@ -23,6 +21,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				NumberOfPasswords = 10,
 				NumberOfWords = numberOfWords,
 				AverageWordLength = averageWordLength,
+				DepthLevel = 3,
 				NumberOfNumbers = numberOfNumbers,
 				NumberOfSpecialCharacters = numberOfSpecials,
 				MinimumLength = minLength,
@@ -62,6 +61,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				NumberOfPasswords = 10,
 				NumberOfWords = 2,
 				AverageWordLength = 6,
+				DepthLevel = 3,
 				NumberOfNumbers = 1,
 				NumberOfSpecialCharacters = 1,
 				MinimumLength = 12,

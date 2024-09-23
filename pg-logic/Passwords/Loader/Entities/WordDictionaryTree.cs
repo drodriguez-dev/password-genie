@@ -1,9 +1,7 @@
 ﻿namespace PG.Logic.Passwords.Loader.Entities
 {
-	internal class WordDictionary
+	internal class WordDictionaryTree
 	{
-		public HashSet<string> Words { get; set; } = [];
-
 		public TreeRoot<char> Root { get; set; } = new TreeRoot<char>();
 
 		public override string ToString() => $"{Root.Children.Count} nodes";
