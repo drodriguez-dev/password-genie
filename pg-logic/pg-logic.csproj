@@ -2,9 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>pg.logic</RootNamespace>
+    <RootNamespace>PG.Logic</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\pg-data-files\pg-data-files.csproj" />
+  </ItemGroup>
 
 </Project>
