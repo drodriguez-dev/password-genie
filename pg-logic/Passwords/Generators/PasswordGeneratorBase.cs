@@ -16,6 +16,7 @@ namespace PG.Logic.Passwords.Generators
 		protected abstract bool IncludeSetSymbols { get; }
 		protected abstract bool IncludeMarkSymbols { get; }
 		protected abstract bool IncludeSeparatorSymbols { get; }
+		protected abstract char[] CustomSpecialChars { get; }
 		protected abstract bool RemoveHighAsciiCharacters { get; }
 
 		public abstract string Generate();
@@ -84,10 +85,10 @@ namespace PG.Logic.Passwords.Generators
 
 			// The variance is half of the average length. For example, if the average length is 8, the variance is 4; so the word length can be
 			// between 4 and 12.
-			var wordLengthVariance = averageLength / 2;
+			var wordLengthVariance = Math.Max(1, averageLength / 2);
 
 			var node = root;
-			foreach (int _ in Enumerable.Range(0, averageLength + random.Next(-wordLengthVariance, wordLengthVariance)))
+			foreach (int _ in Enumerable.Range(0, averageLength + (random.Next(wordLengthVariance * 2) - wordLengthVariance)))
 			{
 				var children = node.Children.Select(n => n.Value).ToList();
 				if (RemoveHighAsciiCharacters)
@@ -109,25 +110,39 @@ namespace PG.Logic.Passwords.Generators
 		/// <summary>
 		/// Generates a random set of symbols
 		/// </summary>
-	  internal IEnumerable<string> GenerateSymbols(int length)
+		internal IEnumerable<string> GenerateSymbols(int length)
 		{
+			if (length <= 0) yield break;
+
+			char[] symbols = GetAvailableSymbols().ToArray();
+			if (symbols.Length == 0)
+				throw new InvalidOperationException("No symbols are available. Either provide custom symbols or enable the default ones.");
+
 			Random random = GetRandomNumberGenerator();
 
-			List<char> symbols = [];
-			if (IncludeSetSymbols)
-				symbols.AddRange(_setSymbols);
-
-			if (IncludeMarkSymbols)
-				symbols.AddRange(_markSymbols);
-
-			if (IncludeSeparatorSymbols)
-				symbols.AddRange(_separatorSymbols);
-
-			if (symbols.Count == 0)
-				throw new InvalidOperationException("No symbols are selected to generate.");
-
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return symbols[random.Next(symbols.Count)].ToString();
+				yield return symbols[random.Next(symbols.Length)].ToString();
+		}
+
+		/// <summary>
+		/// Chooses between the custom or the default set and returns the available symbols.
+		/// </summary>
+		private IEnumerable<char> GetAvailableSymbols()
+		{
+			IEnumerable<char> symbols = CustomSpecialChars;
+			if (!symbols.Any())
+			{
+				if (IncludeSetSymbols)
+					symbols = symbols.Concat(_setSymbols);
+
+				if (IncludeMarkSymbols)
+					symbols = symbols.Concat(_markSymbols);
+
+				if (IncludeSeparatorSymbols)
+					symbols = symbols.Concat(_separatorSymbols);
+			}
+
+			return symbols;
 		}
 	}
 }

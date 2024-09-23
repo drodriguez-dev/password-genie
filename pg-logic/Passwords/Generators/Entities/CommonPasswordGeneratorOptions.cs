@@ -26,5 +26,9 @@
 		/// If true, the password will not contain characters from the high ASCII range.
 		/// </summary>
 		public bool RemoveHighAsciiCharacters { get; set; }
+
+		public char[] CustomSpecialCharacters { get; set; } = [];
+
+		public override string ToString() => $"Q: {NumberOfPasswords}, min: {MinimumLength} (N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
 	}
 }

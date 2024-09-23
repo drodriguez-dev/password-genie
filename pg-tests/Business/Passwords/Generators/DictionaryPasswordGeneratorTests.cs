@@ -2,6 +2,7 @@
 using PG.Data.Files.Dictionaries;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
+using PG.Shared.Extensions;
 using System.Diagnostics;
 using System.Text;
 
@@ -18,7 +19,7 @@ namespace PG.Tests.Business.Passwords.Generators
 		{
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				File = new FileInfo(@".\Resources\Dictionaries\words_alpha_esES.txt"),
+				File = @".\Resources\Dictionaries\words_alpha_esES.txt",
 				NumberOfPasswords = 10,
 				NumberOfWords = numberOfWords,
 				AverageWordLength = averageWordLength,
@@ -31,7 +32,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				RemoveHighAsciiCharacters = true
 			};
 
-			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File.FullName, Encoding.UTF8);
+			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8);
 
 			Debug.WriteLine("Starting password generation...");
 			DictionaryPasswordGenerator passwordGenerator = new(options) { DictionariesData = data };
@@ -57,20 +58,18 @@ namespace PG.Tests.Business.Passwords.Generators
 		{
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				File = new FileInfo(@".\Resources\Dictionaries\words_alpha_esES.txt"),
+				File = @".\Resources\Dictionaries\words_alpha_esES.txt",
 				NumberOfPasswords = 10,
 				NumberOfWords = 2,
 				AverageWordLength = 6,
 				NumberOfNumbers = 1,
 				NumberOfSpecialCharacters = 1,
 				MinimumLength = 12,
-				IncludeSetSymbols = true,
-				IncludeMarkSymbols = true,
-				IncludeSeparatorSymbols = true,
+				CustomSpecialCharacters = " ".ToCharArray(),
 				RemoveHighAsciiCharacters = true
 			};
 
-			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File.FullName, Encoding.UTF8);
+			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8);
 
 			Debug.WriteLine("Starting password generation...");
 			DictionaryPasswordGenerator passwordGenerator = new(options) { DictionariesData = data };

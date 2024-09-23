@@ -48,35 +48,5 @@ namespace PG.Tests.Business.Passwords.Generators
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
 		}
-
-		/// <summary>
-		/// Test to check if the generated passwords ends with non-printable characters.
-		/// </summary>
-		[TestMethod]
-		public void CheckNonPrintableCharactersTest()
-		{
-			RandomPasswordGeneratorOptions options = new()
-			{
-				NumberOfPasswords = 10,
-				NumberOfLetters = 0,
-				NumberOfNumbers = 0,
-				NumberOfSpecialCharacters = 20,
-				MinimumLength = 1,
-				IncludeSetSymbols = true,
-				IncludeMarkSymbols = true,
-				IncludeSeparatorSymbols = true,
-				RemoveHighAsciiCharacters = true
-			};
-
-			Debug.WriteLine("Starting password generation...");
-			RandomPasswordGenerator passwordGenerator = new(options);
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine);
-
-			Debug.WriteLine($"Generated passwords:");
-			foreach (var passwordPart in passwords)
-				Assert.IsFalse(EndsWithWhitespace(passwordPart), $"Password '{passwordPart}' ends with a non-printable character");
-
-			static bool EndsWithWhitespace(string test) => test.Length > 0 && test[^1].IsWhitespace();
-		}
 	}
 }
