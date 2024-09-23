@@ -13,12 +13,12 @@ namespace PG.Logic.Passwords.Generators
 
 		public override string Generate()
 		{
-			StringBuilder password = new();
+			StringBuilder passwords = new();
 			foreach (var passwordPart in GeneratePasswordParts(_options))
-				password.AppendLine(passwordPart);
+				passwords.AppendLine(passwordPart);
 
 			// Convert the StringBuilder to a string and remove the last line break
-			return password.ToString().Remove(password.Length - Environment.NewLine.Length, Environment.NewLine.Length);
+			return passwords.ToString().Remove(passwords.Length - Environment.NewLine.Length, Environment.NewLine.Length);
 		}
 
 		private IEnumerable<string> GeneratePasswordParts(RandomPasswordGeneratorOptions options)
@@ -33,24 +33,24 @@ namespace PG.Logic.Passwords.Generators
 			if (options.MinimumLength > totalCharacterCount)
 				throw new ArgumentOutOfRangeException(nameof(options), $"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({totalCharacterCount}).");
 
-			return GenerateSimplePasswordParts(options);
+			return BuildPasswordParts(options);
 		}
 
-		private IEnumerable<string> GenerateSimplePasswordParts(RandomPasswordGeneratorOptions options)
+		private IEnumerable<string> BuildPasswordParts(RandomPasswordGeneratorOptions options)
 		{
 			foreach (int _ in Enumerable.Range(0, options.NumberOfPasswords))
 			{
 				string passwordPart;
-				do { passwordPart = GenerateSimplePasswordPart(options); }
+				do { passwordPart = BuildPasswordPart(options); }
 				while (passwordPart.Length < options.MinimumLength);
 
 				yield return passwordPart;
 			}
 		}
 
-		private string GenerateSimplePasswordPart(RandomPasswordGeneratorOptions options)
+		private string BuildPasswordPart(RandomPasswordGeneratorOptions options)
 		{
-		  if (_random.Value == null)
+			if (_random.Value == null)
 				throw new InvalidOperationException("Random number generator is not initialized.");
 
 			List<char> letters = GenerateLetters(options.NumberOfLetters).ToList();
@@ -58,12 +58,16 @@ namespace PG.Logic.Passwords.Generators
 			IEnumerable<string> symbols = GenerateSymbols(options.NumberOfSpecialCharacters);
 
 			// The password always starts with the first letter, then: the rest of the letters, numbers, and symbols in a random order.
-			IEnumerable<string> strings = new string[] { letters[0].ToString() }
-			  .Concat(letters.Skip(1).Select(l => l.ToString())
+			IEnumerable<string> strings = [];
+			if (letters.Count > 0)
+				strings = [letters[0].ToString()];
+
+			strings = strings.Concat(
+				letters.Skip(1).Select(l => l.ToString())
 				  .Concat(numbers).Concat(symbols)
 				  .Where(s => s.Length > 0)
 				  .OrderBy(_ => _random.Value.Next())
-				);
+			);
 
 			return string.Join(string.Empty, strings);
 		}
