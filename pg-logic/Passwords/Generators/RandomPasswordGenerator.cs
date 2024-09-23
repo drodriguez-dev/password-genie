@@ -50,8 +50,7 @@ namespace PG.Logic.Passwords.Generators
 
 		private string BuildPasswordPart(RandomPasswordGeneratorOptions options)
 		{
-			if (_random.Value == null)
-				throw new InvalidOperationException("Random number generator is not initialized.");
+			Random random = GetRandomNumberGenerator();
 
 			List<char> letters = GenerateLetters(options.NumberOfLetters).ToList();
 			IEnumerable<string> numbers = GenerateNumbers(options.NumberOfNumbers);
@@ -66,7 +65,7 @@ namespace PG.Logic.Passwords.Generators
 				letters.Skip(1).Select(l => l.ToString())
 				  .Concat(numbers).Concat(symbols)
 				  .Where(s => s.Length > 0)
-				  .OrderBy(_ => _random.Value.Next())
+				  .OrderBy(_ => random.Next())
 			);
 
 			return string.Join(string.Empty, strings);

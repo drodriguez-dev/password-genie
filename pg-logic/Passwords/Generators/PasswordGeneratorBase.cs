@@ -20,16 +20,23 @@ namespace PG.Logic.Passwords.Generators
 
 		public abstract string Generate();
 
+		protected static Random GetRandomNumberGenerator()
+		{
+			if (_random.Value == null)
+				throw new InvalidOperationException("Random number generator is not initialized.");
+
+			return _random.Value;
+		}
+
 		/// <summary>
 		/// Generate a random string of characters.
 		/// </summary>
 		protected static IEnumerable<string> GenerateNumbers(int length)
 		{
-			if (_random.Value == null)
-				throw new InvalidOperationException("Random number generator is not initialized.");
+			Random random = GetRandomNumberGenerator();
 
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return _random.Value.Next(0, 10).ToString();
+				yield return random.Next(0, 10).ToString();
 		}
 
 		/// <summary>
@@ -37,11 +44,10 @@ namespace PG.Logic.Passwords.Generators
 		/// </summary>
 		protected static IEnumerable<char> GenerateLetters(int length)
 		{
-			if (_random.Value == null)
-				throw new InvalidOperationException("Random number generator is not initialized.");
+			Random random = GetRandomNumberGenerator();
 
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return _letters[_random.Value.Next(0, _letters.Length)];
+				yield return _letters[random.Next(0, _letters.Length)];
 		}
 
 		/// <summary>
@@ -69,10 +75,10 @@ namespace PG.Logic.Passwords.Generators
 		/// </remarks>
 		private string GenerateWord(ITreeNodeWithChildren<char> root, int averageLength)
 		{
-			if (_random.Value == null)
-				throw new InvalidOperationException("Random number generator is not initialized.");
 			if (averageLength < 2)
 				throw new ArgumentOutOfRangeException(nameof(averageLength), "Average length must be at least 2.");
+
+			Random random = GetRandomNumberGenerator();
 
 			var wordBuilder = new StringBuilder();
 
@@ -81,7 +87,7 @@ namespace PG.Logic.Passwords.Generators
 			var wordLengthVariance = averageLength / 2;
 
 			var node = root;
-			foreach (int _ in Enumerable.Range(0, averageLength + _random.Value.Next(-wordLengthVariance, wordLengthVariance)))
+			foreach (int _ in Enumerable.Range(0, averageLength + random.Next(-wordLengthVariance, wordLengthVariance)))
 			{
 				var children = node.Children.Select(n => n.Value).ToList();
 				if (RemoveHighAsciiCharacters)
@@ -89,7 +95,7 @@ namespace PG.Logic.Passwords.Generators
 
 				if (children.Count == 0) break;
 
-				var next = children[_random.Value.Next(children.Count)];
+				var next = children[random.Next(children.Count)];
 				wordBuilder.Append(next.Value);
 
 				node = next;
@@ -105,8 +111,7 @@ namespace PG.Logic.Passwords.Generators
 		/// </summary>
 	  internal IEnumerable<string> GenerateSymbols(int length)
 		{
-			if (_random.Value == null)
-				throw new InvalidOperationException("Random number generator is not initialized.");
+			Random random = GetRandomNumberGenerator();
 
 			List<char> symbols = [];
 			if (IncludeSetSymbols)
@@ -122,7 +127,7 @@ namespace PG.Logic.Passwords.Generators
 				throw new InvalidOperationException("No symbols are selected to generate.");
 
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return symbols[_random.Value.Next(symbols.Count)].ToString();
+				yield return symbols[random.Next(symbols.Count)].ToString();
 		}
 	}
 }

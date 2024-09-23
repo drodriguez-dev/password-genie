@@ -57,8 +57,7 @@ namespace PG.Logic.Passwords.Generators
 
 		private string BuildPasswordPart(DictionaryPasswordGeneratorOptions options, WordDictionary dictionary)
 		{
-			if (_random.Value == null)
-				throw new InvalidOperationException("Random number generator is not initialized.");
+			Random random = GetRandomNumberGenerator();
 
 			List<string> words = GenerateWords(dictionary, options.NumberOfWords, options.AverageWordLength).ToList();
 			IEnumerable<string> numbers = GenerateNumbers(options.NumberOfNumbers);
@@ -71,7 +70,7 @@ namespace PG.Logic.Passwords.Generators
 				.Concat(words[1..]
 					.Concat(numbers).Concat(symbols)
 					.Where(s => s.Length > 0)
-					.OrderBy(_ => _random.Value.Next())
+					.OrderBy(_ => random.Next())
 				);
 
 			return string.Join(string.Empty, strings);
