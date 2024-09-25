@@ -5,7 +5,7 @@
 	/// </summary>
 	/// <typeparam name="T">Type of the node</typeparam>
 	/// <param name="value">The value of type <typeparamref name="T"/> to store.</param>
-	internal class TreeNode<T>(T value) : ITreeNodeWithChildren<T>
+	public class TreeNode<T>(T value) : ITreeNodeWithChildren<T>
 	{
 		/// <summary>
 		/// The value of the node.

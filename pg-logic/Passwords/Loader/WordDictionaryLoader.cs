@@ -5,7 +5,7 @@ using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Loader
 {
-	internal class WordDictionaryLoader(IDictionariesData data)
+	public class WordDictionaryLoader(IDictionariesData data) : IDictionaryLoader
 	{
 		private const int MINIMUM_WORD_LENGTH = 2;
 		private readonly HashSet<char> VOWEL_AND_DIACRITIC_CHARS = [
@@ -51,7 +51,7 @@ namespace PG.Logic.Passwords.Loader
 			if (!File.Exists(dictionaryFilePath))
 				throw new FileNotFoundException($"Dictionary file not found: {dictionaryFilePath}");
 
-			WordDictionaryTree WordTree = new();
+			WordTree = new();
 
 			foreach (var word in DictionariesData.FetchAllWords())
 			{
@@ -91,7 +91,7 @@ namespace PG.Logic.Passwords.Loader
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word and returns true if the leaf node is reached; 
 		/// the word is found.
 		/// </summary>
-		internal bool IsLeafNodeReached(string word) => TrySearchLeafNode(word, out _);
+		public bool IsLeafNodeReached(string word) => TrySearchLeafNode(word, out _);
 
 		/// <summary>
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word. If the word is not found, the search stops at 
@@ -117,7 +117,7 @@ namespace PG.Logic.Passwords.Loader
 		/// Searches for the last possible leaf node in the dictionary tree by successively removing the last character of the word. If there is no valid 
 		/// node, the search stops at the last node that was found and returns false.
 		/// </summary>
-		internal bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNodeWithChildren<char> node)
+		public bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNodeWithChildren<char> node)
 		{
 			if (depthLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(depthLevel), "Depth level must be greater than zero.");

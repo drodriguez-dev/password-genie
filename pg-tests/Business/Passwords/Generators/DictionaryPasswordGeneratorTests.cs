@@ -1,6 +1,7 @@
 ﻿using PG.Data.Files.Dictionaries;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
+using PG.Logic.Passwords.Loader;
 using System.Diagnostics;
 using System.Text;
 
@@ -31,10 +32,9 @@ namespace PG.Tests.Business.Passwords.Generators
 				RemoveHighAsciiCharacters = true
 			};
 
-			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8);
-
 			Debug.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options, data);
+			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
+			DictionaryPasswordGenerator passwordGenerator = new(options, loader);
 			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 			Debug.WriteLine($"Generated passwords:");
@@ -72,7 +72,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			IDictionariesData data = new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8);
 
 			Debug.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options, data);
+			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
+			DictionaryPasswordGenerator passwordGenerator = new(options, loader);
 			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 			Debug.WriteLine($"Generated passwords:");

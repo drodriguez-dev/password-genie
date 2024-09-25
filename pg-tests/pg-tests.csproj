@@ -20,10 +20,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.6.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,13 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interface\" />
     <Folder Include="Deployables\" />
     <Folder Include="Resources\Dictionaries\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\pg-data-files\pg-data-files.csproj" />
+    <ProjectReference Include="..\pg-interface-cmd\pg-interface-cmd.csproj" />
     <ProjectReference Include="..\pg-logic\pg-logic.csproj" />
   </ItemGroup>
 

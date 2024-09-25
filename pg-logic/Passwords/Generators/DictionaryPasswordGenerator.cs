@@ -9,12 +9,12 @@ using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, IDictionariesData dictionariesData) : PasswordGeneratorBase
+	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, IDictionaryLoader dictionaryLoader) : PasswordGeneratorBase
 	{
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 		private const int WORD_VARIANCE_DIVIDER = 2;
 		private readonly DictionaryPasswordGeneratorOptions _options = options;
-		private readonly WordDictionaryLoader _dictionary = new(dictionariesData);
+		private readonly IDictionaryLoader _dictionary = dictionaryLoader;
 
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;

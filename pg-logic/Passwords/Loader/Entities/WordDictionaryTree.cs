@@ -1,6 +1,6 @@
 ﻿namespace PG.Logic.Passwords.Loader.Entities
 {
-	internal class WordDictionaryTree
+	public class WordDictionaryTree
 	{
 		public TreeRoot<char> Root { get; set; } = new TreeRoot<char>();
 
