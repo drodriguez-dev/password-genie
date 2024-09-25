@@ -51,7 +51,7 @@ namespace PG.Logic.Passwords.Loader
 			if (!File.Exists(dictionaryFilePath))
 				throw new FileNotFoundException($"Dictionary file not found: {dictionaryFilePath}");
 
-			WordTree = new WordDictionaryTree();
+			WordDictionaryTree WordTree = new();
 
 			foreach (var word in DictionariesData.FetchAllWords())
 			{
@@ -74,9 +74,7 @@ namespace PG.Logic.Passwords.Loader
 			ITreeNodeWithChildren<char> node = root;
 
 			foreach (var letter in word)
-			{
 				node = GetOrCreateChildNode(node, letter);
-			}
 		}
 
 		private static TreeNode<char> GetOrCreateChildNode(ITreeNodeWithChildren<char> node, char letter)

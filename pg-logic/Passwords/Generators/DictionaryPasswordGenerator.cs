@@ -42,7 +42,7 @@ namespace PG.Logic.Passwords.Generators
 				throw new InvalidOptionException("At least one word must be requested");
 
 			if (_options.AverageWordLength < MINIMUM_AVERAGE_WORD_LENGTH)
-				throw new ArgumentOutOfRangeException(nameof(_options.AverageWordLength), "Average length must be at least 2.");
+				throw new ArgumentOutOfRangeException(nameof(_options.AverageWordLength), $"Average length must be at least {MINIMUM_AVERAGE_WORD_LENGTH}.");
 
 			int totalCharacterCount = (_options.AverageWordLength * _options.NumberOfWords) + _options.NumberOfNumbers + _options.NumberOfSpecialCharacters;
 			if (totalCharacterCount <= 0)
@@ -50,6 +50,9 @@ namespace PG.Logic.Passwords.Generators
 
 			if (_options.MinimumLength > totalCharacterCount)
 				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({totalCharacterCount}).");
+
+			if (_options.DepthLevel > _options.AverageWordLength)
+				throw new InvalidOptionException($"Depth level must be lower than the average word length ({_options.DepthLevel}).");
 
 			return BuildPasswordParts(_options.NumberOfPasswords, _options.MinimumLength);
 		}

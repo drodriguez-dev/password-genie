@@ -1,4 +1,6 @@
-﻿namespace PG.Logic.Passwords.Generators
+﻿using PG.Logic.Common;
+
+namespace PG.Logic.Passwords.Generators
 {
 	public abstract class PasswordGeneratorBase : IPasswordGenerator
 	{
@@ -33,8 +35,12 @@
 			foreach (int _ in Enumerable.Range(0, numberOfPasswords))
 			{
 				string passwordPart;
+				int iterations = 0;
 				do { passwordPart = BuildPasswordPart(); }
-				while (passwordPart.Length < minimumLength);
+				while (iterations++ < Constants.MAX_ITERATIONS && passwordPart.Length < minimumLength);
+
+				if (iterations >= Constants.MAX_ITERATIONS)
+					throw new InvalidOperationException("Could not generate a password with the required length and the current settings.");
 
 				yield return passwordPart;
 			}
