@@ -33,7 +33,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"-r",
 			];
 
-			int result = new PassGenieParser(_provider).Parse(arguments).Result;
+			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;
 
 			Assert.AreEqual(0, result, "Unexpected result");
 		}
@@ -55,7 +55,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"-r",
 			];
 
-			int result = new PassGenieParser(_provider).Parse(arguments).Result;
+			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;
 
 			Assert.AreEqual(0, result, "Unexpected result");
 		}

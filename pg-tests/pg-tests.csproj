@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\pg-console-genpwd\Resources\Dictionaries\words_alpha_enUS.txt" Link="Resources\Dictionaries\words_alpha_enUS.txt">
+    <Content Include=".\Resources\Dictionaries\words_alpha_enUS.txt" Link="Resources\Dictionaries\words_alpha_enUS.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\pg-console-genpwd\Resources\Dictionaries\words_alpha_esES.txt" Link="Resources\Dictionaries\words_alpha_esES.txt">
+    <Content Include=".\Resources\Dictionaries\words_alpha_esES.txt" Link="Resources\Dictionaries\words_alpha_esES.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -43,6 +43,12 @@
     <ProjectReference Include="..\pg-data-files\pg-data-files.csproj" />
     <ProjectReference Include="..\pg-interface-cmd\pg-interface-cmd.csproj" />
     <ProjectReference Include="..\pg-logic\pg-logic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Scripts\Get-SuggestedPasswords.ps1">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

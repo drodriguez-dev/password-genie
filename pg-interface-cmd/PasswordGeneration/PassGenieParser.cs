@@ -16,7 +16,7 @@ namespace PG.Interface.Command.PasswordGeneration
 	{
 		private readonly IServiceProvider _provider = provider;
 
-		public async Task<int> Parse(string[] arguments)
+		public async Task<int> ParseAndExecute(string[] arguments)
 		{
 			RootCommand rootCommand = CreateRootCommand();
 			rootCommand.AddCommand(CreateGenerationCommand());

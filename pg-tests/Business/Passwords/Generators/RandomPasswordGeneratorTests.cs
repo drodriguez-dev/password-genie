@@ -1,6 +1,5 @@
 ﻿using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
-using PG.Shared.Extensions;
 using System.Diagnostics;
 
 namespace PG.Tests.Business.Passwords.Generators
