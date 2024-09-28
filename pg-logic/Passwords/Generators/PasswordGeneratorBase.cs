@@ -7,16 +7,15 @@ namespace PG.Logic.Passwords.Generators
 		private static int _seed = Environment.TickCount;
 		protected static readonly ThreadLocal<Random> _random = new(() => new Random(Interlocked.Increment(ref _seed)));
 
-		protected static readonly char[] _letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
-		protected static readonly char[] _setSymbols = @"()[]{}<>".ToCharArray();
-		protected static readonly char[] _markSymbols = @"!@#$%^*+=|;:\""?".ToCharArray();
-		protected static readonly char[] _separatorSymbols = @" -_/\&,.".ToCharArray();
-
 		protected abstract bool IncludeSetSymbols { get; }
 		protected abstract bool IncludeMarkSymbols { get; }
 		protected abstract bool IncludeSeparatorSymbols { get; }
 		protected abstract char[] CustomSpecialChars { get; }
 		protected abstract bool RemoveHighAsciiCharacters { get; }
+
+		protected static readonly char[] _setSymbols = @"()[]{}<>".ToCharArray();
+		protected static readonly char[] _markSymbols = @"!@#$%^*+=|;:\""?".ToCharArray();
+		protected static readonly char[] _separatorSymbols = @" -_/\&,.".ToCharArray();
 
 		public abstract string Generate();
 

@@ -14,6 +14,8 @@ namespace PG.Logic.Passwords.Generators
 		protected override char[] CustomSpecialChars => _options.CustomSpecialCharacters;
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
 
+		protected static readonly char[] _letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+
 		public override string Generate()
 		{
 			StringBuilder passwords = new();

@@ -1,8 +1,12 @@
 {
   "profiles": {
-    "pg-console-genpwd": {
+    "genpwd dictionary": {
       "commandName": "Project",
       "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_enUS.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r"
+    },
+    "genpwd hands": {
+      "commandName": "Project",
+      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r -ko Alternating"
     }
   }
 }

@@ -1,5 +1,5 @@
 # Password *Genie*rator
-Solution to generate passwords using different algorithms: randomized, dictionary. The purpose of this project is to provide a simple and easy to use console application to generate easy to remember but difficult to guess passwords.
+Solution to generate passwords using different algorithms: randomized, dictionary. The purpose of this project is to provide a way to generate easy to remember and type passwords but that are difficult to guess.
 
 ## Usage
 To use the console application, run the following command:
@@ -33,14 +33,67 @@ These options can be passed as command line arguments when running the console a
 - `--NumberOfWords`, `-w`: Specifies the number of words for generating the password. Default value is `2`.
 - `--AverageWordLength`, `-wl`: Specifies the average word length in the password. Default value is `6`.
 - `--DepthLevel`, `-wd`: Specifies the depth level for the word generation. Default value is `3`.
+- `--KeystrokeOrder`, `-ko`: Specifies the keystroke order for the word generation. Default value is `Random`.
+  - `Random`: Keystrokes are generated in a random order.
+  - `Alternating`: Keystrokes are generated in an alternating pattern between left and right sides of the keyboard.
+  - `AlternatingWord`: Keystrokes are generated in an alternating pattern between left and right sides of the keyboard after each word.
+  - `OnlyLeft`: Keystrokes are generated only from the left side of the keyboard.
+  - `OnlyRight`: Keystrokes are generated only from the right side of the keyboard.
+
+When the same hand is used for a word, the keystrokes will avoid using the same finger for consecutive characters.
 
 ## Examples
 ### Random Strategy
 ```bash
 ./genpwd generate random -p 5 -l 16 -n 2 -s 2 -c 12
 ```
-
+```
+W}7IIrnPltDNV8D&
+X8TmC\sKWRnV6,jb
+M\iVXLbw0trVB9d)
+bpCpV;|SSaW6xYF0
+HjcAwh}_9uKVLr9d
+```
 ### Dictionary Strategy
 ```bash
 ./genpwd generate dictionary -d /usr/share/dict/words -p 5 -w 3 -wl 8 -wd 2
 ```
+```
+Zuilkyu%EyipmkThwynao6
+Blyc[TimphilyclPnxinu1
+Luhupmk"IulipDjiulilih5
+Xrewe%AgdseavdYnarqerabe3
+Dypoilihril|IopilkPheohm5
+```
+### Author's favorite
+
+```bash
+./genpwd generate dictionary -d /usr/share/dict/words -p 10 -l 12 -w 2 -n 1 -s 1 -sc "-." -wl 6 -wd 4 -ko AlternatingStroke
+```
+```
+Vorham-Peytor9
+Skryen-Clayshf0
+Naotocl.Iantheu9
+Yakaneh-Lemanakt0
+Thwitoth-Nahant9
+Henbibi-Ovispr1
+Qiblahs.Bkbndo2
+Ovibot.Thwitl0
+Vocodp-Oghamale8
+Qiblauwi-Leuchan2
+```
+
+# About the author
+I am a self-taught software developer with a passion for creating useful applications that help people with recurrent tasks that can be done by a machine.
+
+# Road map
+- [X] Create the base for a N-layer solution.
+- [X] Implement the data access layer for the dictionary (text only).
+- [X] Implement the Random strategy.
+- [X] Implement the Dictionary strategy.
+- [X] Implement the unit tests for the logic layer.
+- [X] Implement the console application.
+- [ ] Document the solution.
+- [ ] Implement the CI pipeline (+ SonarQube)
+- [ ] Implement the web application (GitHub Pages).
+- [ ] Implement the CD pipeline (if necessary).

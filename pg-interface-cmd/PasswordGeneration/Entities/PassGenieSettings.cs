@@ -1,4 +1,6 @@
-﻿namespace PG.Interface.Command.PasswordGeneration.Entities
+﻿using PG.Logic.Passwords.Generators.Entities;
+
+namespace PG.Interface.Command.PasswordGeneration.Entities
 {
 	internal class PassGenieSettings
 	{
@@ -21,5 +23,6 @@
 		public int NumberOfWords { get; set; } = 2;
 		public int AverageWordLength { get; set; } = 6;
 		public int DepthLevel { get; set; } = 3;
+		public KeystrokeOrder KeystrokeOrder { get; set; } = KeystrokeOrder.Random;
 	}
 }

@@ -3,6 +3,7 @@ using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
 using PG.Logic.Passwords.Loader.Entities;
 using PG.Shared.Extensions;
+using System.Linq;
 using System.Text;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
@@ -12,14 +13,31 @@ namespace PG.Logic.Passwords.Generators
 	{
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 		private const int WORD_VARIANCE_DIVIDER = 2;
-		private readonly DictionaryPasswordGeneratorOptions _options = options;
 		private readonly IDictionaryLoader _dictionary = dictionaryLoader;
 
+		private enum HandSide { Left, Right }
+		private enum Finger { Pinky, Ring, Middle, Index, Thumb }
+
+		private readonly DictionaryPasswordGeneratorOptions _options = options;
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
 		protected override bool IncludeSeparatorSymbols => _options.IncludeSeparatorSymbols;
 		protected override char[] CustomSpecialChars => _options.CustomSpecialCharacters;
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
+
+		// Characters that are typed with the left hand in the US keyboard layout.
+		protected static readonly char[] _leftHandKeyStrokes = @"12345qwertasdfgzxcvbQWERTASDFGZXCVB~`!@#$%".ToCharArray();
+		protected static readonly char[] _leftPinkyKeyStrokes = @"1qazQAZ~`!".ToCharArray();
+		protected static readonly char[] _leftRingKeyStrokes = @"2wsxWSX@".ToCharArray();
+		protected static readonly char[] _leftMiddleKeyStrokes = @"3edcEDC#".ToCharArray();
+		protected static readonly char[] _leftIndexKeyStrokes = @"45rfvRFVtgbTGB$%".ToCharArray();
+
+		// Characters that are typed with the right hand in the US keyboard layout.
+		protected static readonly char[] _rightHandKeyStrokes = @"67890yuiophjklnmYUIOPHJKLNM^&*()-_+={}[]|\:;""'<>,.?/".ToCharArray();
+		protected static readonly char[] _rightPinkyKeyStrokes = @"0pP)-_+={}[]|\:;""'?/".ToCharArray();
+		protected static readonly char[] _rightRingKeyStrokes = @"9olOL(.>".ToCharArray();
+		protected static readonly char[] _rightMiddleKeyStrokes = @"8ikIK*,<".ToCharArray();
+		protected static readonly char[] _rightIndexKeyStrokes = @"67ujmUJM^&".ToCharArray();
 
 		public override string Generate()
 		{
@@ -103,19 +121,30 @@ namespace PG.Logic.Passwords.Generators
 		/// </summary>
 		internal IEnumerable<string> GenerateWords(int numberOfWords, int averageLength, int depthLevel)
 		{
+			Random random = GetRandomNumberGenerator();
+
+			HandSide currentHand;
+			if (_options.KeystrokeOrder == KeystrokeOrder.OnlyLeft || _options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
+				currentHand = _options.KeystrokeOrder == KeystrokeOrder.OnlyLeft ? HandSide.Left : HandSide.Right;
+			else
+				currentHand = random.Next(2) == 0 ? HandSide.Left : HandSide.Right;
+
 			foreach (int _ in Enumerable.Range(0, numberOfWords))
 			{
 				string? word;
 				int iterations = 0;
 
 				// Generate a word that is not already in the dictionary and that does not start with any of the words in the dictionary.
-				do { word = GenerateWord(averageLength, depthLevel); }
+				do { word = GenerateWord(averageLength, depthLevel, ref currentHand); }
 				while (iterations++ <= Constants.MAX_ITERATIONS && _dictionary.IsLeafNodeReached(word));
 
 				if (iterations > Constants.MAX_ITERATIONS)
 					throw new InvalidOperationException("Could not generate a word that is not already in the dictionary with the current settings.");
 
 				yield return word;
+
+				if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingWord)
+					currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
 			}
 		}
 
@@ -126,7 +155,7 @@ namespace PG.Logic.Passwords.Generators
 		/// <remarks>
 		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
 		/// </remarks>
-		private string GenerateWord(int averageLength, int depthLevel)
+		private string GenerateWord(int averageLength, int depthLevel, ref HandSide currentHand)
 		{
 			Random random = GetRandomNumberGenerator();
 
@@ -137,11 +166,15 @@ namespace PG.Logic.Passwords.Generators
 			var wordLengthVariance = Math.Max(1, averageLength / WORD_VARIANCE_DIVIDER);
 			int wordLength = averageLength + (random.Next(wordLengthVariance * 2) - wordLengthVariance);
 
+			Finger? curFinger = null;
 			ITreeNodeWithChildren<char> node = _dictionary.WordTree.Root;
 			foreach (int _ in Enumerable.Range(0, wordLength))
 			{
+				HandSide curHand = currentHand;
 				var children = node.Children.Select(kvp => kvp.Value)
 						.Where(tn => !RemoveHighAsciiCharacters || tn.Value < 128)
+						.Where(tn => IsProperHand(tn.Value, curHand))
+						.Where(tn => IsProperFinger(tn.Value, curHand, curFinger))
 						.ToList();
 
 				if (children.Count == 0) break;
@@ -149,7 +182,14 @@ namespace PG.Logic.Passwords.Generators
 				var next = children[random.Next(children.Count)];
 				wordBuilder.Append(next.Value);
 
+				curFinger = GetFingerForKeystroke(next.Value);
+
+				if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
+					currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
+
 				node = next;
+
+				// If the word is already in the dictionary, break the loop.
 				if (wordBuilder.Length >= depthLevel && !_dictionary.TrySearchLastPossibleLeafNode(wordBuilder.ToString(), depthLevel, out node))
 					break;
 			}
@@ -157,6 +197,62 @@ namespace PG.Logic.Passwords.Generators
 			// Return the word with the first letter capitalized.
 			string word = wordBuilder.ToString();
 			return char.ToUpper(word[0]) + word[1..];
+		}
+
+		/// <summary>
+		/// Determines if the keystroke is a proper keystroke for the current hand.
+		/// </summary>
+		private bool IsProperHand(char keystroke, HandSide hand)
+		{
+			return _options.KeystrokeOrder == KeystrokeOrder.Random
+				|| (hand == HandSide.Left ? _leftHandKeyStrokes.Contains(keystroke) : _rightHandKeyStrokes.Contains(keystroke));
+		}
+
+		/// <summary>
+		/// Determines if the keystroke is a proper keystroke for the current finger and hand.
+		/// </summary>
+		private bool IsProperFinger(char value, HandSide curHand, Finger? curFinger)
+		{
+			// If the finger is not set, any keystroke is valid.
+			if (curFinger == null) return true;
+
+			// Remove the keystrokes that are not allowed for the current finger and test if the keystroke is valid.
+			return curHand switch
+			{
+				HandSide.Left => curFinger switch
+				{
+					Finger.Pinky => _leftHandKeyStrokes.Except(_leftPinkyKeyStrokes).Contains(value),
+					Finger.Ring => _leftHandKeyStrokes.Except(_leftRingKeyStrokes).Contains(value),
+					Finger.Middle => _leftHandKeyStrokes.Except(_leftMiddleKeyStrokes).Contains(value),
+					Finger.Index => _leftHandKeyStrokes.Except(_leftIndexKeyStrokes).Contains(value),
+					_ => true
+				},
+				HandSide.Right => curFinger switch
+				{
+					Finger.Pinky => _rightHandKeyStrokes.Except(_rightPinkyKeyStrokes).Contains(value),
+					Finger.Ring => _rightHandKeyStrokes.Except(_rightRingKeyStrokes).Contains(value),
+					Finger.Middle => _rightHandKeyStrokes.Except(_rightMiddleKeyStrokes).Contains(value),
+					Finger.Index => _rightHandKeyStrokes.Except(_rightIndexKeyStrokes).Contains(value),
+					_ => true
+				},
+				_ => true,
+			};
+		}
+
+		private static Finger? GetFingerForKeystroke(char value)
+		{
+			return value switch
+			{
+				char v when _leftPinkyKeyStrokes.Contains(v) => (Finger?)Finger.Pinky,
+				char v when _leftRingKeyStrokes.Contains(v) => (Finger?)Finger.Ring,
+				char v when _leftMiddleKeyStrokes.Contains(v) => (Finger?)Finger.Middle,
+				char v when _leftIndexKeyStrokes.Contains(v) => (Finger?)Finger.Index,
+				char v when _rightPinkyKeyStrokes.Contains(v) => (Finger?)Finger.Pinky,
+				char v when _rightRingKeyStrokes.Contains(v) => (Finger?)Finger.Ring,
+				char v when _rightMiddleKeyStrokes.Contains(v) => (Finger?)Finger.Middle,
+				char v when _rightIndexKeyStrokes.Contains(v) => (Finger?)Finger.Index,
+				_ => null,
+			};
 		}
 	}
 }

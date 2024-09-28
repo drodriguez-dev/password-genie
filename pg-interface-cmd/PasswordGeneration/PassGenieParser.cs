@@ -65,6 +65,8 @@ namespace PG.Interface.Command.PasswordGeneration
 			command.AddOption(new Option<int>(["--NumberOfWords", "-w"], () => 2, "Number of words for generating the password"));
 			command.AddOption(new Option<int>(["--AverageWordLength", "-wl"], () => 6, "Average word length in the password"));
 			command.AddOption(new Option<int>(["--DepthLevel", "-wd"], () => 3, "Depth level for the word generation"));
+			command.AddOption(new Option<KeystrokeOrder>(["--KeystrokeOrder", "-ko"], () => KeystrokeOrder.Random, 
+				$"The order in which keystrokes are generated ({string.Join(", ", Enum.GetNames(typeof(KeystrokeOrder)))})"));
 
 			command.Handler = CommandHandler.Create<GeneratorType, PassGenieSettings>(ExecuteCommand);
 
@@ -126,6 +128,7 @@ namespace PG.Interface.Command.PasswordGeneration
 				NumberOfWords = settings.NumberOfWords,
 				AverageWordLength = settings.AverageWordLength,
 				DepthLevel = settings.DepthLevel,
+				KeystrokeOrder = settings.KeystrokeOrder,
 			};
 		}
 
