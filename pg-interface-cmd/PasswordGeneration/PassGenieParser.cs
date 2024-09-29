@@ -7,6 +7,7 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
+using System.Diagnostics;
 using System.Reflection;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
@@ -15,6 +16,12 @@ namespace PG.Interface.Command.PasswordGeneration
 	public class PassGenieParser(IServiceProvider provider)
 	{
 		private readonly IServiceProvider _provider = provider;
+
+		// Return values
+		private const int NO_ERROR = 0;
+		private const int UNEXPECTED_ERROR = int.MaxValue;
+
+		public event Action<HumanReadableMessage>? OutputReport;
 
 		public async Task<int> ParseAndExecute(string[] arguments)
 		{
@@ -65,7 +72,7 @@ namespace PG.Interface.Command.PasswordGeneration
 			command.AddOption(new Option<int>(["--NumberOfWords", "-w"], () => 2, "Number of words for generating the password"));
 			command.AddOption(new Option<int>(["--AverageWordLength", "-wl"], () => 6, "Average word length in the password"));
 			command.AddOption(new Option<int>(["--DepthLevel", "-wd"], () => 3, "Depth level for the word generation"));
-			command.AddOption(new Option<KeystrokeOrder>(["--KeystrokeOrder", "-ko"], () => KeystrokeOrder.Random, 
+			command.AddOption(new Option<KeystrokeOrder>(["--KeystrokeOrder", "-ko"], () => KeystrokeOrder.Random,
 				$"The order in which keystrokes are generated ({string.Join(", ", Enum.GetNames(typeof(KeystrokeOrder)))})"));
 
 			command.Handler = CommandHandler.Create<GeneratorType, PassGenieSettings>(ExecuteCommand);
@@ -73,7 +80,7 @@ namespace PG.Interface.Command.PasswordGeneration
 			return command;
 		}
 
-		private void ExecuteCommand(GeneratorType type, PassGenieSettings settings)
+		private int ExecuteCommand(GeneratorType type, PassGenieSettings settings)
 		{
 			var factory = _provider.GetService(typeof(PasswordGeneratorFactory)) as PasswordGeneratorFactory
 				?? throw new InvalidOperationException("Password generator factory is not registered as a service provider.");
@@ -85,7 +92,10 @@ namespace PG.Interface.Command.PasswordGeneration
 				_ => throw new InvalidOperationException($"Invalid generator type ('{type}')")
 			};
 
-			Console.WriteLine(generator.Generate());
+			string passwords = generator.Generate();
+			Output(TraceLevel.Info, "{0}", passwords);
+
+			return NO_ERROR;
 		}
 
 		private static RandomPasswordGeneratorOptions ConvertToRandomGeneratorOptions(PassGenieSettings settings)
@@ -138,22 +148,16 @@ namespace PG.Interface.Command.PasswordGeneration
 				exception = targetInvocationException.InnerException ?? exception;
 
 			if (exception is BaseException baseException)
-			{
-				WriteConsole(ConsoleColor.Yellow, baseException.Message);
-				context.ExitCode = 1;
-			}
+				Output(TraceLevel.Warning, "{0}", baseException.Message);
 			else
-			{
-				WriteConsole(ConsoleColor.Red, exception.Message);
-				context.ExitCode = int.MaxValue;
-			}
+				Output(TraceLevel.Error, "{0}", exception.Message);
+
+			context.ExitCode = UNEXPECTED_ERROR;
 		}
 
-		private static void WriteConsole(ConsoleColor color, string message)
+		private void Output(TraceLevel level, string format, params object[] args)
 		{
-			Console.ForegroundColor = color;
-			Console.WriteLine(message);
-			Console.ResetColor();
+			OutputReport?.Invoke(new HumanReadableMessage(level, format, args));
 		}
 	}
 }

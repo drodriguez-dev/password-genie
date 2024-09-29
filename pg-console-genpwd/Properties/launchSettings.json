@@ -6,7 +6,11 @@
     },
     "genpwd hands": {
       "commandName": "Project",
-      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r -ko Alternating"
+      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r -ko AlternatingStroke"
+    },
+    "genpwd warning": {
+      "commandName": "Project",
+      "commandLineArgs": "generate random -p 10 -n 1 -s 0 -c 1"
     }
   }
 }
