@@ -3,6 +3,7 @@ using PG.Data.Files.Dictionaries;
 using PG.Interface.Command.PasswordGeneration;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Loader;
+using PG.Shared.Services;
 
 namespace PG.Tests.Interface.PasswordGeneration
 {
@@ -17,6 +18,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				.AddSingleton<PasswordGeneratorFactory>()
 				.AddSingleton<IDictionaryLoaderFactory, DictionaryLoaderFactory>()
 				.AddSingleton<IDictionariesDataFactory, DictionariesDataFactory>()
+				.AddTransient<RandomService>()
 				.BuildServiceProvider();
 		}
 

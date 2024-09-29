@@ -1,11 +1,12 @@
 ﻿using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.Extensions;
+using PG.Shared.Services;
 using System.Text;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public class RandomPasswordGenerator(RandomPasswordGeneratorOptions options) : PasswordGeneratorBase
+	public class RandomPasswordGenerator(RandomPasswordGeneratorOptions options, RandomService random) : PasswordGeneratorBase(random)
 	{
 		private readonly RandomPasswordGeneratorOptions _options = options;
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
@@ -44,8 +45,6 @@ namespace PG.Logic.Passwords.Generators
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "Too complex")]
 		protected override string BuildPasswordPart()
 		{
-			Random random = GetRandomNumberGenerator();
-
 			List<char> letters = GenerateLetters(_options.NumberOfLetters).ToList();
 			List<char> numbers = GenerateNumbers(_options.NumberOfNumbers).SelectMany(s => s.ToCharArray()).ToList();
 			List<char> symbols = GenerateSymbols(_options.NumberOfSpecialCharacters).SelectMany(s => s.ToCharArray())
@@ -62,8 +61,10 @@ namespace PG.Logic.Passwords.Generators
 				.OrderBy(c => c.IsPrintable() ? PopPosition(1, positions.Count) : PopPosition(2, positions.Count - 1));
 
 			passwordElements = letters.Take(1).Concat(passwordElements);
+			string @return = string.Join(string.Empty, passwordElements);
+			_random.CommitEntropy();
 
-			return string.Join(string.Empty, passwordElements);
+			return @return;
 
 			// Returns a random position from the list of available positions and removes it from the list.
 			int PopPosition(int min, int max)
@@ -74,7 +75,7 @@ namespace PG.Logic.Passwords.Generators
 				min = Math.Max(1, Math.Min(positions.Count, min));
 				max = Math.Max(1, Math.Min(positions.Count, max));
 
-				int index = random.Next(max - min + 1) + min - 1;
+				int index = _random.Next(max - min + 1) + min - 1;
 				int position = positions[index];
 				positions.RemoveAt(index);
 
@@ -85,12 +86,12 @@ namespace PG.Logic.Passwords.Generators
 		/// <summary>
 		/// Generates a random set of letters
 		/// </summary>
-		protected static IEnumerable<char> GenerateLetters(int length)
+		protected IEnumerable<char> GenerateLetters(int length)
 		{
-			Random random = GetRandomNumberGenerator();
-
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return _letters[random.Next(0, _letters.Length)];
+				yield return _letters[_random.Next(0, _letters.Length)];
+
+			_random.CommitEntropy();
 		}
 	}
 }

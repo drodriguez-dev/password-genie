@@ -1,11 +1,12 @@
 ﻿using PG.Logic.Common;
+using PG.Shared.Services;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public abstract class PasswordGeneratorBase : IPasswordGenerator
+	public abstract class PasswordGeneratorBase(RandomService random) : IPasswordGenerator
 	{
-		private static int _seed = Environment.TickCount;
-		protected static readonly ThreadLocal<Random> _random = new(() => new Random(Interlocked.Increment(ref _seed)));
+		protected readonly RandomService _random = random;
+		private readonly List<double> _entropyValues = [];
 
 		protected abstract bool IncludeSetSymbols { get; }
 		protected abstract bool IncludeMarkSymbols { get; }
@@ -21,39 +22,40 @@ namespace PG.Logic.Passwords.Generators
 
 		protected abstract string BuildPasswordPart();
 
-		protected static Random GetRandomNumberGenerator()
-		{
-			if (_random.Value == null)
-				throw new InvalidOperationException("Random number generator is not initialized.");
-
-			return _random.Value;
-		}
-
 		protected virtual IEnumerable<string> BuildPasswordParts(int numberOfPasswords, int minimumLength)
 		{
 			foreach (int _ in Enumerable.Range(0, numberOfPasswords))
 			{
 				string passwordPart;
 				int iterations = 0;
-				do { passwordPart = BuildPasswordPart(); }
+				_random.ResetEntropy();
+				do
+				{
+					// If the previous password part was not valid, discard the entropy and try again.
+					_random.DiscardEntropy();
+					passwordPart = BuildPasswordPart();
+				}
 				while (iterations++ < Constants.MAX_ITERATIONS && passwordPart.Length < minimumLength);
 
 				if (iterations >= Constants.MAX_ITERATIONS)
 					throw new InvalidOperationException("Could not generate a password with the required length and the current settings.");
 
 				yield return passwordPart;
+
+				_random.CommitEntropy();
+				_entropyValues.Add(_random.GetBitsOfEntropy());
 			}
 		}
 
 		/// <summary>
 		/// Generate a random string of characters.
 		/// </summary>
-		protected static IEnumerable<string> GenerateNumbers(int length)
+		protected IEnumerable<string> GenerateNumbers(int length)
 		{
-			Random random = GetRandomNumberGenerator();
-
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return random.Next(0, 10).ToString();
+				yield return _random.Next(0, 10).ToString();
+
+			_random.CommitEntropy();
 		}
 
 		/// <summary>
@@ -67,10 +69,10 @@ namespace PG.Logic.Passwords.Generators
 			if (symbols.Length == 0)
 				throw new InvalidOperationException("No symbols are available. Either provide custom symbols or enable the default ones.");
 
-			Random random = GetRandomNumberGenerator();
-
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return symbols[random.Next(symbols.Length)].ToString();
+				yield return symbols[_random.Next(symbols.Length)].ToString();
+
+			_random.CommitEntropy();
 		}
 
 		/// <summary>
@@ -92,6 +94,14 @@ namespace PG.Logic.Passwords.Generators
 			}
 
 			return symbols;
+		}
+
+		public double GetAndResetPasswordEntropy()
+		{
+			double entropy = _entropyValues.Sum() / _entropyValues.Count;
+			_entropyValues.Clear();
+
+			return entropy;
 		}
 	}
 }

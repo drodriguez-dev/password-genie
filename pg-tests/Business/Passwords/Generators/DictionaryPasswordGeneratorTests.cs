@@ -2,6 +2,7 @@
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
+using PG.Shared.Services;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -42,7 +43,7 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			Debug.WriteLine("Starting password generation...");
 			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
-			DictionaryPasswordGenerator passwordGenerator = new(options, loader);
+			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
 			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 			Debug.WriteLine($"Generated passwords:");
@@ -80,7 +81,7 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			Debug.WriteLine("Starting password generation...");
 			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
-			DictionaryPasswordGenerator passwordGenerator = new(options, loader);
+			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
 			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 			Debug.WriteLine($"Generated passwords:");
@@ -122,7 +123,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			foreach (KeystrokeOrder order in Enum.GetValues(typeof(KeystrokeOrder)))
 			{
 				options.KeystrokeOrder = order;
-				string[] passwords = new DictionaryPasswordGenerator(options, loader).Generate()
+				string[] passwords = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate()
 					.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
 				Debug.WriteLine($"  {order}: {string.Join(", ", passwords)}");

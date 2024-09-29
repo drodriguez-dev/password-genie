@@ -55,6 +55,7 @@ namespace PG.Interface.Command.PasswordGeneration
 			command.AddGlobalOption(new Option<bool>(["--IncludeSeparatorSymbols", "-sp"], () => true, @"Include separator symbols (' -_/\&,.') in the password."));
 			command.AddGlobalOption(new Option<string>(["--CustomSymbols", "-sc"], () => string.Empty, "Use custom set of symbols. All 'Include' options are ignored."));
 			command.AddGlobalOption(new Option<bool>(["--RemoveHighAsciiTable", "-r"], () => false, @"Remove characters of the high ASCII table (128-255) from the password."));
+			command.AddGlobalOption(new Option<bool>(["--Verbose"], "Show additional information about the generated password."));
 
 			return command;
 		}
@@ -94,6 +95,10 @@ namespace PG.Interface.Command.PasswordGeneration
 
 			string passwords = generator.Generate();
 			Output(TraceLevel.Info, "{0}", passwords);
+
+			double entropy = generator.GetAndResetPasswordEntropy();
+			if (settings.Verbose)
+				Output(TraceLevel.Verbose, "\nPassword entropy is: {0:N2} ({1})", entropy, GetEntropyText(entropy));
 
 			return NO_ERROR;
 		}
@@ -153,6 +158,24 @@ namespace PG.Interface.Command.PasswordGeneration
 				Output(TraceLevel.Error, "{0}", exception.Message);
 
 			context.ExitCode = UNEXPECTED_ERROR;
+		}
+
+		/// <summary>
+		/// Using predefined ranges, returns a text representation of the entropy.
+		/// </summary>
+		private static string GetEntropyText(double entropy)
+		{
+			if (entropy < 1)
+				return "(error)";
+			if (entropy < 28)
+				return "Very weak";
+			if (entropy < 36)
+				return "Weak";
+			if (entropy < 60)
+				return "Reasonable";
+			if (entropy < 128)
+				return "Strong";
+			return "Very strong";
 		}
 
 		private void Output(TraceLevel level, string format, params object[] args)

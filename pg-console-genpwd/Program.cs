@@ -4,6 +4,7 @@ using PG.Interface.Command.PasswordGeneration;
 using PG.Interface.Command.PasswordGeneration.Entities;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Loader;
+using PG.Shared.Services;
 
 namespace PG.Console.PasswordGenie
 {
@@ -58,6 +59,7 @@ namespace PG.Console.PasswordGenie
 				.AddSingleton<PasswordGeneratorFactory>()
 				.AddSingleton<IDictionaryLoaderFactory, DictionaryLoaderFactory>()
 				.AddSingleton<IDictionariesDataFactory, DictionariesDataFactory>()
+				.AddTransient<RandomService>()
 				.BuildServiceProvider();
 		}
 	}

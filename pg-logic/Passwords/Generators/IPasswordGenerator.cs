@@ -7,5 +7,7 @@
 		/// </summary>
 		/// <returns>Text with the generated passwords separated by a new line.</returns>
 		string Generate();
+
+		double GetAndResetPasswordEntropy();
 	}
 }

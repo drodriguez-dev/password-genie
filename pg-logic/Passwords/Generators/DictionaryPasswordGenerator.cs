@@ -3,13 +3,13 @@ using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
 using PG.Logic.Passwords.Loader.Entities;
 using PG.Shared.Extensions;
-using System.Linq;
+using PG.Shared.Services;
 using System.Text;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, IDictionaryLoader dictionaryLoader) : PasswordGeneratorBase
+	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, RandomService random, IDictionaryLoader dictionaryLoader) : PasswordGeneratorBase(random)
 	{
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 		private const int WORD_VARIANCE_DIVIDER = 2;
@@ -77,8 +77,6 @@ namespace PG.Logic.Passwords.Generators
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "Too complex")]
 		protected override string BuildPasswordPart()
 		{
-			Random random = GetRandomNumberGenerator();
-
 			List<string> words = GenerateWords(_options.NumberOfWords, _options.AverageWordLength, _options.DepthLevel).ToList();
 			List<string> numbers = GenerateNumbers(_options.NumberOfNumbers).ToList();
 			List<string> symbols = GenerateSymbols(_options.NumberOfSpecialCharacters)
@@ -94,8 +92,10 @@ namespace PG.Logic.Passwords.Generators
 				.OrderBy(s => EndsWithWhitespace(s) ? PopPosition(1, positions.Count) : PopPosition(2, positions.Count - 1));
 
 			passwordElements = words.Take(1).Concat(passwordElements);
+			string @return = string.Join(string.Empty, passwordElements);
+			_random.CommitEntropy();
 
-			return string.Join(string.Empty, passwordElements);
+			return @return;
 
 			static bool EndsWithWhitespace(string text) => text.Length > 0 && text[^1].IsWhitespace();
 
@@ -108,7 +108,7 @@ namespace PG.Logic.Passwords.Generators
 				min = Math.Max(1, Math.Min(positions.Count, min));
 				max = Math.Max(1, Math.Min(positions.Count, max));
 
-				int index = random.Next(max - min + 1) + min - 1;
+				int index = _random.Next(max - min + 1) + min - 1;
 				int position = positions[index];
 				positions.RemoveAt(index);
 
@@ -121,27 +121,35 @@ namespace PG.Logic.Passwords.Generators
 		/// </summary>
 		internal IEnumerable<string> GenerateWords(int numberOfWords, int averageLength, int depthLevel)
 		{
-			Random random = GetRandomNumberGenerator();
-
 			HandSide currentHand;
 			if (_options.KeystrokeOrder == KeystrokeOrder.OnlyLeft || _options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
 				currentHand = _options.KeystrokeOrder == KeystrokeOrder.OnlyLeft ? HandSide.Left : HandSide.Right;
 			else
-				currentHand = random.Next(2) == 0 ? HandSide.Left : HandSide.Right;
+			{
+				currentHand = _random.Next(2) == 0 ? HandSide.Left : HandSide.Right;
+				_random.CommitEntropy();
+			}
 
 			foreach (int _ in Enumerable.Range(0, numberOfWords))
 			{
 				string? word;
 				int iterations = 0;
 
-				// Generate a word that is not already in the dictionary and that does not start with any of the words in the dictionary.
-				do { word = GenerateWord(averageLength, depthLevel, ref currentHand); }
-				while (iterations++ <= Constants.MAX_ITERATIONS && _dictionary.IsLeafNodeReached(word));
+				// Generate a word that is not already in the dictionary (IsLeafNodeReached) and that does not start with any of the words in the dictionary.
+				do
+				{
+					// If the previos word was not valid, discard the entropy and try again.
+					_random.DiscardEntropy();
+					word = GenerateWord(averageLength, depthLevel, ref currentHand);
+				}
+				while (iterations++ < Constants.MAX_ITERATIONS && _dictionary.IsLeafNodeReached(word));
 
-				if (iterations > Constants.MAX_ITERATIONS)
+				if (iterations >= Constants.MAX_ITERATIONS)
 					throw new InvalidOperationException("Could not generate a word that is not already in the dictionary with the current settings.");
 
 				yield return word;
+
+				_random.CommitEntropy();
 
 				if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingWord)
 					currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
@@ -157,14 +165,12 @@ namespace PG.Logic.Passwords.Generators
 		/// </remarks>
 		private string GenerateWord(int averageLength, int depthLevel, ref HandSide currentHand)
 		{
-			Random random = GetRandomNumberGenerator();
-
 			var wordBuilder = new StringBuilder();
 
 			// The variance is half of the average length. For example, if the average length is 8, the variance is 4; so the word length can be
 			// between 4 and 12.
 			var wordLengthVariance = Math.Max(1, averageLength / WORD_VARIANCE_DIVIDER);
-			int wordLength = averageLength + (random.Next(wordLengthVariance * 2) - wordLengthVariance);
+			int wordLength = averageLength + (_random.Next(wordLengthVariance * 2) - wordLengthVariance);
 
 			Finger? curFinger = null;
 			ITreeNodeWithChildren<char> node = _dictionary.WordTree.Root;
@@ -179,7 +185,7 @@ namespace PG.Logic.Passwords.Generators
 
 				if (children.Count == 0) break;
 
-				var next = children[random.Next(children.Count)];
+				var next = children[_random.Next(children.Count)];
 				wordBuilder.Append(next.Value);
 
 				curFinger = GetFingerForKeystroke(next.Value);

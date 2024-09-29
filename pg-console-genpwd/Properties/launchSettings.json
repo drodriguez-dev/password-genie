@@ -1,16 +1,24 @@
 {
   "profiles": {
-    "genpwd dictionary": {
+    "dictionary": {
       "commandName": "Project",
-      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_enUS.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r"
+      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_enUS.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 --Verbose"
     },
-    "genpwd hands": {
+    "hands": {
       "commandName": "Project",
-      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r -ko AlternatingStroke"
+      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r -ko AlternatingStroke --Verbose"
     },
-    "genpwd warning": {
+    "warning": {
       "commandName": "Project",
-      "commandLineArgs": "generate random -p 10 -n 1 -s 0 -c 1"
+      "commandLineArgs": "generate random -p 10 -l 10 -n 1 -s 0 -c 1 --Verbose"
+    },
+    "low entropy": {
+      "commandName": "Project",
+      "commandLineArgs": "generate random -p 10 -l 1 -n 4 -s 0 -c 0 --Verbose"
+    },
+    "high entropy": {
+      "commandName": "Project",
+      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -w 2 -n 1 -s 1 -sc \".-\" -wl 6 -wd 4 -ko AlternatingStroke --Verbose"
     }
   }
 }
