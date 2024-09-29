@@ -83,8 +83,40 @@ Vocodp-Oghamale8
 Qiblauwi-Leuchan2
 ```
 
-# About the author
-I am a self-taught software developer with a passion for creating useful applications that help people with recurrent tasks that can be done by a machine.
+# The Solution
+## Architecture
+This is a **n-layer** solution that provides a way to generate passwords using different strategies. The solution is divided into the following layers:
+- **Crosscutting Layer**: Provides the common classes (logic & [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object)) for the solution. Only non-specific classes are included in this layer.
+  - *pg-shared*: This project contains the common classes for the solution.
+  - *pg-entities*: This project contains the entities for the solution (*planned*). Only the entities that must traverse all the layers are included here.
+- **Data Access layer**: Provides the data access to the dictionary file. Its main purpose is to read the data requested by the logic layer.
+  - *pg-data-files*: Data access methods for managing files (dictionaries). Any other dictionary type can be implemented here in the future.
+- **Logic layer**: This layer contains only logic, external data and interactions are handled by the interface layer.
+  - *pg-logic*: This project contains the main logic to generate the passwords. It's divided into the following sub-layers:
+    - Generators: Contains the classes to generate the passwords using different strategies. New strategies can be implemented here.
+    - Loaders: Contains the classes to load the data from the data access layer. The data layer is responsible to provide a list of words, and the logic layer will use them to create the necessary structure to generate the passwords. This structure is loaded only once and kept in memory.
+- **Interface layer**: This layer is responsible for the communication between the external world and the logic layer. It will convert external data and interactions into entities and actions that the logic layer can understand. It will also convert the results from the logic layer into a format that the external world can understand.
+  - *pg-interface-cmd*: Provides the command line parsing for the console application and defines the commands and options available. It will also handle the exceptions and pass a human-readable message to the caller.
+- **Console application**: Provides the console application to generate the passwords and outputs the messages to the user. Any other console commands can be implemented here in the future.
+	- *pg-console-genpwd*: Entry point for the genpwd command.
+- **Tests**: Provides the unit tests for the logic layer. This project is also divided into the same layers as the main solution.
+
+Every layer contains its own specific exceptions to handle custom errors. Exceptions are only thrown for exceptional cases, expected cases are handled by the return values. Exceptions are catched in the layer that can handle them and rethrown (or not catched) if necessary. Rethrowning a new exception is allowed to provide more context to the caller, but always including the original exception as the inner exception.
+
+Additional information may be added to a rethrown exception to provide more context to the caller.
+
+## Strategies
+### Random Strategy
+This strategy generates passwords using random letters, numbers, and special characters. The generated passwords will have the specified number of letters, numbers, and special characters. Uses `System.Random` to generate the random characters based on the options provided. Depending on the type of character:
+- Letters: Random letters from the alphabet (ASCII 65-90, 97-122).
+- Numbers: Random numbers from 0 to 9 (ASCII 48-57).
+- Special characters: Random special characters from the ASCII table (32-47, 58-64, 91-93, 95, 123-125).
+  - Group symbols: `()[]{}<>`
+  - Mark symbols: `!@#$%^*+=|;:\"'?`
+  - Separator symbols: `-_ /\&,` *(space is included here)*
+
+### Dictionary Strategy
+This strategy consists of a tree structure of letters that will be used to generate the words. The loader will build the tree structure using the words from the dictionary file. Every letter (node) will have a list of possible next letters, and the tree will be traversed to generate the words. The depth level defines how many letters will be traversed and then, the next letter will be chosen randomly from the list of possible next letters. The next letter will be chosen based on the keystroke order.
 
 # Road map
 - [X] Create the base for a N-layer solution.
@@ -94,6 +126,13 @@ I am a self-taught software developer with a passion for creating useful applica
 - [X] Implement the unit tests for the logic layer.
 - [X] Implement the console application.
 - [ ] Document the solution.
+- [ ] Ensure all classes are services and interfaces are registered.
+- [ ] Calculate the entropy of the generated passwords ( E=log2(S^l^) ).
 - [ ] Implement the CI pipeline (+ SonarQube)
 - [ ] Implement the web application (GitHub Pages).
 - [ ] Implement the CD pipeline (if necessary).
+
+# About the author
+I am a self-taught software developer with a passion for creating useful applications that help people with recurrent tasks that can be done by a machine. This project was inspired because I needed a way to generate secure passwords that were easy to remember and type. I've realized words are easier to remember than random characters, so I've decided to create a way to generate passwords using fictional words from a dictionary file.
+
+I hope you find this project useful and that it helps you.
