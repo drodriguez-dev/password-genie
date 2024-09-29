@@ -119,9 +119,11 @@ This strategy generates passwords using random letters, numbers, and special cha
 This strategy consists of a tree structure of letters that will be used to generate the words. The loader will build the tree structure using the words from the dictionary file. Every letter (node) will have a list of possible next letters, and the tree will be traversed to generate the words. The depth level defines how many letters will be traversed and then, the next letter will be chosen randomly from the list of possible next letters. The next letter will be chosen based on the keystroke order.
 
 ## Entropy
-The password entropy is a measure of the password strength. The higher the entropy, the stronger the password. Because of the nature of the strategies, the entropy is calculated based on the number of options on each decision point. For example, in a two letters password and one number, the entropy should be calculated as `log2(52^2 x 10)`; but, because the characters are then shuffled the entropy is `log2(52^2 x 10 x 2 x 1)`.
+The [password entropy]([url](https://en.wikipedia.org/wiki/Password_strength)) is a measure of the password strength. The higher the entropy, the stronger the password. Because of the nature of the strategies, the entropy is calculated based on the number of options on each decision point. For example, in a two letters password and one number, the entropy should be calculated as `log2(52^2 x 10)`; but, because the characters are then shuffled the entropy is `log2(52^2 x 10 x 2 x 1)`.
 
-Additionally, because the length of the passwords is variable and the dictonary tree is traversed randomly, the entropy is calculated for the average length of the generated passwords. The entropy will be shown when the `--Verbose` option is used.
+Additionally, because the length of the passwords is variable and the dictonary tree is traversed randomly, every password will have different entropy. The final value is calculated for the average length of the generated passwords. 
+
+The entropy will be shown when the `--Verbose` option is used.
 
 # Road map
 - [X] Create the base for a N-layer solution.
