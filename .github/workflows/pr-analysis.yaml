@@ -5,6 +5,7 @@ name: CA
 on:
   push:
     branches:
+      - main
       - feat/*
 
 jobs:
