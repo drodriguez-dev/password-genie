@@ -3,10 +3,10 @@
 name: CA
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - main
-      - feat/*
 
 jobs:
   build:
