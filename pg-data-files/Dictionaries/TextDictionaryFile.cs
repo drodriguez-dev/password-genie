@@ -12,7 +12,7 @@ namespace PG.Data.Files.Dictionaries
 		public IEnumerable<string> FetchAllWords()
 		{
 			if (string.IsNullOrEmpty(FilePath))
-				throw new ArgumentNullException("File path not provided.");
+				throw new ArgumentNullException(nameof(FilePath), "File path was not provided.");
 
 			try
 			{

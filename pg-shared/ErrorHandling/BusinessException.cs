@@ -2,17 +2,17 @@
 {
 	public abstract class BusinessException : BaseException
 	{
-		public BusinessException() : base()
+		protected BusinessException() : base()
 		{
 			Type = ExceptionType.Business;
 		}
 
-		public BusinessException(string message) : base(message)
+		protected BusinessException(string message) : base(message)
 		{
 			Type = ExceptionType.Business;
 		}
 
-		public BusinessException(string message, Exception innerException) : base(message, innerException)
+		protected BusinessException(string message, Exception innerException) : base(message, innerException)
 		{
 			Type = ExceptionType.Business;
 		}
