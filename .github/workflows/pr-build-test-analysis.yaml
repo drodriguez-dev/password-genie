@@ -27,7 +27,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Install dotnet-coverage
-        run: dotnet tool install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
         
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
