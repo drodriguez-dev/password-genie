@@ -43,6 +43,7 @@
     <ProjectReference Include="..\pg-data-files\pg-data-files.csproj" />
     <ProjectReference Include="..\pg-interface-cmd\pg-interface-cmd.csproj" />
     <ProjectReference Include="..\pg-logic\pg-logic.csproj" />
+    <ProjectReference Include="..\pg-shared\pg-shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
