@@ -136,10 +136,10 @@ namespace PG.Logic.Passwords.Generators
 					_random.DiscardEntropy();
 					word = GenerateWord(averageLength, depthLevel, ref currentHand);
 				}
-				while (iterations++ < Constants.MAX_ITERATIONS && _dictionary.IsLeafNodeReached(word));
+				while (iterations++ < Constants.MAX_ITERATIONS && string.IsNullOrEmpty(word) && _dictionary.IsLeafNodeReached(word));
 
 				if (iterations >= Constants.MAX_ITERATIONS)
-					throw new InvalidOperationException("Could not generate a word that is not already in the dictionary with the current settings.");
+					throw new InvalidOperationException("Max iterations reached without being able to generate a valid word.");
 
 				yield return word;
 
@@ -216,7 +216,10 @@ namespace PG.Logic.Passwords.Generators
 
 			// Return the word with the first letter capitalized.
 			string word = wordBuilder.ToString();
-			return char.ToUpper(word[0]) + word[1..];
+
+			if (word.Length == 0) return string.Empty;
+			else if (word.Length == 1) return word.ToUpper();
+			else return char.ToUpper(word[0]) + word[1..];
 		}
 
 		/// <summary>
