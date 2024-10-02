@@ -41,7 +41,7 @@ namespace PG.Logic.Passwords.Generators
 
 		public override string Generate()
 		{
-			_dictionary.Load(_options.File);
+			_dictionary.Load();
 
 			StringBuilder passwords = new();
 			foreach (var passwordPart in GeneratePasswordParts())
