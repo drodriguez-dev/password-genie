@@ -6,7 +6,7 @@ namespace PG.Logic.Passwords.Loader
 	{
 		internal WordDictionaryTree WordTree { get; set; }
 
-		void Load(string dictionaryFilePath);
+		void Load();
 
 		bool IsLeafNodeReached(string word);
 

@@ -46,11 +46,8 @@ namespace PG.Logic.Passwords.Loader
 		/// </summary>
 		/// <param name="dictionaryFilePath">Full path to the dictionary file.</param>
 		/// <returns>Root node of the dictionary tree structure representing the dictionary.</returns>
-		public void Load(string dictionaryFilePath)
+		public void Load()
 		{
-			if (!File.Exists(dictionaryFilePath))
-				throw new FileNotFoundException($"Dictionary file not found: {dictionaryFilePath}");
-
 			WordTree = new();
 
 			foreach (var word in DictionariesData.FetchAllWords())
@@ -66,7 +63,7 @@ namespace PG.Logic.Passwords.Loader
 			}
 
 			if (WordTree.Root.Children.Count == 0)
-				throw new InvalidDictionaryException($"Dictionary file '{dictionaryFilePath}' does not contain any valid words. Words must be at least {MINIMUM_WORD_LENGTH} characters long and contain only letters.");
+				throw new InvalidDictionaryException($"Dictionary file does not contain any valid words. Words must be at least {MINIMUM_WORD_LENGTH} characters long and contain only letters.");
 		}
 
 		private static void AddWordToTree(TreeRoot<char> root, string word)

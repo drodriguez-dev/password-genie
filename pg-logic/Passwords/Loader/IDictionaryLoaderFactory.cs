@@ -4,6 +4,6 @@ namespace PG.Logic.Passwords.Loader
 {
 	public interface IDictionaryLoaderFactory
 	{
-		IDictionaryLoader Create(string file, Encoding encoding);
+		IDictionaryLoader Create(string filePath, Encoding encoding);
 	}
 }

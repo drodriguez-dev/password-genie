@@ -3,7 +3,7 @@ using static PG.Data.Files.ErrorHandling.DataExceptions;
 
 namespace PG.Data.Files.Dictionaries
 {
-	internal class TextDictionaryFile(string filePath, Encoding encoding) : IDictionariesData
+	public class TextDictionaryFile(string filePath, Encoding encoding) : IDictionariesData
 	{
 		private string FilePath { get; set; } = filePath;
 
@@ -12,16 +12,12 @@ namespace PG.Data.Files.Dictionaries
 		public IEnumerable<string> FetchAllWords()
 		{
 			if (string.IsNullOrEmpty(FilePath))
-				throw new ArgumentNullException("File path not provided.");
+				throw new InvalidPathFileException("Dictionary file path was not provided.");
 
-			try
-			{
-				return YieldAllLines();
-			}
-			catch (FileNotFoundException)
-			{
-				throw new InvalidFileException($"File path \"{FilePath}\" was not found.");
-			}
+			if (!File.Exists(FilePath))
+				throw new FileNotFoundException($"Dictionary file was not found ('{FilePath}').");
+
+			return YieldAllLines();
 		}
 
 		private IEnumerable<string> YieldAllLines()

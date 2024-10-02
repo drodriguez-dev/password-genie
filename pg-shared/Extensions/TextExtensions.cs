@@ -31,7 +31,6 @@
 			if (length >= value.Length)
 				return value;
 
-			//return value[..length];
 			return value[^length..];
 		}
 	}
