@@ -134,7 +134,7 @@ The entropy will be shown when the `--Verbose` option is used.
 - [X] Implement the console application.
 - [X] Document the solution.
 - [X] Calculate the entropy of the generated passwords ( E=log2(S^l) ).
-- [ ] Implement the CI pipeline (+ SonarQube)
+- [X] Implement the CI pipeline (+ SonarQube)
 - [ ] Implement the web application (GitHub Pages).
 - [ ] Implement the CD pipeline (if necessary).
 
