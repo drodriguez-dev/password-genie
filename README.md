@@ -126,17 +126,7 @@ Additionally, because the length of the passwords is variable and the dictonary 
 The entropy will be shown when the `--Verbose` option is used.
 
 # Road map
-- [X] Create the base for a N-layer solution.
-- [X] Implement the data access layer for the dictionary (text only).
-- [X] Implement the Random strategy.
-- [X] Implement the Dictionary strategy.
-- [X] Implement the unit tests for the logic layer.
-- [X] Implement the console application.
-- [X] Document the solution.
-- [X] Calculate the entropy of the generated passwords ( E=log2(S^l) ).
-- [X] Implement the CI pipeline (+ SonarQube)
-- [ ] Implement the web application (GitHub Pages).
-- [ ] Implement the CD pipeline (if necessary).
+Check open issues with the tag "[enhacement](issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement+)".
 
 # About the author
 I am a self-taught software developer with a passion for creating useful applications that help people with recurrent tasks that can be done by a machine. This project was inspired because I needed a way to generate secure passwords that were easy to remember and type. I've realized words are easier to remember than random characters, so I've decided to create a way to generate passwords using fictional words from a dictionary file.
