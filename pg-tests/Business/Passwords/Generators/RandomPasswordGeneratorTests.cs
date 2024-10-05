@@ -32,10 +32,10 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			Debug.WriteLine("Starting password generation...");
 			RandomPasswordGenerator passwordGenerator = new(options, new RandomService());
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
-			foreach (var passwordPart in passwords)
+			foreach (var passwordPart in result.Passwords)
 			{
 				Debug.WriteLine($"  {passwordPart}");
 
@@ -47,6 +47,8 @@ namespace PG.Tests.Business.Passwords.Generators
 				if (options.NumberOfSpecialCharacters > 0)
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
+
+			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		[TestMethod]
@@ -98,12 +100,11 @@ namespace PG.Tests.Business.Passwords.Generators
 		private static double GenerateAndGetEntropy(RandomPasswordGeneratorOptions options)
 		{
 			RandomPasswordGenerator passwordGenerator = new(options, new RandomService());
-			_ = passwordGenerator.Generate();
+			var result = passwordGenerator.Generate();
 
-			var entropy = passwordGenerator.GetAndResetPasswordEntropy();
-			Debug.WriteLine($"Entropy for '{options}': {entropy}");
+			Debug.WriteLine($"Entropy for '{options}': {result.AverageEntropy}");
 
-			return entropy;
+			return result.AverageEntropy;
 		}
 
 		public static bool CheckEntropy(double entropy, double combinations)

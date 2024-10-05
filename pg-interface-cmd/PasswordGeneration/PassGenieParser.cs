@@ -93,12 +93,11 @@ namespace PG.Interface.Command.PasswordGeneration
 				_ => throw new InvalidOperationException($"Invalid generator type ('{type}')")
 			};
 
-			string passwords = generator.Generate();
-			Output(TraceLevel.Info, "{0}", passwords);
+			var result = generator.Generate();
+			Output(TraceLevel.Info, "{0}", string.Join(Environment.NewLine, result.Passwords));
 
-			double entropy = generator.GetAndResetPasswordEntropy();
 			if (settings.Verbose)
-				Output(TraceLevel.Verbose, "\nPassword entropy is: {0:N2} ({1})", entropy, GetEntropyText(entropy));
+				Output(TraceLevel.Verbose, "\nPassword entropy is: {0:N2} ({1})", result.AverageEntropy, GetEntropyText(result.AverageEntropy));
 
 			return NO_ERROR;
 		}

@@ -17,17 +17,7 @@ namespace PG.Logic.Passwords.Generators
 
 		protected static readonly char[] _letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
-		public override string Generate()
-		{
-			StringBuilder passwords = new();
-			foreach (var passwordPart in GeneratePasswordParts())
-				passwords.AppendLine(passwordPart);
-
-			// Convert the StringBuilder to a string and remove the last line break
-			return passwords.ToString();
-		}
-
-		private IEnumerable<string> GeneratePasswordParts()
+		protected override IEnumerable<string> GeneratePasswordParts()
 		{
 			if (_options.NumberOfPasswords < 0)
 				throw new InvalidOptionException("At least one password must be requested");

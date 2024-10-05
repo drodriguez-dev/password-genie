@@ -39,18 +39,14 @@ namespace PG.Logic.Passwords.Generators
 		protected static readonly char[] _rightMiddleKeyStrokes = @"8ikIK*,<".ToCharArray();
 		protected static readonly char[] _rightIndexKeyStrokes = @"67ujmUJM^&".ToCharArray();
 
-		public override string Generate()
+		public override GenerationResult Generate()
 		{
 			_dictionary.Load();
 
-			StringBuilder passwords = new();
-			foreach (var passwordPart in GeneratePasswordParts())
-				passwords.AppendLine(passwordPart);
-
-			return passwords.ToString();
+			return base.Generate();
 		}
 
-		private IEnumerable<string> GeneratePasswordParts()
+		protected override IEnumerable<string> GeneratePasswordParts()
 		{
 			if (_options.NumberOfPasswords < 1)
 				throw new InvalidOptionException("At least one password must be requested");

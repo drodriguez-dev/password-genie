@@ -1,4 +1,5 @@
 ﻿using PG.Logic.Common;
+using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.Services;
 
 namespace PG.Logic.Passwords.Generators
@@ -18,7 +19,20 @@ namespace PG.Logic.Passwords.Generators
 		protected static readonly char[] _markSymbols = @"!@#$%^*+=|;:\""?".ToCharArray();
 		protected static readonly char[] _separatorSymbols = @" -_/\&,.".ToCharArray();
 
-		public abstract string Generate();
+		public virtual GenerationResult Generate()
+		{
+			List<string> passwords = [];
+			foreach (var passwordPart in GeneratePasswordParts())
+				passwords.Add(passwordPart);
+
+			return new GenerationResult()
+			{
+				Passwords = [.. passwords],
+				AverageEntropy = GetAndResetPasswordEntropy()
+			};
+		}
+
+		protected abstract IEnumerable<string> GeneratePasswordParts();
 
 		protected abstract string BuildPasswordPart();
 
@@ -96,7 +110,7 @@ namespace PG.Logic.Passwords.Generators
 			return symbols;
 		}
 
-		public double GetAndResetPasswordEntropy()
+		protected double GetAndResetPasswordEntropy()
 		{
 			double entropy = _entropyValues.Sum() / _entropyValues.Count;
 			_entropyValues.Clear();

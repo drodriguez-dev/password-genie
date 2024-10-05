@@ -45,10 +45,10 @@ namespace PG.Tests.Business.Passwords.Generators
 			Debug.WriteLine("Starting password generation...");
 			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
 			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
-			foreach (var passwordPart in passwords)
+			foreach (var passwordPart in result.Passwords)
 			{
 				Debug.WriteLine($"  {passwordPart}");
 
@@ -60,6 +60,8 @@ namespace PG.Tests.Business.Passwords.Generators
 				if (numberOfSpecials > 0)
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
+
+			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		[TestMethod]
@@ -83,10 +85,10 @@ namespace PG.Tests.Business.Passwords.Generators
 			Debug.WriteLine("Starting password generation...");
 			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
 			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
-			foreach (var passwordPart in passwords)
+			foreach (var passwordPart in result.Passwords)
 			{
 				Debug.WriteLine($"  {passwordPart}");
 
@@ -98,6 +100,8 @@ namespace PG.Tests.Business.Passwords.Generators
 				if (options.NumberOfSpecialCharacters > 0)
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
+
+			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		[TestMethod]
@@ -124,22 +128,23 @@ namespace PG.Tests.Business.Passwords.Generators
 			foreach (KeystrokeOrder order in Enum.GetValues(typeof(KeystrokeOrder)))
 			{
 				options.KeystrokeOrder = order;
-				string[] passwords = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate()
-					.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+				var result = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 
-				Debug.WriteLine($"  {order}: {string.Join(", ", passwords)}");
+				Debug.WriteLine($"  {order}: {string.Join(", ", result)}");
 
-				Assert.IsTrue(passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
-				Assert.IsTrue(passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
+				Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
+				Assert.IsTrue(result.Passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
 
 				if (new[] { KeystrokeOrder.AlternatingStroke, KeystrokeOrder.AlternatingWord }.Contains(options.KeystrokeOrder))
-					Assert.IsTrue(passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
+					Assert.IsTrue(result.Passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
 
 				if (options.KeystrokeOrder == KeystrokeOrder.OnlyLeft)
-					Assert.IsTrue(!passwords.Any(RightHandPattern().IsMatch), "Password should not contain left hand keystrokes only.");
+					Assert.IsTrue(!result.Passwords.Any(RightHandPattern().IsMatch), "Password should not contain left hand keystrokes only.");
 
 				if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
-					Assert.IsTrue(!passwords.Any(LeftHandPattern().IsMatch), "Password should not contain right hand keystrokes only.");
+					Assert.IsTrue(!result.Passwords.Any(LeftHandPattern().IsMatch), "Password should not contain right hand keystrokes only.");
+
+				Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
 			}
 		}
 
