@@ -6,20 +6,12 @@ using PG.Shared.Services;
 using PG.Tests.Business.Passwords.Generators.Mockups;
 using System.Diagnostics;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace PG.Tests.Business.Passwords.Generators
 {
 	[TestClass()]
-	public partial class DictionaryPasswordGeneratorTests
+	public class DictionaryPasswordGeneratorTests : PasswordGeneratorTestBase
 	{
-		[GeneratedRegex(@"\w+")]
-		private static partial Regex WordPattern();
-		[GeneratedRegex(@"[yuiophjklnmYUIOPHJKLNM]")]
-		private static partial Regex RightHandPattern();
-		[GeneratedRegex(@"[qwertasdfgzxcvbQWERTASDFGZXCVB]")]
-		private static partial Regex LeftHandPattern();
-
 		[DataTestMethod]
 		[DataRow(8, 2, 4, 2, 2)]
 		[DataRow(4, 2, 5, 0, 0)]
@@ -130,7 +122,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.KeystrokeOrder = order;
 				var result = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 
-				Debug.WriteLine($"  {order}: {string.Join(", ", result)}");
+				Debug.WriteLine($"  {order}: {string.Join(", ", result.Passwords)}");
 
 				Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
 				Assert.IsTrue(result.Passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");

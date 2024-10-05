@@ -1,7 +1,5 @@
 ﻿using PG.Logic.Passwords.Generators.Entities;
-using PG.Shared.Extensions;
 using PG.Shared.Services;
-using System.Text;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
@@ -9,11 +7,14 @@ namespace PG.Logic.Passwords.Generators
 	public class RandomPasswordGenerator(RandomPasswordGeneratorOptions options, RandomService random) : PasswordGeneratorBase(random)
 	{
 		private readonly RandomPasswordGeneratorOptions _options = options;
+		private readonly int TotalCharacters = options.NumberOfLetters + options.NumberOfNumbers + options.NumberOfSpecialCharacters;
+
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
 		protected override bool IncludeSeparatorSymbols => _options.IncludeSeparatorSymbols;
 		protected override char[] CustomSpecialChars => _options.CustomSpecialCharacters;
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
+		protected override KeystrokeOrder KeystrokeOrder => _options.KeystrokeOrder;
 
 		protected static readonly char[] _letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
@@ -22,66 +23,118 @@ namespace PG.Logic.Passwords.Generators
 			if (_options.NumberOfPasswords < 0)
 				throw new InvalidOptionException("At least one password must be requested");
 
-			int totalCharacterCount = _options.NumberOfLetters + _options.NumberOfNumbers + _options.NumberOfSpecialCharacters;
-			if (totalCharacterCount < 1)
+			if (TotalCharacters < 1)
 				throw new InvalidOptionException("At least one character group must be included.");
 
-			if (_options.MinimumLength > totalCharacterCount)
-				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({totalCharacterCount}).");
+			if (_options.MinimumLength > TotalCharacters)
+				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({TotalCharacters}).");
 
 			return BuildPasswordParts(_options.NumberOfPasswords, _options.MinimumLength);
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "Too complex")]
 		protected override string BuildPasswordPart()
 		{
-			List<char> letters = GenerateLetters(_options.NumberOfLetters).ToList();
-			List<char> numbers = GenerateNumbers(_options.NumberOfNumbers).SelectMany(s => s.ToCharArray()).ToList();
-			List<char> symbols = GenerateSymbols(_options.NumberOfSpecialCharacters).SelectMany(s => s.ToCharArray())
-				.OrderBy(c => c.IsPrintable() ? int.MinValue : int.MaxValue).ToList();
-			// Symbols are ordered so non-printable characters are first
+			int letters = _options.NumberOfLetters;
+			int numbers = _options.NumberOfNumbers;
+			int specialCharacters = _options.NumberOfSpecialCharacters;
+			HandSide currentHand = ChooseFirstHand();
+			Finger? currentFinger = null;
 
-			// List of positions that will be used to determine the order of the password items. It's initialized with all the possible positions ordered from 0 to n - 1.
-			List<int> positions = Enumerable.Range(0, Math.Max(0, letters.Count - 1) + numbers.Count + symbols.Count).ToList();
+			var password = Enumerable.Range(1, TotalCharacters)
+				.Select(i => GetCharacterSet(i, letters, numbers, specialCharacters))
+				.Select(cs => GetAndDiscountAvailableCharacters(cs, ref letters, ref numbers, ref specialCharacters))
+				.Select(aC => FilterPossibleCharacters(aC, ref currentHand, currentFinger))
+				.Select(pC => ChooseCharacter(pC, ref currentFinger));
 
-			// The password always starts with the first letter, then: the rest of the letters, numbers, and symbols in a random order.
-			// Not printable characters will never be the last character in the password.
-			IEnumerable<char> passwordElements = letters.Skip(1)
-				.Concat(numbers).Concat(symbols)
-				.OrderBy(c => c.IsPrintable() ? PopPosition(1, positions.Count) : PopPosition(2, positions.Count - 1));
-
-			passwordElements = letters.Take(1).Concat(passwordElements);
-			string @return = string.Join(string.Empty, passwordElements);
-			_random.CommitEntropy();
-
-			return @return;
-
-			// Returns a random position from the list of available positions and removes it from the list.
-			int PopPosition(int min, int max)
-			{
-				if (positions.Count == 0) throw new InvalidOperationException("There are no more positions available.");
-
-				// Ensure the min and max values are within the range of the positions list.
-				min = Math.Max(1, Math.Min(positions.Count, min));
-				max = Math.Max(1, Math.Min(positions.Count, max));
-
-				int index = _random.Next(max - min + 1) + min - 1;
-				int position = positions[index];
-				positions.RemoveAt(index);
-
-				return position;
-			}
+			return string.Join(string.Empty, password);
 		}
 
 		/// <summary>
-		/// Generates a random set of letters
+		/// Returns a characters set based on the available characters and the position of the character in the password.
 		/// </summary>
-		protected IEnumerable<char> GenerateLetters(int length)
+		/// <param name="position">Position where the new character will be inserted.</param>
+		/// <param name="letters">Quantity of letters still available.</param>
+		/// <param name="numbers">Quantity of numbers still available.</param>
+		/// <param name="symbols">Quantity of symbols still available.</param>
+		/// <returns></returns>
+		private CharacterSet GetCharacterSet(int position, int letters, int numbers, int symbols)
 		{
-			foreach (int _ in Enumerable.Range(0, length))
-				yield return _letters[_random.Next(0, _letters.Length)];
+			IEnumerable<CharacterSet> charSets = [];
 
-			_random.CommitEntropy();
+			// Build the character set based on the available characters
+			if (letters > 0)
+				charSets = charSets.Concat([CharacterSet.Letters]);
+			if (numbers > 0)
+				charSets = charSets.Concat([CharacterSet.Numbers]);
+			if (symbols > 0)
+				charSets = charSets.Concat([CharacterSet.Symbols]);
+
+			// Avoid numbers and special characters at the beginning of the password but if there are no letters available, they will be used.
+			// First symbols and then numbers will be avoided if possible.
+			if (position == 1 && charSets.Count() > 1)
+				charSets = charSets.Where(cs => cs != CharacterSet.Symbols);
+			if (position == 1 && charSets.Count() > 1)
+				charSets = charSets.Where(cs => cs != CharacterSet.Numbers);
+
+			// Get a random character set from the available ones
+			return charSets.ToArray()[_random.Next(charSets.Count())];
+		}
+
+		private char[] GetAndDiscountAvailableCharacters(CharacterSet cs, ref int letters, ref int numbers, ref int specialCharacters)
+		{
+			switch (cs)
+			{
+				case CharacterSet.Letters:
+					letters--;
+					return _letters;
+				case CharacterSet.Numbers:
+					numbers--;
+					return Enumerable.Range(0, 10).Select(i => i.ToString()[0]).ToArray();
+				case CharacterSet.Symbols:
+					specialCharacters--;
+					return GetAvailableSymbols().ToArray();
+				default:
+					throw new NotImplementedException($"Character set {cs} is not implemented.");
+			}
+		}
+
+		private char[] FilterPossibleCharacters(char[] aC, ref HandSide currentHand, Finger? currentFinger)
+		{
+			// CS1628 Cannot use ref [...] parameter 'currentHand' inside [...] a lambda expression [...].
+			HandSide curHand = currentHand;
+
+			var possibleChars = aC
+				.Where(tn => !RemoveHighAsciiCharacters || tn < 128)
+				.Where(tn => IsProperHand(tn, curHand))
+				.Where(tn => IsProperFinger(tn, curHand, currentFinger));
+
+			char[] @return = possibleChars.ToArray();
+			if (@return.Length == 0)
+				throw new InvalidOperationException($"There are no more characters available for the current hand ({currentHand}) and finger ({currentFinger}): '{string.Join(",", aC)}')");
+
+			currentHand = ChooseHand(curHand);
+
+			return @return;
+		}
+
+		protected override HandSide ChooseHand(HandSide currentHand)
+		{
+			if (KeystrokeOrder == KeystrokeOrder.Random)
+				currentHand = HandSide.Any;
+			else if (KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
+				currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			return currentHand;
+		}
+
+		private char ChooseCharacter(char[] pC, ref Finger? currentFinger)
+		{
+			if (pC.Length == 0)
+				throw new InvalidOperationException("There are no more characters available.");
+
+			char @return = pC[_random.Next(pC.Length)];
+
+			currentFinger = GetFingerForKeystroke(@return);
+			return @return;
 		}
 	}
 }

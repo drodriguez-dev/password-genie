@@ -29,6 +29,8 @@
 
 		public char[] CustomSpecialCharacters { get; set; } = [];
 
+		public KeystrokeOrder KeystrokeOrder { get; set; }
+
 		public override string ToString() => $"Q: {NumberOfPasswords}, min: {MinimumLength} (N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
 	}
 }
