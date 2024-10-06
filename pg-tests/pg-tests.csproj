@@ -11,12 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Deployables\**" />
-    <EmbeddedResource Remove="Deployables\**" />
-    <None Remove="Deployables\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include=".\Resources\Dictionaries\words_alpha_enUS.txt" Link="Resources\Dictionaries\words_alpha_enUS.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
