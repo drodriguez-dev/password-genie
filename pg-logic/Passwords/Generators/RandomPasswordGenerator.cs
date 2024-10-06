@@ -20,7 +20,7 @@ namespace PG.Logic.Passwords.Generators
 
 		protected override IEnumerable<string> GeneratePasswordParts()
 		{
-			if (_options.NumberOfPasswords < 0)
+			if (_options.NumberOfPasswords < 1)
 				throw new InvalidOptionException("At least one password must be requested");
 
 			if (TotalCharacters < 1)
@@ -110,7 +110,8 @@ namespace PG.Logic.Passwords.Generators
 
 			char[] @return = possibleChars.ToArray();
 			if (@return.Length == 0)
-				throw new InvalidOperationException($"There are no more characters available for the current hand ({currentHand}) and finger ({currentFinger}): '{string.Join(",", aC)}')");
+				throw new InvalidOperationException($"There are no more characters available for the current hand ({currentHand}) and finger ({currentFinger}):" +
+					$" '{string.Join(",", aC)}')");
 
 			currentHand = ChooseHand(curHand);
 
