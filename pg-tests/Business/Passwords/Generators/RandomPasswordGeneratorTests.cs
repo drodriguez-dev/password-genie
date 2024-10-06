@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace PG.Tests.Business.Passwords.Generators
 {
 	[TestClass()]
-	public class RandomPasswordGeneratorTests
+	public class RandomPasswordGeneratorTests : PasswordGeneratorTestBase
 	{
 		[DataTestMethod]
 		[DataRow(8, 4, 2, 2)]
@@ -32,10 +32,10 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			Debug.WriteLine("Starting password generation...");
 			RandomPasswordGenerator passwordGenerator = new(options, new RandomService());
-			var passwords = passwordGenerator.Generate().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
-			foreach (var passwordPart in passwords)
+			foreach (var passwordPart in result.Passwords)
 			{
 				Debug.WriteLine($"  {passwordPart}");
 
@@ -47,63 +47,68 @@ namespace PG.Tests.Business.Passwords.Generators
 				if (options.NumberOfSpecialCharacters > 0)
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
+
+			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
+		/// <summary>
+		/// Tests the entropy calculation for different password configurations. The entropy should be the log2 of the number of possible combinations.
+		/// </summary>
+		/// <remarks>
+		/// Because of the nature of the entropy calculation, the entropy is not an exact value.Only for very small cases (e.g. 2 letters, 1 number) the 
+		/// entropy is an exact value.
+		/// </remarks>
 		[TestMethod]
 		public void EntropyTest()
 		{
-
 			RandomPasswordGeneratorOptions options = new()
 			{
 				NumberOfPasswords = 10,
-				NumberOfLetters = 0,
-				NumberOfNumbers = 1,
+				//NumberOfLetters = 0,
+				//NumberOfNumbers = 1,
 				NumberOfSpecialCharacters = 0,
 				MinimumLength = 0,
 				IncludeSetSymbols = true,
 				IncludeMarkSymbols = true,
 				IncludeSeparatorSymbols = true,
-				RemoveHighAsciiCharacters = true
+				RemoveHighAsciiCharacters = true,
+				KeystrokeOrder = KeystrokeOrder.Random,
 			};
 
 			Debug.WriteLine("Starting password generation...");
 
 			double[] entropy = new double[4];
-			int curEntropy = -1;
-			entropy[++curEntropy] = GenerateAndGetEntropy(options);
-			Assert.IsTrue(entropy[curEntropy] > 0, "Entropy is not greater than 0.");
-			Assert.IsTrue(CheckEntropy(entropy[curEntropy], 10 * 1), "Entropy should be precisely the log2 of the number of possible passwords.");
+			int index = -1;
 
+			options.NumberOfLetters = 0;
+			options.NumberOfNumbers = 1;
+			entropy[++index] = GenerateAndGetEntropy(options);
+			Assert.IsTrue(entropy[index] > 0, "Entropy is not greater than 0.");
+			Assert.IsTrue(CheckEntropy(entropy[index], Math.Pow(10, 1)), "Entropy should be precisely the log2 of the number of possible combinations.");
+
+			options.NumberOfLetters = 0;
 			options.NumberOfNumbers = 2;
-			entropy[++curEntropy] = GenerateAndGetEntropy(options);
-			Assert.IsTrue(entropy[curEntropy] > 0, "Entropy is not greater than 0.");
-			Assert.IsTrue(CheckEntropy(entropy[curEntropy], Math.Pow(10, 2) * 2 * 1), "Entropy should be precisely the log2 of the number of possible passwords.");
-			Assert.IsTrue(entropy[curEntropy] > entropy[curEntropy - 1], "Entropy should be higher than the previous.");
+			entropy[++index] = GenerateAndGetEntropy(options);
+			Assert.IsTrue(entropy[index] > 0, "Entropy is not greater than 0.");
+			Assert.IsTrue(CheckEntropy(entropy[index], Math.Pow(10, 2)), "Entropy should be precisely the log2 of the number of possible combinations.");
+			Assert.IsTrue(entropy[index] > entropy[index - 1], "Entropy should be higher than the previous.");
 
 			options.NumberOfNumbers = 1;
 			options.NumberOfLetters = 2;
-			entropy[++curEntropy] = GenerateAndGetEntropy(options);
-			Assert.IsTrue(entropy[curEntropy] > 0, "Entropy is not greater than 0.");
-			Assert.IsTrue(CheckEntropy(entropy[curEntropy], Math.Pow(52, 2) * 10 * 2 * 1), "Entropy should be precisely the log2 of the number of possible passwords.");
-			Assert.IsTrue(entropy[curEntropy] > entropy[curEntropy - 1], "Entropy should be higher than the previous.");
-
-			options.NumberOfNumbers = 2;
-			options.NumberOfLetters = 2;
-			entropy[++curEntropy] = GenerateAndGetEntropy(options);
-			Assert.IsTrue(entropy[curEntropy] > 0, "Entropy is not greater than 0.");
-			Assert.IsTrue(CheckEntropy(entropy[curEntropy], Math.Pow(52, 2) * Math.Pow(10, 2) * 3 * 2 * 1), "Entropy should be precisely the log2 of the number of possible passwords.");
-			Assert.IsTrue(entropy[curEntropy] > entropy[curEntropy - 1], "Entropy should be higher than the previous.");
+			entropy[++index] = GenerateAndGetEntropy(options);
+			Assert.IsTrue(entropy[index] > 0, "Entropy is not greater than 0.");
+			Assert.IsTrue(CheckEntropy(entropy[index], Math.Pow(52, 2) * 10 * 2), "Entropy should be precisely the log2 of the number of possible combinations.");
+			Assert.IsTrue(entropy[index] > entropy[index - 1], "Entropy should be higher than the previous.");
 		}
 
 		private static double GenerateAndGetEntropy(RandomPasswordGeneratorOptions options)
 		{
 			RandomPasswordGenerator passwordGenerator = new(options, new RandomService());
-			_ = passwordGenerator.Generate();
+			var result = passwordGenerator.Generate();
 
-			var entropy = passwordGenerator.GetAndResetPasswordEntropy();
-			Debug.WriteLine($"Entropy for '{options}': {entropy}");
+			Debug.WriteLine($"Entropy for '{options}': {result.AverageEntropy}");
 
-			return entropy;
+			return result.AverageEntropy;
 		}
 
 		public static bool CheckEntropy(double entropy, double combinations)
@@ -114,5 +119,112 @@ namespace PG.Tests.Business.Passwords.Generators
 			return difference < precision;
 		}
 
+		[TestMethod]
+		public void AlternatingHandsTest()
+		{
+			RandomPasswordGeneratorOptions options = new()
+			{
+				NumberOfPasswords = 10,
+				NumberOfLetters = 8,
+				NumberOfNumbers = 1,
+				NumberOfSpecialCharacters = 1,
+				MinimumLength = 10,
+				CustomSpecialCharacters = " ".ToCharArray(),
+				RemoveHighAsciiCharacters = true,
+			};
+
+			Debug.WriteLine("Starting password generation...");
+
+			// For each keystroke order, generate a password
+			foreach (KeystrokeOrder order in Enum.GetValues(typeof(KeystrokeOrder)))
+			{
+				options.KeystrokeOrder = order;
+				var result = new RandomPasswordGenerator(options, new RandomService()).Generate();
+
+				Debug.WriteLine($"  {order}: {string.Join(", ", result.Passwords)}");
+
+				Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
+				Assert.IsTrue(result.Passwords.All(p => LettersPattern().Matches(p).Count == options.NumberOfLetters), "Password does not have the expected number of letters.");
+
+				if (options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
+					Assert.IsTrue(result.Passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
+
+				if (options.KeystrokeOrder == KeystrokeOrder.OnlyLeft)
+					Assert.IsTrue(!result.Passwords.Any(RightHandPattern().IsMatch), "Password should not contain left hand keystrokes only.");
+
+				if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
+					Assert.IsTrue(!result.Passwords.Any(LeftHandPattern().IsMatch), "Password should not contain right hand keystrokes only.");
+
+				Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
+			}
+		}
+
+		[TestMethod]
+		public void ExceptionsTest()
+		{
+			RandomPasswordGeneratorOptions options = new();
+
+			void SetDefaults()
+			{
+				options.NumberOfPasswords = 10;
+				options.NumberOfLetters = 2;
+				options.NumberOfNumbers = 1;
+				options.NumberOfSpecialCharacters = 1;
+				options.MinimumLength = 12;
+				options.CustomSpecialCharacters = " ".ToCharArray();
+				options.RemoveHighAsciiCharacters = true;
+				options.KeystrokeOrder = KeystrokeOrder.AlternatingStroke;
+			}
+
+			SetDefaults();
+
+			Debug.WriteLine("Starting password generation for exceptions...");
+			try
+			{
+				options.NumberOfPasswords = 0;
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'At least one password must be requested' not thrown.");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			Debug.WriteLine("Starting password generation for exceptions...");
+			try
+			{
+				options.NumberOfLetters = 0;
+				options.NumberOfNumbers = 0;
+				options.NumberOfSpecialCharacters = 0;
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'At least one character group must be included.");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			try
+			{
+				options.NumberOfLetters = 1;
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'Minimum length must be lower to the sum of the number of letters, numbers, and special characters (X).' not thrown.");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			try
+			{
+				options.NumberOfSpecialCharacters = 12;
+				options.IncludeMarkSymbols = false;
+				options.IncludeSeparatorSymbols = false;
+				options.IncludeSetSymbols = false;
+				options.CustomSpecialCharacters = [];
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'There are no more characters available for the current hand (XXX) and finger (XXX): XXX' not thrown");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+		}
 	}
 }

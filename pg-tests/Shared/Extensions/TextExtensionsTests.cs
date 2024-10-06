@@ -24,7 +24,8 @@ namespace PG.Tests.Shared.Extensions
 		[TestMethod()]
 		public void RightTest()
 		{
-			try { 
+			try
+			{
 				"".Right(0);
 				Assert.Fail("Expected ArgumentOutOfRangeException");
 			}

@@ -1,4 +1,6 @@
-﻿namespace PG.Logic.Passwords.Generators
+﻿using PG.Logic.Passwords.Generators.Entities;
+
+namespace PG.Logic.Passwords.Generators
 {
 	public interface IPasswordGenerator
 	{
@@ -6,8 +8,6 @@
 		/// Generate passwords based on the generator's rules.
 		/// </summary>
 		/// <returns>Text with the generated passwords separated by a new line.</returns>
-		string Generate();
-
-		double GetAndResetPasswordEntropy();
+		GenerationResult Generate();
 	}
 }
