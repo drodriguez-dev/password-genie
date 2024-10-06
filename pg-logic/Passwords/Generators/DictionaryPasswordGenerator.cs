@@ -102,7 +102,7 @@ namespace PG.Logic.Passwords.Generators
 		protected IEnumerable<string> GenerateNumbers(int length)
 		{
 			foreach (int _ in Enumerable.Range(0, length))
-				yield return _random.Next(0, 10).ToString();
+				yield return _numbers[_random.Next(_numbers.Length)].ToString();
 
 			_random.CommitEntropy();
 		}

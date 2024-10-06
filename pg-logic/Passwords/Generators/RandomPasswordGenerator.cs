@@ -41,7 +41,7 @@ namespace PG.Logic.Passwords.Generators
 			Finger? currentFinger = null;
 
 			var password = Enumerable.Range(1, TotalCharacters)
-				.Select(i => GetCharacterSet(i, letters, numbers, specialCharacters))
+				.Select(i => ChooseCharacterSet(i, letters, numbers, specialCharacters))
 				.Select(cs => GetAndDiscountAvailableCharacters(cs, ref letters, ref numbers, ref specialCharacters))
 				.Select(aC => FilterPossibleCharacters(aC, ref currentHand, currentFinger))
 				.Select(pC => ChooseCharacter(pC, ref currentFinger));
@@ -57,7 +57,7 @@ namespace PG.Logic.Passwords.Generators
 		/// <param name="numbers">Quantity of numbers still available.</param>
 		/// <param name="symbols">Quantity of symbols still available.</param>
 		/// <returns></returns>
-		private CharacterSet GetCharacterSet(int position, int letters, int numbers, int symbols)
+		private CharacterSet ChooseCharacterSet(int position, int letters, int numbers, int symbols)
 		{
 			IEnumerable<CharacterSet> charSets = [];
 
@@ -80,21 +80,21 @@ namespace PG.Logic.Passwords.Generators
 			return charSets.ToArray()[_random.Next(charSets.Count())];
 		}
 
-		private char[] GetAndDiscountAvailableCharacters(CharacterSet cs, ref int letters, ref int numbers, ref int specialCharacters)
+		private char[] GetAndDiscountAvailableCharacters(CharacterSet characterSet, ref int letters, ref int numbers, ref int specialCharacters)
 		{
-			switch (cs)
+			switch (characterSet)
 			{
 				case CharacterSet.Letters:
 					letters--;
 					return _letters;
 				case CharacterSet.Numbers:
 					numbers--;
-					return Enumerable.Range(0, 10).Select(i => i.ToString()[0]).ToArray();
+					return _numbers;
 				case CharacterSet.Symbols:
 					specialCharacters--;
 					return GetAvailableSymbols().ToArray();
 				default:
-					throw new NotImplementedException($"Character set {cs} is not implemented.");
+					throw new NotImplementedException($"Character set {characterSet} is not implemented.");
 			}
 		}
 

@@ -16,6 +16,8 @@ namespace PG.Logic.Passwords.Generators
 		protected abstract bool RemoveHighAsciiCharacters { get; }
 		protected abstract KeystrokeOrder KeystrokeOrder { get; }
 
+		protected static readonly char[] _numbers = "0123456789".ToCharArray();
+
 		// Symbol sets
 		protected static readonly char[] _setSymbols = @"()[]{}<>".ToCharArray();
 		protected static readonly char[] _markSymbols = @"!@#$%^*+=|;:\""?".ToCharArray();
