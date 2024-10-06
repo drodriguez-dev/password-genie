@@ -158,5 +158,73 @@ namespace PG.Tests.Business.Passwords.Generators
 				Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
 			}
 		}
+
+		[TestMethod]
+		public void ExceptionsTest()
+		{
+			RandomPasswordGeneratorOptions options = new();
+
+			void SetDefaults()
+			{
+				options.NumberOfPasswords = 10;
+				options.NumberOfLetters = 2;
+				options.NumberOfNumbers = 1;
+				options.NumberOfSpecialCharacters = 1;
+				options.MinimumLength = 12;
+				options.CustomSpecialCharacters = " ".ToCharArray();
+				options.RemoveHighAsciiCharacters = true;
+				options.KeystrokeOrder = KeystrokeOrder.AlternatingStroke;
+			}
+
+			SetDefaults();
+
+			Debug.WriteLine("Starting password generation for exceptions...");
+			try
+			{
+				options.NumberOfPasswords = 0;
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'At least one password must be requested' not thrown.");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			Debug.WriteLine("Starting password generation for exceptions...");
+			try
+			{
+				options.NumberOfLetters = 0;
+				options.NumberOfNumbers = 0;
+				options.NumberOfSpecialCharacters = 0;
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'At least one character group must be included.");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			try
+			{
+				options.NumberOfLetters = 1;
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'Minimum length must be lower to the sum of the number of letters, numbers, and special characters (X).' not thrown.");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			try
+			{
+				options.NumberOfSpecialCharacters = 12;
+				options.IncludeMarkSymbols = false;
+				options.IncludeSeparatorSymbols = false;
+				options.IncludeSetSymbols = false;
+				options.CustomSpecialCharacters = [];
+				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				Assert.Fail("Expected exception 'There are no more characters available for the current hand (XXX) and finger (XXX): XXX' not thrown");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+		}
 	}
 }

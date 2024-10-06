@@ -33,6 +33,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"-n", "4",
 				"-s", "1",
 				"-r",
+				"--Verbose",
 			];
 
 			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;
@@ -55,6 +56,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"-wl", "6",
 				"-wd", "4",
 				"-r",
+				"--Verbose",
 			];
 
 			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;

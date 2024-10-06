@@ -143,21 +143,23 @@ namespace PG.Tests.Business.Passwords.Generators
 		[TestMethod]
 		public void ExceptionsTest()
 		{
-			DictionaryPasswordGeneratorOptions options = new()
-			{
-				File = @".\Resources\Dictionaries\words_alpha_esES.txt",
-				NumberOfPasswords = 10,
-				NumberOfWords = 2,
-				AverageWordLength = 6,
-				DepthLevel = 3,
-				NumberOfNumbers = 1,
-				NumberOfSpecialCharacters = 1,
-				MinimumLength = 12,
-				CustomSpecialCharacters = " ".ToCharArray(),
-				RemoveHighAsciiCharacters = true,
-				KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
-			};
+			DictionaryPasswordGeneratorOptions options = new() { File = @".\Resources\Dictionaries\words_alpha_esES.txt" };
 
+			void SetDefaults() 
+			{
+				options.NumberOfPasswords = 10;
+				options.NumberOfWords = 2;
+				options.AverageWordLength = 6;
+				options.DepthLevel = 3;
+				options.NumberOfNumbers = 1;
+				options.NumberOfSpecialCharacters = 1;
+				options.MinimumLength = 12;
+				options.CustomSpecialCharacters = " ".ToCharArray();
+				options.RemoveHighAsciiCharacters = true;
+				options.KeystrokeOrder = KeystrokeOrder.AlternatingStroke;
+			}
+
+			SetDefaults();
 			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
 
 			Debug.WriteLine("Starting password generation for exceptions...");
@@ -167,7 +169,9 @@ namespace PG.Tests.Business.Passwords.Generators
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 				Assert.Fail("Expected exception 'At least one password must be requested' not thrown.");
 			}
+			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
 
 			try
 			{
@@ -176,7 +180,9 @@ namespace PG.Tests.Business.Passwords.Generators
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 				Assert.Fail("Expected exception 'At least one word must be requested' not thrown.");
 			}
+			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
 
 			try
 			{
@@ -185,36 +191,53 @@ namespace PG.Tests.Business.Passwords.Generators
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 				Assert.Fail("Expected exception 'Average length must be at least X' not thrown.");
 			}
+			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
 
 			try
 			{
-				options.NumberOfWords = 2;
-				options.AverageWordLength = 6;
 				options.DepthLevel = 8;
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 				Assert.Fail("Expected exception 'Depth level must be lower than the average word length (X)' not thrown.");
 			}
+			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
 
 			try
 			{
 				options.NumberOfWords = 1;
-				options.DepthLevel = 3;
-				options.MinimumLength = 12;
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 				Assert.Fail("Expected exception 'Minimum length must be lower to the sum of the number of letters, numbers, and special characters (X)' not thrown.");
 			}
+			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
 
 			try
 			{
-				options.NumberOfWords = 2;
 				loader = new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"]));
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
 			}
+			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			try
+			{
+				options.NumberOfSpecialCharacters = 12;
+				options.IncludeMarkSymbols = false;
+				options.IncludeSeparatorSymbols = false;
+				options.IncludeSetSymbols = false;
+				options.CustomSpecialCharacters = [];
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+				Assert.Fail("Expected exception 'No symbols are available. Either provide custom symbols or enable the default ones.' not thrown");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
 		}
 	}
 }
