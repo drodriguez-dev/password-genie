@@ -80,34 +80,6 @@ namespace PG.Logic.Passwords.Generators
 		}
 
 		/// <summary>
-		/// Generate a random string of characters.
-		/// </summary>
-		protected IEnumerable<string> GenerateNumbers(int length)
-		{
-			foreach (int _ in Enumerable.Range(0, length))
-				yield return _random.Next(0, 10).ToString();
-
-			_random.CommitEntropy();
-		}
-
-		/// <summary>
-		/// Generates a random set of symbols
-		/// </summary>
-		protected IEnumerable<string> GenerateSymbols(int length)
-		{
-			if (length <= 0) yield break;
-
-			char[] symbols = GetAvailableSymbols().ToArray();
-			if (symbols.Length == 0)
-				throw new InvalidOperationException("No symbols are available. Either provide custom symbols or enable the default ones.");
-
-			foreach (int _ in Enumerable.Range(0, length))
-				yield return symbols[_random.Next(symbols.Length)].ToString();
-
-			_random.CommitEntropy();
-		}
-
-		/// <summary>
 		/// Chooses between the custom or the default set and returns the available symbols.
 		/// </summary>
 		protected IEnumerable<char> GetAvailableSymbols()
