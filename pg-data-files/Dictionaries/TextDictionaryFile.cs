@@ -22,6 +22,9 @@ namespace PG.Data.Files.Dictionaries
 
 		private IEnumerable<string> YieldAllLines()
 		{
+			// There is no block of code of  the using statement because the yield return statement suspends the execution of the method, but it does not
+			// exit the method, and StreamReader object needs to remain valid throughout the execution of the method. The StreamReader object will be
+			// disposed of automatically when the method finishes executing.
 			using StreamReader reader = new(FilePath, Encoding);
 
 			string? line;
