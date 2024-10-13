@@ -181,7 +181,7 @@ namespace PG.Logic.Passwords.Generators
 			int wordLength = averageLength + (_random.Next(wordLengthVariance * 2) - wordLengthVariance);
 
 			Finger? curFinger = null;
-			ITreeNodeWithChildren<char> node = _dictionary.WordTree.Root;
+			ITreeNode<char> node = _dictionary.WordTree.Root;
 			foreach (int _ in Enumerable.Range(0, wordLength))
 			{
 				HandSide curHand = currentHand;

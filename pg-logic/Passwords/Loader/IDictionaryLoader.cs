@@ -10,6 +10,6 @@ namespace PG.Logic.Passwords.Loader
 
 		bool IsLeafNodeReached(string word);
 
-		bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNodeWithChildren<char> node);
+		bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNode<char> node);
 	}
 }

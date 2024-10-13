@@ -68,13 +68,13 @@ namespace PG.Logic.Passwords.Loader
 
 		private static void AddWordToTree(TreeRoot<char> root, string word)
 		{
-			ITreeNodeWithChildren<char> node = root;
+			ITreeNode<char> node = root;
 
 			foreach (var letter in word)
 				node = GetOrCreateChildNode(node, letter);
 		}
 
-		private static TreeNode<char> GetOrCreateChildNode(ITreeNodeWithChildren<char> node, char letter)
+		private static TreeNode<char> GetOrCreateChildNode(ITreeNode<char> node, char letter)
 		{
 			if (node.Children.TryGetValue(letter, out var childNode))
 				return childNode;
@@ -94,7 +94,7 @@ namespace PG.Logic.Passwords.Loader
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word. If the word is not found, the search stops at 
 		/// the last node that was found and returns false.
 		/// </summary>
-		private bool TrySearchLeafNode(string word, out ITreeNodeWithChildren<char> node)
+		private bool TrySearchLeafNode(string word, out ITreeNode<char> node)
 		{
 			node = WordTree.Root;
 			foreach (var letter in word)
@@ -114,7 +114,7 @@ namespace PG.Logic.Passwords.Loader
 		/// Searches for the last possible leaf node in the dictionary tree by successively removing the last character of the word. If there is no valid 
 		/// node, the search stops at the last node that was found and returns false.
 		/// </summary>
-		public bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNodeWithChildren<char> node)
+		public bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNode<char> node)
 		{
 			if (depthLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(depthLevel), "Depth level must be greater than zero.");

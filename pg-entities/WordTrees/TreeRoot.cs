@@ -1,6 +1,6 @@
 ﻿namespace PG.Entities.WordTrees
 {
-	public class TreeRoot<T> : ITreeNodeWithChildren<T>
+	public class TreeRoot<T> : ITreeNode<T>
 	{
 		public Dictionary<char, TreeNode<T>> Children { get; set; } = [];
 
