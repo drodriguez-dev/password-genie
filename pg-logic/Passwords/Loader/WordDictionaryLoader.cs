@@ -1,5 +1,5 @@
 ﻿using PG.Data.Files.Dictionaries;
-using PG.Logic.Passwords.Loader.Entities;
+using PG.Entities.WordTrees;
 using PG.Shared.Extensions;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 

@@ -1,4 +1,4 @@
-﻿using PG.Logic.Passwords.Loader.Entities;
+﻿using PG.Entities.WordTrees;
 
 namespace PG.Logic.Passwords.Loader
 {

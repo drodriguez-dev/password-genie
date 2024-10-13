@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\pg-entities\pg-entities.csproj" />
     <ProjectReference Include="..\pg-shared\pg-shared.csproj" />
   </ItemGroup>
 
