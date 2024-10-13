@@ -1,4 +1,4 @@
-﻿namespace PG.Logic.Passwords.Loader.Entities
+﻿namespace PG.Entities.WordTrees
 {
 	public class WordDictionaryTree
 	{

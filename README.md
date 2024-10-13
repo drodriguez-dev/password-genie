@@ -88,7 +88,7 @@ Qiblauwi-Leuchan2
 This is a **n-layer** solution that provides a way to generate passwords using different strategies. The solution is divided into the following layers:
 - **Crosscutting Layer**: Provides the common classes (logic & [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object)) for the solution. Only non-specific classes are included in this layer.
   - *pg-shared*: This project contains the common classes for the solution.
-  - *pg-entities*: This project contains the entities for the solution (*planned*). Only the entities that must traverse all the layers are included here.
+  - *pg-entities*: This project contains the entities for the solution. Only the entities that must traverse all the layers are included here.
 - **Data Access layer**: Provides the data access to the dictionary file. Its main purpose is to read the data requested by the logic layer.
   - *pg-data-files*: Data access methods for managing files (dictionaries). Any other dictionary type can be implemented here in the future.
 - **Logic layer**: This layer contains only logic, external data and interactions are handled by the interface layer.

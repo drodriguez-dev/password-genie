@@ -1,4 +1,4 @@
-﻿namespace PG.Logic.Passwords.Loader.Entities
+﻿namespace PG.Entities.WordTrees
 {
 	/// <summary>
 	/// Represents a node in a tree structure of type <typeparamref name="T"/>.
