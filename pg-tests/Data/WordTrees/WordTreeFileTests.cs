@@ -15,6 +15,9 @@ namespace PG.Tests.Data.WordTrees
 		[DataRow(@"Resources\Dictionaries\words_alpha_esES.txt")]
 		public void LoadDictionaryAndSaveAndLoadWordTreeTest(string relativePathToFile)
 		{
+			long dictionarySize = new FileInfo(relativePathToFile).Length;
+			System.Diagnostics.Debug.WriteLine($"Dictionary file size is {dictionarySize,9} bytes");
+
 			WordDictionaryTree wordTree = FetchWordTree(relativePathToFile);
 
 			string wordTreeFilePath = Path.GetTempFileName();
@@ -22,6 +25,11 @@ namespace PG.Tests.Data.WordTrees
 			{
 				BinaryWordTreeFile file = new(wordTreeFilePath);
 				file.SaveTree(wordTree);
+
+				long wordTreeSize = new FileInfo(wordTreeFilePath).Length;
+				long difference = (wordTreeSize - dictionarySize) * 100 / dictionarySize;
+				System.Diagnostics.Debug.WriteLine($"Word tree file is       {wordTreeSize,9} bytes ({difference:+#;-#;0} %)");
+
 				WordDictionaryTree actualWordTree = file.FetchTree();
 
 				Assert.IsTrue(actualWordTree != null, "WordTree should've been created");

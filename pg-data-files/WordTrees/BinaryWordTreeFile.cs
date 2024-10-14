@@ -4,17 +4,27 @@ using System.Text;
 
 namespace PG.Data.Files.WordTrees
 {
+	/// <summary>
+	/// Saves and loads a word tree to and from a binary file. The structure of the file is:
+	///   (4 bytes) Magic number
+	///   (1 byte) Version
+	///   Repetable structure of:
+	///     (2 bytes) Number of children
+	///     (N bytes depending on the encoding) Character
+	///     (Recursively) Children
+	/// </summary>
+	/// <param name="filePath"></param>
 	public class BinaryWordTreeFile(string filePath) : IWordTreeData
 	{
-		private const int MAGIC_NUMBER = 0x10bfaa38;
-		private const int CURRENT_VERSION = 1;
+		private const int MAGIC_NUMBER = 0x10bfaa38; // Reversed in file
+		private const byte CURRENT_VERSION = 1;
 
 		private string FilePath { get; set; } = filePath;
 
 		private struct FileHeader
 		{
 			public int MagicNumber;
-			public int Version;
+			public byte Version;
 
 			public FileHeader()
 			{
@@ -42,7 +52,7 @@ namespace PG.Data.Files.WordTrees
 
 		private static void WriteNode(BinaryWriter writer, ITreeNode<char> node)
 		{
-			writer.Write(node.Children.Count);
+			writer.Write((short)node.Children.Count);
 			foreach (var child in node.Children)
 			{
 				writer.Write(child.Key);
@@ -60,7 +70,7 @@ namespace PG.Data.Files.WordTrees
 			FileHeader header = new()
 			{
 				MagicNumber = reader.ReadInt32(),
-				Version = reader.ReadInt32()
+				Version = reader.ReadByte()
 			};
 
 			if (header.MagicNumber != MAGIC_NUMBER)
@@ -78,7 +88,7 @@ namespace PG.Data.Files.WordTrees
 
 		private static void ReadNode(BinaryReader reader, ITreeNode<char> node)
 		{
-			int childrenCount = reader.ReadInt32();
+			int childrenCount = reader.ReadInt16();
 			for (int i = 0; i < childrenCount; i++)
 			{
 				char key = reader.ReadChar();
