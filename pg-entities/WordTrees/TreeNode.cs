@@ -16,7 +16,7 @@ namespace PG.Entities.WordTrees
 		/// <summary>
 		/// The children of the node.
 		/// </summary>
-		public Dictionary<char, TreeNode<T>> Children { get; set; } = [];
+		public Dictionary<string, TreeNode<T>> Children { get; set; } = [];
 
 		#region IEquatable implementation
 		public override bool Equals(object? obj)

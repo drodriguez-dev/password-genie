@@ -3,7 +3,7 @@ namespace PG.Entities.WordTrees
 {
 	public class TreeRoot<T> : ITreeNode<T>, IEquatable<TreeRoot<T>?>
 	{
-		public Dictionary<char, TreeNode<T>> Children { get; set; } = [];
+		public Dictionary<string, TreeNode<T>> Children { get; set; } = [];
 
 		#region IEquatable implementation
 		public override bool Equals(object? obj)

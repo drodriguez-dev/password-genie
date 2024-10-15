@@ -57,7 +57,7 @@ namespace PG.Logic.Passwords.Loader
 				// Skip words that contains symbols or numbers
 				if (word.Any(c => !char.IsLetter(c))) continue;
 				// Skip words that contains only diacritics
-				if (word.ToLowerInvariant().All(c => VOWEL_AND_DIACRITIC_CHARS.Contains(c))) continue;
+				if (word.ToLowerInvariant().All(VOWEL_AND_DIACRITIC_CHARS.Contains)) continue;
 
 				AddWordToTree(WordTree.Root, word);
 			}
@@ -66,20 +66,20 @@ namespace PG.Logic.Passwords.Loader
 				throw new InvalidDictionaryException($"Dictionary file does not contain any valid words. Words must be at least {MINIMUM_WORD_LENGTH} characters long and contain only letters.");
 		}
 
-		private static void AddWordToTree(TreeRoot<char> root, string word)
+		private static void AddWordToTree(TreeRoot<string> root, string word)
 		{
-			ITreeNode<char> node = root;
+			ITreeNode<string> node = root;
 
-			foreach (var letter in word)
+			foreach (var letter in word.GetTextElements())
 				node = GetOrCreateChildNode(node, letter);
 		}
 
-		private static TreeNode<char> GetOrCreateChildNode(ITreeNode<char> node, char letter)
+		private static TreeNode<string> GetOrCreateChildNode(ITreeNode<string> node, string letter)
 		{
 			if (node.Children.TryGetValue(letter, out var childNode))
 				return childNode;
 
-			TreeNode<char> newNode = new(letter);
+			TreeNode<string> newNode = new(letter);
 			node.Children.Add(letter, newNode);
 			return newNode;
 		}
@@ -94,7 +94,7 @@ namespace PG.Logic.Passwords.Loader
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word. If the word is not found, the search stops at 
 		/// the last node that was found and returns false.
 		/// </summary>
-		private bool TrySearchLeafNode(string word, out ITreeNode<char> node)
+		private bool TrySearchLeafNode(string word, out ITreeNode<string> node)
 		{
 			node = WordTree.Root;
 			foreach (var letter in word)
@@ -114,7 +114,7 @@ namespace PG.Logic.Passwords.Loader
 		/// Searches for the last possible leaf node in the dictionary tree by successively removing the last character of the word. If there is no valid 
 		/// node, the search stops at the last node that was found and returns false.
 		/// </summary>
-		public bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNode<char> node)
+		public bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNode<string> node)
 		{
 			if (depthLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(depthLevel), "Depth level must be greater than zero.");

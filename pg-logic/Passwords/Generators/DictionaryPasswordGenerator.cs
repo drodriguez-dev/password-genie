@@ -181,14 +181,14 @@ namespace PG.Logic.Passwords.Generators
 			int wordLength = averageLength + (_random.Next(wordLengthVariance * 2) - wordLengthVariance);
 
 			Finger? curFinger = null;
-			ITreeNode<char> node = _dictionary.WordTree.Root;
+			ITreeNode<string> node = _dictionary.WordTree.Root;
 			foreach (int _ in Enumerable.Range(0, wordLength))
 			{
 				HandSide curHand = currentHand;
 				var children = node.Children.Select(kvp => kvp.Value)
-						.Where(tn => !RemoveHighAsciiCharacters || tn.Value < 128)
-						.Where(tn => IsProperHand(tn.Value, curHand))
-						.Where(tn => IsProperFinger(tn.Value, curHand, curFinger))
+						.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
+						.Where(tn => char.IsSurrogate(tn.Value[0]) || IsProperHand(tn.Value[0], curHand))
+						.Where(tn => char.IsSurrogate(tn.Value[0]) || IsProperFinger(tn.Value[0], curHand, curFinger))
 						.ToList();
 
 				if (children.Count == 0) break;

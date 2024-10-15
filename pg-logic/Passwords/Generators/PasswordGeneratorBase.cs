@@ -159,18 +159,23 @@ namespace PG.Logic.Passwords.Generators
 			};
 		}
 
-		protected static Finger? GetFingerForKeystroke(char value)
+		protected static Finger? GetFingerForKeystroke(string value)
 		{
-			if (_leftThumbKeyStrokes.Contains(value)) return (Finger?)Finger.Thumb;
-			if (_leftPinkyKeyStrokes.Contains(value)) return (Finger?)Finger.Pinky;
-			if (_leftRingKeyStrokes.Contains(value)) return (Finger?)Finger.Ring;
-			if (_leftMiddleKeyStrokes.Contains(value)) return (Finger?)Finger.Middle;
-			if (_leftIndexKeyStrokes.Contains(value)) return (Finger?)Finger.Index;
-			if (_rightThumbKeyStrokes.Contains(value)) return (Finger?)Finger.Thumb;
-			if (_rightPinkyKeyStrokes.Contains(value)) return (Finger?)Finger.Pinky;
-			if (_rightRingKeyStrokes.Contains(value)) return (Finger?)Finger.Ring;
-			if (_rightMiddleKeyStrokes.Contains(value)) return (Finger?)Finger.Middle;
-			if (_rightIndexKeyStrokes.Contains(value)) return (Finger?)Finger.Index;
+			// This method cannot determine the finger for multi-character keystrokes.
+			if (value.Length != 1) return null;
+
+			char @char = value[0];
+
+			if (_leftThumbKeyStrokes.Contains(@char)) return (Finger?)Finger.Thumb;
+			if (_leftPinkyKeyStrokes.Contains(@char)) return (Finger?)Finger.Pinky;
+			if (_leftRingKeyStrokes.Contains(@char)) return (Finger?)Finger.Ring;
+			if (_leftMiddleKeyStrokes.Contains(@char)) return (Finger?)Finger.Middle;
+			if (_leftIndexKeyStrokes.Contains(@char)) return (Finger?)Finger.Index;
+			if (_rightThumbKeyStrokes.Contains(@char)) return (Finger?)Finger.Thumb;
+			if (_rightPinkyKeyStrokes.Contains(@char)) return (Finger?)Finger.Pinky;
+			if (_rightRingKeyStrokes.Contains(@char)) return (Finger?)Finger.Ring;
+			if (_rightMiddleKeyStrokes.Contains(@char)) return (Finger?)Finger.Middle;
+			if (_rightIndexKeyStrokes.Contains(@char)) return (Finger?)Finger.Index;
 
 			return null;
 		}

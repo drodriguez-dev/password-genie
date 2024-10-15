@@ -2,6 +2,6 @@
 {
 	public interface ITreeNode<T>
 	{
-		public Dictionary<char, TreeNode<T>> Children { get; set; }
+		public Dictionary<string, TreeNode<T>> Children { get; set; }
 	}
 }

@@ -53,7 +53,7 @@ namespace PG.Tests.Business.Passwords.Generators
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
 
-			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
+			Debug.WriteLine("Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		[TestMethod]
@@ -93,16 +93,21 @@ namespace PG.Tests.Business.Passwords.Generators
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
 
-			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
+			Debug.WriteLine("Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
-		[TestMethod]
-		public void AlternatingHandsTest()
+		[DataTestMethod]
+		[DataRow(KeystrokeOrder.Random)]
+		[DataRow(KeystrokeOrder.AlternatingStroke)]
+		[DataRow(KeystrokeOrder.AlternatingWord)]
+		[DataRow(KeystrokeOrder.OnlyLeft)]
+		[DataRow(KeystrokeOrder.OnlyRight)]
+		public void AlternatingHandsTest(KeystrokeOrder order)
 		{
 			DictionaryPasswordGeneratorOptions options = new()
 			{
 				File = @".\Resources\Dictionaries\words_alpha_esES.txt",
-				NumberOfPasswords = 7,
+				NumberOfPasswords = 50,
 				NumberOfWords = 2,
 				AverageWordLength = 6,
 				DepthLevel = 3,
@@ -117,27 +122,24 @@ namespace PG.Tests.Business.Passwords.Generators
 			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
 
 			// For each keystroke order, generate a password
-			foreach (KeystrokeOrder order in Enum.GetValues(typeof(KeystrokeOrder)))
-			{
-				options.KeystrokeOrder = order;
-				var result = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+			options.KeystrokeOrder = order;
+			var result = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
 
-				Debug.WriteLine($"  {order}: {string.Join(", ", result.Passwords)}");
+			Debug.WriteLine(string.Join(Environment.NewLine, result.Passwords));
 
-				Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
-				Assert.IsTrue(result.Passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
+			Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
+			Assert.IsTrue(result.Passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
 
-				if (new[] { KeystrokeOrder.AlternatingStroke, KeystrokeOrder.AlternatingWord }.Contains(options.KeystrokeOrder))
-					Assert.IsTrue(result.Passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
+			if (new[] { KeystrokeOrder.AlternatingStroke, KeystrokeOrder.AlternatingWord }.Contains(options.KeystrokeOrder))
+				Assert.IsTrue(result.Passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
 
-				if (options.KeystrokeOrder == KeystrokeOrder.OnlyLeft)
-					Assert.IsTrue(!result.Passwords.Any(RightHandPattern().IsMatch), "Password should not contain left hand keystrokes only.");
+			if (options.KeystrokeOrder == KeystrokeOrder.OnlyLeft)
+				Assert.IsTrue(!result.Passwords.Any(RightHandPattern().IsMatch), "Password should contain left hand keystrokes only.");
 
-				if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
-					Assert.IsTrue(!result.Passwords.Any(LeftHandPattern().IsMatch), "Password should not contain right hand keystrokes only.");
+			if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
+				Assert.IsTrue(!result.Passwords.Any(LeftHandPattern().IsMatch), "Password should contain right hand keystrokes only.");
 
-				Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
-			}
+			Debug.WriteLine("Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		[TestMethod]
@@ -145,7 +147,7 @@ namespace PG.Tests.Business.Passwords.Generators
 		{
 			DictionaryPasswordGeneratorOptions options = new() { File = @".\Resources\Dictionaries\words_alpha_esES.txt" };
 
-			void SetDefaults() 
+			void SetDefaults()
 			{
 				options.NumberOfPasswords = 10;
 				options.NumberOfWords = 2;

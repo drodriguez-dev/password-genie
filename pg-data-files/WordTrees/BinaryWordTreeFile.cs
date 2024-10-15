@@ -50,12 +50,18 @@ namespace PG.Data.Files.WordTrees
 			WriteNode(writer, tree.Root);
 		}
 
-		private static void WriteNode(BinaryWriter writer, ITreeNode<char> node)
+		/// <summary>
+		/// Recursively writes the tree to the stream. The key is stored as a single char, which can be a surrogate pair (2 bytes).
+		/// </summary>
+		/// <param name="writer"></param>
+		/// <param name="node"></param>
+		private static void WriteNode(BinaryWriter writer, ITreeNode<string> node)
 		{
 			writer.Write((short)node.Children.Count);
 			foreach (var child in node.Children)
 			{
 				writer.Write(child.Key);
+
 				WriteNode(writer, child.Value);
 			}
 		}
@@ -86,13 +92,13 @@ namespace PG.Data.Files.WordTrees
 			return tree;
 		}
 
-		private static void ReadNode(BinaryReader reader, ITreeNode<char> node)
+		private static void ReadNode(BinaryReader reader, ITreeNode<string> node)
 		{
 			int childrenCount = reader.ReadInt16();
 			for (int i = 0; i < childrenCount; i++)
 			{
-				char key = reader.ReadChar();
-				node.Children[key] = new TreeNode<char>(key);
+				string key = reader.ReadString();
+				node.Children[key] = new TreeNode<string>(key);
 				ReadNode(reader, node.Children[key]);
 			}
 		}
