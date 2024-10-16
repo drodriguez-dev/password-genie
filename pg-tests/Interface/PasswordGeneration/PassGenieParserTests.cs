@@ -63,5 +63,28 @@ namespace PG.Tests.Interface.PasswordGeneration
 
 			Assert.AreEqual(0, result, "Unexpected result");
 		}
+
+		[TestMethod]
+		public void ParseForWordTreeTest()
+		{
+			string[] arguments = [
+				"generate", "dictionary",
+				"-wt", @".\Resources\Dictionaries\word_tree_esES.dat.gz",
+				"-p", "10",
+				"-l", "12",
+				"-w", "2",
+				"-n", "1",
+				"-s", "1",
+				"-sc", " ",
+				"-wl", "6",
+				"-wd", "4",
+				"-r",
+				"--Verbose",
+			];
+
+			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;
+
+			Assert.AreEqual(0, result, "Unexpected result");
+		}
 	}
 }

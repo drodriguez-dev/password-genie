@@ -20,7 +20,8 @@ namespace PG.Interface.Command.PasswordGeneration.Entities
 		public int NumberOfLetters { get; set; } = 10;
 
 		// Options for the dictionary strategy
-		public required FileInfo Dictionary { get; set; }
+		public FileInfo? Dictionary { get; set; }
+		public FileInfo? WordTree { get; set; }
 		public int NumberOfWords { get; set; } = 2;
 		public int AverageWordLength { get; set; } = 6;
 		public int DepthLevel { get; set; } = 3;

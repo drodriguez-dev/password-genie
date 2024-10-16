@@ -2,7 +2,8 @@
 {
 	public class DictionaryPasswordGeneratorOptions : CommonPasswordGeneratorOptions
 	{
-		public required string File { get; set; }
+		public string? DictionaryFile { get; set; }
+		public string? WordTreeFile { get; set; }
 		public int NumberOfWords { get; set; }
 		public int AverageWordLength { get; set; }
 		public int DepthLevel { get; set; }

@@ -9,11 +9,10 @@ using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, RandomService random, IDictionaryLoader dictionaryLoader) : PasswordGeneratorBase(random)
+	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, RandomService random, WordDictionaryTree wordTree) : PasswordGeneratorBase(random)
 	{
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 		private const int WORD_VARIANCE_DIVIDER = 2;
-		private readonly IDictionaryLoader _dictionary = dictionaryLoader;
 
 		private readonly DictionaryPasswordGeneratorOptions _options = options;
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
@@ -23,14 +22,7 @@ namespace PG.Logic.Passwords.Generators
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
 		protected override KeystrokeOrder KeystrokeOrder => _options.KeystrokeOrder;
 
-		private WordDictionaryTree? _wordTree;
-
-		public override GenerationResult Generate()
-		{
-			_wordTree = _dictionary.Load();
-
-			return base.Generate();
-		}
+		private readonly WordDictionaryTree _wordTree = wordTree;
 
 		protected override IEnumerable<string> GeneratePasswordParts()
 		{

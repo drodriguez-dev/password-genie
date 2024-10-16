@@ -153,8 +153,8 @@ namespace PG.Tests.Data.WordTrees
 
 			// Display the difference in file sizes between the dictionary and the word tree files
 			long difference = (wordTreeSize - dictionarySize) * 100 / dictionarySize;
-			System.Diagnostics.Debug.WriteLine($"Dictionary file size is {dictionarySize,9} bytes");
-			System.Diagnostics.Debug.WriteLine($"Word tree file is       {wordTreeSize,9} bytes ({difference:+#;-#;0} %)");
+			Debug.WriteLine($"Dictionary file size is {dictionarySize,9} bytes");
+			Debug.WriteLine($"Word tree file is       {wordTreeSize,9} bytes ({difference:+#;-#;0} %)");
 		}
 
 		private static WordDictionaryTree FetchWordTree(string relativePathToFile)
