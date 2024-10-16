@@ -14,6 +14,7 @@ namespace PG.Tests.Data.WordTrees
 
 		[DataTestMethod]
 		[DataRow("aeiou")]
+		[DataRow("áéíóú")]
 		[DataRow("😀")]
 		[DataRow("😀😁")]
 		[DataRow("😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙋🙌🙍🙎")]
@@ -160,9 +161,8 @@ namespace PG.Tests.Data.WordTrees
 			string filePath = Path.Combine(Environment.CurrentDirectory, relativePathToFile);
 			IDictionariesData dictionary = new DictionariesDataFactory().CreateForFile(filePath, Encoding.UTF8);
 			WordDictionaryLoader loader = new(dictionary);
-			loader.Load();
 
-			return loader.WordTree;
+			return loader.Load();
 		}
 	}
 }

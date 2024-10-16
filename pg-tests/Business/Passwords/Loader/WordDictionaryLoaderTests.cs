@@ -1,4 +1,5 @@
 ﻿using PG.Data.Files.Dictionaries;
+using PG.Entities.WordTrees;
 using PG.Logic.Passwords.Loader;
 using System.Text;
 
@@ -15,11 +16,11 @@ namespace PG.Tests.Business.Passwords.Loader
 			string filePath = Path.Combine(Environment.CurrentDirectory, relativePathToFile);
 			IDictionariesData dictionary = new DictionariesDataFactory().CreateForFile(filePath, Encoding.UTF8);
 			WordDictionaryLoader loader = new(dictionary);
-			loader.Load();
+			WordDictionaryTree wordTree = loader.Load();
 
-			Assert.IsTrue(loader.WordTree != null, "WordTree should've been created");
-			Assert.IsTrue(loader.WordTree.Root != null, "Root node should've been created");
-			Assert.IsTrue(loader.WordTree.Root.Children.Count > 0, "Root node should have children");
+			Assert.IsTrue(wordTree != null, "WordTree should've been created");
+			Assert.IsTrue(wordTree.Root != null, "Root node should've been created");
+			Assert.IsTrue(wordTree.Root.Children.Count > 0, "Root node should have children");
 		}
 	}
 }
