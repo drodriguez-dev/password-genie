@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -36,6 +36,15 @@
 
   <ItemGroup>
     <Folder Include="Resources\Dictionaries\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\pg-wasm-pwdgen-demo\wwwroot\sample-data\word_tree_enUS.dat.gz" Link="Resources\Dictionaries\word_tree_enUS.dat.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\pg-wasm-pwdgen-demo\wwwroot\sample-data\word_tree_esES.dat.gz" Link="Resources\Dictionaries\word_tree_esES.dat.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
