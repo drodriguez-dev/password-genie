@@ -1,5 +1,6 @@
-﻿using PG.Data.Files.Dictionaries;
-using PG.Data.Files.WordTrees;
+﻿using PG.Data.Files.DataFiles;
+using PG.Data.Files.DataFiles.Dictionaries;
+using PG.Data.Files.DataFiles.WordTrees;
 using PG.Entities.WordTrees;
 using PG.Logic.Passwords.Loader;
 using PG.Shared.Extensions;
@@ -159,7 +160,7 @@ namespace PG.Tests.Data.WordTrees
 		private static WordDictionaryTree FetchWordTree(string relativePathToFile)
 		{
 			string filePath = Path.Combine(Environment.CurrentDirectory, relativePathToFile);
-			IDictionariesData dictionary = new DictionariesDataFactory().CreateForFile(filePath, Encoding.UTF8);
+			IDictionariesData dictionary = new DictionariesDataFactory().CreateForDictionaryFile(filePath, Encoding.UTF8);
 			WordDictionaryLoader loader = new(dictionary);
 
 			return loader.Load();

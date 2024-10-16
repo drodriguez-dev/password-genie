@@ -41,7 +41,7 @@ namespace PG.Logic.Passwords.Generators
 			IDictionaryLoaderFactory loaderFactory = _provider.GetService(typeof(IDictionaryLoaderFactory)) as IDictionaryLoaderFactory
 				?? throw new InvalidOperationException("Dictionary loader factory is not registered as a service provider.");
 
-			var loader = loaderFactory.Create(dictionaryOptions.File, Constants.DictionaryEncoding);
+			var loader = loaderFactory.CreateForDictionary(dictionaryOptions.File, Constants.DictionaryEncoding);
 
 			return new DictionaryPasswordGenerator(dictionaryOptions, random, loader);
 		}

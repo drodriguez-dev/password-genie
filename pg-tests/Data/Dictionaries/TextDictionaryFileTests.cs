@@ -1,4 +1,5 @@
-﻿using PG.Data.Files.Dictionaries;
+﻿using PG.Data.Files.DataFiles;
+using PG.Data.Files.DataFiles.Dictionaries;
 using System.Diagnostics;
 using System.Text;
 
@@ -13,7 +14,7 @@ namespace PG.Tests.Data.Dictionaries
 		public void GetWordsTest(string relativePathToFile)
 		{
 			string filePath = Path.Combine(Environment.CurrentDirectory, relativePathToFile);
-			IDictionariesData dictionary = new DictionariesDataFactory().CreateForFile(filePath, Encoding.UTF8);
+			IDictionariesData dictionary = new DictionariesDataFactory().CreateForDictionaryFile(filePath, Encoding.UTF8);
 			Assert.IsTrue(dictionary.FetchAllWords().Any());
 		}
 

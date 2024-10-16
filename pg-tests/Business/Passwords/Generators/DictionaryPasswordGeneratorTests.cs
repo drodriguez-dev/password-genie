@@ -1,4 +1,4 @@
-﻿using PG.Data.Files.Dictionaries;
+﻿using PG.Data.Files.DataFiles;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
@@ -35,7 +35,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
+			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForDictionaryFile(options.File, Encoding.UTF8));
 			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
 			var result = passwordGenerator.Generate();
 
@@ -75,7 +75,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
+			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForDictionaryFile(options.File, Encoding.UTF8));
 			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
 			var result = passwordGenerator.Generate();
 
@@ -119,7 +119,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
+			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForDictionaryFile(options.File, Encoding.UTF8));
 
 			// For each keystroke order, generate a password
 			options.KeystrokeOrder = order;
@@ -162,7 +162,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			}
 
 			SetDefaults();
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
+			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForDictionaryFile(options.File, Encoding.UTF8));
 
 			Debug.WriteLine("Starting password generation for exceptions...");
 			try

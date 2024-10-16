@@ -1,4 +1,5 @@
-﻿using PG.Data.Files.Dictionaries;
+﻿using PG.Data.Files.DataFiles;
+using PG.Data.Files.DataFiles.Dictionaries;
 using PG.Entities.WordTrees;
 using PG.Logic.Passwords.Loader;
 using System.Text;
@@ -14,7 +15,7 @@ namespace PG.Tests.Business.Passwords.Loader
 		public void LoadDictionaryTest(string relativePathToFile)
 		{
 			string filePath = Path.Combine(Environment.CurrentDirectory, relativePathToFile);
-			IDictionariesData dictionary = new DictionariesDataFactory().CreateForFile(filePath, Encoding.UTF8);
+			IDictionariesData dictionary = new DictionariesDataFactory().CreateForDictionaryFile(filePath, Encoding.UTF8);
 			WordDictionaryLoader loader = new(dictionary);
 			WordDictionaryTree wordTree = loader.Load();
 

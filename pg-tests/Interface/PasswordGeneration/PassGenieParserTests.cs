@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PG.Data.Files.Dictionaries;
+using PG.Data.Files.DataFiles;
 using PG.Interface.Command.PasswordGeneration;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Loader;
@@ -7,7 +7,7 @@ using PG.Shared.Services;
 
 namespace PG.Tests.Interface.PasswordGeneration
 {
-	[TestClass()]
+    [TestClass()]
 	public class PassGenieParserTests
 	{
 		private readonly ServiceProvider _provider;
