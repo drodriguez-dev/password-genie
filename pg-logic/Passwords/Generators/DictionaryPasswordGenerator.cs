@@ -227,8 +227,8 @@ namespace PG.Logic.Passwords.Generators
 				HandSide curHand = currentHand;
 				var children = node.Children.Select(kvp => kvp.Value)
 						.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
-						.Where(tn => char.IsSurrogate(tn.Value[0]) || IsProperHand(tn.Value[0], curHand))
-						.Where(tn => char.IsSurrogate(tn.Value[0]) || IsProperFinger(tn.Value[0], curHand, curFinger))
+						.Where(tn => IsProperHand(tn.Value[0], curHand))
+						.Where(tn => IsProperFinger(tn.Value[0], curHand, curFinger))
 						.ToList();
 
 				if (children.Count == 0) break;
