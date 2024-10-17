@@ -127,14 +127,14 @@ namespace PG.Logic.Passwords.Generators
 			return currentHand;
 		}
 
-		private char ChooseCharacter(char[] pC, ref Finger? currentFinger)
+		private char ChooseCharacter(char[] charList, ref Finger? currentFinger)
 		{
-			if (pC.Length == 0)
+			if (charList.Length == 0)
 				throw new InvalidOperationException("There are no more characters available.");
 
-			char @return = pC[_random.Next(pC.Length)];
+			char @return = charList[_random.Next(charList.Length)];
 
-			currentFinger = GetFingerForKeystroke(@return);
+			currentFinger = GetFingerForKeystroke(@return.ToString());
 			return @return;
 		}
 	}

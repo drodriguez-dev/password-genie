@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PG.Data.Files.Dictionaries;
+using PG.Data.Files.DataFiles;
 using PG.Interface.Command.PasswordGeneration;
 using PG.Interface.Command.PasswordGeneration.Entities;
 using PG.Logic.Passwords.Generators;
@@ -8,7 +8,7 @@ using PG.Shared.Services;
 
 namespace PG.Console.PasswordGenie
 {
-	static class Program
+    static class Program
 	{
 		private static readonly ServiceProvider _provider = GetServiceProvider();
 

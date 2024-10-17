@@ -1,8 +1,11 @@
-﻿namespace PG.Logic.Passwords.Generators.Entities
+﻿using PG.Data.Files.DataFiles;
+
+namespace PG.Logic.Passwords.Generators.Entities
 {
 	public class DictionaryPasswordGeneratorOptions : CommonPasswordGeneratorOptions
 	{
-		public required string File { get; set; }
+		public required DictionaryType Type { get; set; }
+		public required Stream File { get; set; }
 		public int NumberOfWords { get; set; }
 		public int AverageWordLength { get; set; }
 		public int DepthLevel { get; set; }

@@ -1,9 +1,12 @@
-﻿using System.Text;
+﻿using PG.Data.Files.DataFiles;
+using PG.Data.Files.DataFiles.WordTrees;
+using System.Text;
 
 namespace PG.Logic.Passwords.Loader
 {
 	public interface IDictionaryLoaderFactory
 	{
-		IDictionaryLoader Create(string filePath, Encoding encoding);
+		IDictionaryLoader CreateForDictionary(DictionaryType type, Encoding encoding);
+		IWordTreeData CreateForWordTree(DictionaryType type);
 	}
 }

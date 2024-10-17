@@ -1,4 +1,4 @@
-﻿using PG.Data.Files.Dictionaries;
+﻿using PG.Data.Files.DataFiles.Dictionaries;
 
 namespace PG.Tests.Business.Passwords.Generators.Mockups
 {
@@ -6,6 +6,6 @@ namespace PG.Tests.Business.Passwords.Generators.Mockups
 	{
 		private readonly string[] _words = words;
 
-		public IEnumerable<string> FetchAllWords() => _words;
+		public IEnumerable<string> FetchAllWords(Stream file) => _words;
 	}
 }

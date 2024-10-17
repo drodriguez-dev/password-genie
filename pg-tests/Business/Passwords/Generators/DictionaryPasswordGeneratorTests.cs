@@ -1,4 +1,6 @@
-﻿using PG.Data.Files.Dictionaries;
+﻿using PG.Data.Files.DataFiles;
+using PG.Data.Files.DataFiles.Dictionaries;
+using PG.Entities.WordTrees;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
@@ -18,9 +20,11 @@ namespace PG.Tests.Business.Passwords.Generators
 		[DataRow(12, 2, 6, 0, 0)]
 		public void PasswordGenerationTest(int minLength, int numberOfWords, int averageWordLength, int numberOfNumbers, int numberOfSpecials)
 		{
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_enUS.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				File = @".\Resources\Dictionaries\words_alpha_esES.txt",
+				Type = DictionaryType.PlainTextDictionary,
+				File = fileStream,
 				NumberOfPasswords = 10,
 				NumberOfWords = numberOfWords,
 				AverageWordLength = averageWordLength,
@@ -35,8 +39,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
-			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
+			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
@@ -53,15 +56,17 @@ namespace PG.Tests.Business.Passwords.Generators
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
 
-			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
+			Debug.WriteLine("Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		[TestMethod]
 		public void SuggestedGenerationTest()
 		{
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				File = @".\Resources\Dictionaries\words_alpha_esES.txt",
+				Type = DictionaryType.PlainTextDictionary,
+				File = fileStream,
 				NumberOfPasswords = 10,
 				NumberOfWords = 2,
 				AverageWordLength = 6,
@@ -75,8 +80,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
-			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), loader);
+			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
@@ -93,16 +97,23 @@ namespace PG.Tests.Business.Passwords.Generators
 					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
 			}
 
-			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
+			Debug.WriteLine("Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
-		[TestMethod]
-		public void AlternatingHandsTest()
+		[DataTestMethod]
+		[DataRow(KeystrokeOrder.Random)]
+		[DataRow(KeystrokeOrder.AlternatingStroke)]
+		[DataRow(KeystrokeOrder.AlternatingWord)]
+		[DataRow(KeystrokeOrder.OnlyLeft)]
+		[DataRow(KeystrokeOrder.OnlyRight)]
+		public void AlternatingHandsTest(KeystrokeOrder order)
 		{
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				File = @".\Resources\Dictionaries\words_alpha_esES.txt",
-				NumberOfPasswords = 7,
+				Type = DictionaryType.PlainTextDictionary,
+				File = fileStream,
+				NumberOfPasswords = 50,
 				NumberOfWords = 2,
 				AverageWordLength = 6,
 				DepthLevel = 3,
@@ -114,38 +125,35 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
 
 			// For each keystroke order, generate a password
-			foreach (KeystrokeOrder order in Enum.GetValues(typeof(KeystrokeOrder)))
-			{
-				options.KeystrokeOrder = order;
-				var result = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+			options.KeystrokeOrder = order;
+			var result = new DictionaryPasswordGenerator(options, new RandomService(), GetWordTree(options.File)).Generate();
 
-				Debug.WriteLine($"  {order}: {string.Join(", ", result.Passwords)}");
+			Debug.WriteLine(string.Join(Environment.NewLine, result.Passwords));
 
-				Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
-				Assert.IsTrue(result.Passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
+			Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
+			Assert.IsTrue(result.Passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
 
-				if (new[] { KeystrokeOrder.AlternatingStroke, KeystrokeOrder.AlternatingWord }.Contains(options.KeystrokeOrder))
-					Assert.IsTrue(result.Passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
+			if (new[] { KeystrokeOrder.AlternatingStroke, KeystrokeOrder.AlternatingWord }.Contains(options.KeystrokeOrder))
+				Assert.IsTrue(result.Passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
 
-				if (options.KeystrokeOrder == KeystrokeOrder.OnlyLeft)
-					Assert.IsTrue(!result.Passwords.Any(RightHandPattern().IsMatch), "Password should not contain left hand keystrokes only.");
+			if (options.KeystrokeOrder == KeystrokeOrder.OnlyLeft)
+				Assert.IsTrue(!result.Passwords.Any(RightHandPattern().IsMatch), "Password should contain left hand keystrokes only.");
 
-				if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
-					Assert.IsTrue(!result.Passwords.Any(LeftHandPattern().IsMatch), "Password should not contain right hand keystrokes only.");
+			if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
+				Assert.IsTrue(!result.Passwords.Any(LeftHandPattern().IsMatch), "Password should contain right hand keystrokes only.");
 
-				Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
-			}
+			Debug.WriteLine("Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		[TestMethod]
 		public void ExceptionsTest()
 		{
-			DictionaryPasswordGeneratorOptions options = new() { File = @".\Resources\Dictionaries\words_alpha_esES.txt" };
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
+			DictionaryPasswordGeneratorOptions options = new() { Type = DictionaryType.PlainTextDictionary, File = fileStream };
 
-			void SetDefaults() 
+			void SetDefaults()
 			{
 				options.NumberOfPasswords = 10;
 				options.NumberOfWords = 2;
@@ -160,13 +168,13 @@ namespace PG.Tests.Business.Passwords.Generators
 			}
 
 			SetDefaults();
-			IDictionaryLoader loader = new WordDictionaryLoader(new DictionariesDataFactory().CreateForFile(options.File, Encoding.UTF8));
+			WordDictionaryTree wordTree = GetWordTree(options.File);
 
 			Debug.WriteLine("Starting password generation for exceptions...");
 			try
 			{
 				options.NumberOfPasswords = 0;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'At least one password must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -177,7 +185,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				options.NumberOfPasswords = 1;
 				options.NumberOfWords = 0;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'At least one word must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -188,7 +196,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				options.NumberOfWords = 1;
 				options.AverageWordLength = 2;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Average length must be at least X' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -198,7 +206,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				options.DepthLevel = 8;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Depth level must be lower than the average word length (X)' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -208,18 +216,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				options.NumberOfWords = 1;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Minimum length must be lower to the sum of the number of letters, numbers, and special characters (X)' not thrown.");
-			}
-			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
-			finally { SetDefaults(); }
-
-			try
-			{
-				loader = new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"]));
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
-				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
@@ -232,12 +230,31 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.IncludeSeparatorSymbols = false;
 				options.IncludeSetSymbols = false;
 				options.CustomSpecialCharacters = [];
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), loader).Generate();
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'No symbols are available. Either provide custom symbols or enable the default ones.' not thrown");
 			}
 			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
 			finally { SetDefaults(); }
+
+			try
+			{
+				wordTree =  new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"])).Load(null!);
+				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
+				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
+			}
+			catch (AssertFailedException) { throw; }
+			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			finally { SetDefaults(); }
+
+			// Be aware that at this point "wordTree" contains the tree of only two words.
+		}
+
+		private static WordDictionaryTree GetWordTree(Stream fileStream)
+		{
+			IDictionariesData data = new DictionariesDataFactory().CreateForDictionaryFile(DictionaryType.PlainTextDictionary, Encoding.UTF8);
+			WordDictionaryTree wordTree = new WordDictionaryLoader(data).Load(fileStream);
+			return wordTree;
 		}
 	}
 }

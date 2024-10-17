@@ -121,6 +121,8 @@ namespace PG.Logic.Passwords.Generators
 		/// </summary>
 		protected bool IsProperHand(char keystroke, HandSide hand)
 		{
+			if (char.IsSurrogate(keystroke)) return true;
+
 			return KeystrokeOrder == KeystrokeOrder.Random
 				|| (hand == HandSide.Any)
 				|| (hand == HandSide.Left ? _leftHandKeyStrokes.Contains(keystroke) : _rightHandKeyStrokes.Contains(keystroke));
@@ -129,48 +131,55 @@ namespace PG.Logic.Passwords.Generators
 		/// <summary>
 		/// Determines if the keystroke is a proper keystroke for the current finger and hand.
 		/// </summary>
-		protected static bool IsProperFinger(char value, HandSide curHand, Finger? curFinger)
+		protected static bool IsProperFinger(char keystroke, HandSide curHand, Finger? curFinger)
 		{
 			// If the finger is not set, any keystroke is valid.
 			if (curFinger == null) return true;
+
+			if (char.IsSurrogate(keystroke)) return true;
 
 			// Remove the keystrokes that are not allowed for the current finger and test if the keystroke is valid.
 			return curHand switch
 			{
 				HandSide.Left => curFinger switch
 				{
-					Finger.Thumb => _leftHandKeyStrokes.Except(_leftThumbKeyStrokes).Contains(value),
-					Finger.Pinky => _leftHandKeyStrokes.Except(_leftPinkyKeyStrokes).Contains(value),
-					Finger.Ring => _leftHandKeyStrokes.Except(_leftRingKeyStrokes).Contains(value),
-					Finger.Middle => _leftHandKeyStrokes.Except(_leftMiddleKeyStrokes).Contains(value),
-					Finger.Index => _leftHandKeyStrokes.Except(_leftIndexKeyStrokes).Contains(value),
+					Finger.Thumb => _leftHandKeyStrokes.Except(_leftThumbKeyStrokes).Contains(keystroke),
+					Finger.Pinky => _leftHandKeyStrokes.Except(_leftPinkyKeyStrokes).Contains(keystroke),
+					Finger.Ring => _leftHandKeyStrokes.Except(_leftRingKeyStrokes).Contains(keystroke),
+					Finger.Middle => _leftHandKeyStrokes.Except(_leftMiddleKeyStrokes).Contains(keystroke),
+					Finger.Index => _leftHandKeyStrokes.Except(_leftIndexKeyStrokes).Contains(keystroke),
 					_ => true
 				},
 				HandSide.Right => curFinger switch
 				{
-					Finger.Thumb => _rightHandKeyStrokes.Except(_rightThumbKeyStrokes).Contains(value),
-					Finger.Pinky => _rightHandKeyStrokes.Except(_rightPinkyKeyStrokes).Contains(value),
-					Finger.Ring => _rightHandKeyStrokes.Except(_rightRingKeyStrokes).Contains(value),
-					Finger.Middle => _rightHandKeyStrokes.Except(_rightMiddleKeyStrokes).Contains(value),
-					Finger.Index => _rightHandKeyStrokes.Except(_rightIndexKeyStrokes).Contains(value),
+					Finger.Thumb => _rightHandKeyStrokes.Except(_rightThumbKeyStrokes).Contains(keystroke),
+					Finger.Pinky => _rightHandKeyStrokes.Except(_rightPinkyKeyStrokes).Contains(keystroke),
+					Finger.Ring => _rightHandKeyStrokes.Except(_rightRingKeyStrokes).Contains(keystroke),
+					Finger.Middle => _rightHandKeyStrokes.Except(_rightMiddleKeyStrokes).Contains(keystroke),
+					Finger.Index => _rightHandKeyStrokes.Except(_rightIndexKeyStrokes).Contains(keystroke),
 					_ => true
 				},
 				_ => true,
 			};
 		}
 
-		protected static Finger? GetFingerForKeystroke(char value)
+		protected static Finger? GetFingerForKeystroke(string value)
 		{
-			if (_leftThumbKeyStrokes.Contains(value)) return (Finger?)Finger.Thumb;
-			if (_leftPinkyKeyStrokes.Contains(value)) return (Finger?)Finger.Pinky;
-			if (_leftRingKeyStrokes.Contains(value)) return (Finger?)Finger.Ring;
-			if (_leftMiddleKeyStrokes.Contains(value)) return (Finger?)Finger.Middle;
-			if (_leftIndexKeyStrokes.Contains(value)) return (Finger?)Finger.Index;
-			if (_rightThumbKeyStrokes.Contains(value)) return (Finger?)Finger.Thumb;
-			if (_rightPinkyKeyStrokes.Contains(value)) return (Finger?)Finger.Pinky;
-			if (_rightRingKeyStrokes.Contains(value)) return (Finger?)Finger.Ring;
-			if (_rightMiddleKeyStrokes.Contains(value)) return (Finger?)Finger.Middle;
-			if (_rightIndexKeyStrokes.Contains(value)) return (Finger?)Finger.Index;
+			// This method cannot determine the finger for multi-character keystrokes.
+			if (value.Length != 1) return null;
+
+			char @char = value[0];
+
+			if (_leftThumbKeyStrokes.Contains(@char)) return (Finger?)Finger.Thumb;
+			if (_leftPinkyKeyStrokes.Contains(@char)) return (Finger?)Finger.Pinky;
+			if (_leftRingKeyStrokes.Contains(@char)) return (Finger?)Finger.Ring;
+			if (_leftMiddleKeyStrokes.Contains(@char)) return (Finger?)Finger.Middle;
+			if (_leftIndexKeyStrokes.Contains(@char)) return (Finger?)Finger.Index;
+			if (_rightThumbKeyStrokes.Contains(@char)) return (Finger?)Finger.Thumb;
+			if (_rightPinkyKeyStrokes.Contains(@char)) return (Finger?)Finger.Pinky;
+			if (_rightRingKeyStrokes.Contains(@char)) return (Finger?)Finger.Ring;
+			if (_rightMiddleKeyStrokes.Contains(@char)) return (Finger?)Finger.Middle;
+			if (_rightIndexKeyStrokes.Contains(@char)) return (Finger?)Finger.Index;
 
 			return null;
 		}

@@ -1,4 +1,6 @@
-﻿using PG.Logic.Common;
+﻿using PG.Data.Files.DataFiles;
+using PG.Entities.WordTrees;
+using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
 using PG.Shared.Services;
@@ -41,9 +43,14 @@ namespace PG.Logic.Passwords.Generators
 			IDictionaryLoaderFactory loaderFactory = _provider.GetService(typeof(IDictionaryLoaderFactory)) as IDictionaryLoaderFactory
 				?? throw new InvalidOperationException("Dictionary loader factory is not registered as a service provider.");
 
-			var loader = loaderFactory.Create(dictionaryOptions.File, Constants.DictionaryEncoding);
+			WordDictionaryTree wordTree = dictionaryOptions.Type switch
+			{
+				DictionaryType.PlainTextDictionary => loaderFactory.CreateForDictionary(dictionaryOptions.Type, Constants.DictionaryEncoding).Load(dictionaryOptions.File),
+				DictionaryType.WordTree => loaderFactory.CreateForWordTree(dictionaryOptions.Type).FetchTree(dictionaryOptions.File),
+				_ => throw new NotSupportedException($"Dictionary type '{dictionaryOptions.Type}' is not implemented."),
+			};
 
-			return new DictionaryPasswordGenerator(dictionaryOptions, random, loader);
+			return new DictionaryPasswordGenerator(dictionaryOptions, random, wordTree);
 		}
 	}
 }
