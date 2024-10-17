@@ -15,9 +15,10 @@ namespace PG.Tests.Business.Passwords.Loader
 		public void LoadDictionaryTest(string relativePathToFile)
 		{
 			string filePath = Path.Combine(Environment.CurrentDirectory, relativePathToFile);
-			IDictionariesData dictionary = new DictionariesDataFactory().CreateForDictionaryFile(filePath, Encoding.UTF8);
+			using FileStream file = new(filePath, FileMode.Open, FileAccess.Read);
+			IDictionariesData dictionary = new DictionariesDataFactory().CreateForDictionaryFile(DictionaryType.PlainTextDictionary, Encoding.UTF8);
 			WordDictionaryLoader loader = new(dictionary);
-			WordDictionaryTree wordTree = loader.Load();
+			WordDictionaryTree wordTree = loader.Load(file);
 
 			Assert.IsTrue(wordTree != null, "WordTree should've been created");
 			Assert.IsTrue(wordTree.Root != null, "Root node should've been created");

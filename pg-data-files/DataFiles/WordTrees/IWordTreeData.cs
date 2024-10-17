@@ -2,10 +2,10 @@
 
 namespace PG.Data.Files.DataFiles.WordTrees
 {
-    public interface IWordTreeData
-    {
-        WordDictionaryTree FetchTree();
+	public interface IWordTreeData
+	{
+		WordDictionaryTree FetchTree(Stream fileStream);
 
-        void SaveTree(WordDictionaryTree tree);
-    }
+		void SaveTree(Stream fileStream, WordDictionaryTree tree);
+	}
 }

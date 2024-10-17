@@ -26,9 +26,12 @@ namespace PG.Tests.Data.WordTrees
 			string wordTreeFilePath = Path.ChangeExtension(Path.GetTempFileName(), "gz");
 			try
 			{
-				BinaryWordTreeFile file = new(wordTreeFilePath);
-				file.SaveTree(wordTree);
-				WordDictionaryTree actualWordTree = file.FetchTree();
+				using (FileStream fileStream = new(wordTreeFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+					new BinaryWordTreeFile().SaveTree(fileStream, wordTree);
+
+				WordDictionaryTree actualWordTree;
+				using (FileStream fileStream = new(wordTreeFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+					actualWordTree = new BinaryWordTreeFile().FetchTree(fileStream);
 
 				Assert.IsTrue(actualWordTree != null, "WordTree should've been created");
 				Assert.IsTrue(actualWordTree.Root != null, "Root node should've been created");
@@ -67,9 +70,12 @@ namespace PG.Tests.Data.WordTrees
 			string wordTreeFilePath = Path.ChangeExtension(Path.GetTempFileName(), "gz");
 			try
 			{
-				BinaryWordTreeFile file = new(wordTreeFilePath);
-				file.SaveTree(wordTree);
-				WordDictionaryTree actualWordTree = file.FetchTree();
+				using (FileStream fileStream = new(wordTreeFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+					new BinaryWordTreeFile().SaveTree(fileStream, wordTree);
+
+				WordDictionaryTree actualWordTree;
+				using (FileStream fileStream = new(wordTreeFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+					actualWordTree = new BinaryWordTreeFile().FetchTree(fileStream);
 
 				Assert.IsTrue(actualWordTree != null, "WordTree should've been created");
 				Assert.IsTrue(actualWordTree.Root != null, "Root node should've been created");
@@ -133,11 +139,14 @@ namespace PG.Tests.Data.WordTrees
 			string wordTreeFilePath = Path.ChangeExtension(Path.GetTempFileName(), "gz");
 			try
 			{
-				BinaryWordTreeFile file = new(wordTreeFilePath);
-				file.SaveTree(wordTree);
+				using (FileStream fileStream = new(wordTreeFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+					new BinaryWordTreeFile().SaveTree(fileStream, wordTree);
+
 				wordTreeSize = new FileInfo(wordTreeFilePath).Length;
 
-				WordDictionaryTree actualWordTree = file.FetchTree();
+				WordDictionaryTree actualWordTree;
+				using (FileStream fileStream = new(wordTreeFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+					actualWordTree = new BinaryWordTreeFile().FetchTree(fileStream);
 
 				Assert.IsTrue(actualWordTree != null, "WordTree should've been created");
 				Assert.IsTrue(actualWordTree.Root != null, "Root node should've been created");
@@ -160,10 +169,10 @@ namespace PG.Tests.Data.WordTrees
 		private static WordDictionaryTree FetchWordTree(string relativePathToFile)
 		{
 			string filePath = Path.Combine(Environment.CurrentDirectory, relativePathToFile);
-			IDictionariesData dictionary = new DictionariesDataFactory().CreateForDictionaryFile(filePath, Encoding.UTF8);
-			WordDictionaryLoader loader = new(dictionary);
+			FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+			IDictionariesData dictionary = new DictionariesDataFactory().CreateForDictionaryFile(DictionaryType.PlainTextDictionary, Encoding.UTF8);
 
-			return loader.Load();
+			return new WordDictionaryLoader(dictionary).Load(fileStream);
 		}
 	}
 }

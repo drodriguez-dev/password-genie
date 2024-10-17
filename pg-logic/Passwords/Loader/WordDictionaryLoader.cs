@@ -44,11 +44,11 @@ namespace PG.Logic.Passwords.Loader
 		/// </summary>
 		/// <param name="dictionaryFilePath">Full path to the dictionary file.</param>
 		/// <returns>Root node of the dictionary tree structure representing the dictionary.</returns>
-		public WordDictionaryTree Load()
+		public WordDictionaryTree Load(Stream file)
 		{
 			WordDictionaryTree @return = new();
 
-			foreach (var word in DictionariesData.FetchAllWords())
+			foreach (var word in DictionariesData.FetchAllWords(file))
 			{
 				// Skip words that are too short
 				if (word.Length < MINIMUM_WORD_LENGTH) continue;

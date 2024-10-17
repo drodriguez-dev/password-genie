@@ -4,6 +4,6 @@ namespace PG.Logic.Passwords.Loader
 {
 	public interface IDictionaryLoader
 	{
-		WordDictionaryTree Load();
+		WordDictionaryTree Load(Stream file);
 	}
 }

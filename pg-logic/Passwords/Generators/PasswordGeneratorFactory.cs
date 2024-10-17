@@ -1,4 +1,5 @@
-﻿using PG.Entities.WordTrees;
+﻿using PG.Data.Files.DataFiles;
+using PG.Entities.WordTrees;
 using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loader;
@@ -42,13 +43,12 @@ namespace PG.Logic.Passwords.Generators
 			IDictionaryLoaderFactory loaderFactory = _provider.GetService(typeof(IDictionaryLoaderFactory)) as IDictionaryLoaderFactory
 				?? throw new InvalidOperationException("Dictionary loader factory is not registered as a service provider.");
 
-			WordDictionaryTree wordTree;
-			if (!string.IsNullOrWhiteSpace(dictionaryOptions.DictionaryFile))
-				wordTree = loaderFactory.CreateForDictionary(dictionaryOptions.DictionaryFile, Constants.DictionaryEncoding).Load();
-			else if (!string.IsNullOrWhiteSpace(dictionaryOptions.WordTreeFile))
-				wordTree = loaderFactory.CreateForWordTree(dictionaryOptions.WordTreeFile).FetchTree();
-			else
-				throw new InvalidOperationException("Dictionary file or word tree file must be provided.");
+			WordDictionaryTree wordTree = dictionaryOptions.Type switch
+			{
+				DictionaryType.PlainTextDictionary => loaderFactory.CreateForDictionary(dictionaryOptions.Type, Constants.DictionaryEncoding).Load(dictionaryOptions.File),
+				DictionaryType.WordTree => loaderFactory.CreateForWordTree(dictionaryOptions.Type).FetchTree(dictionaryOptions.File),
+				_ => throw new NotSupportedException($"Dictionary type '{dictionaryOptions.Type}' is not implemented."),
+			};
 
 			return new DictionaryPasswordGenerator(dictionaryOptions, random, wordTree);
 		}

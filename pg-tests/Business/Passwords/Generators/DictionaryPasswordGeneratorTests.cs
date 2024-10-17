@@ -20,9 +20,11 @@ namespace PG.Tests.Business.Passwords.Generators
 		[DataRow(12, 2, 6, 0, 0)]
 		public void PasswordGenerationTest(int minLength, int numberOfWords, int averageWordLength, int numberOfNumbers, int numberOfSpecials)
 		{
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_enUS.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				DictionaryFile = @".\Resources\Dictionaries\words_alpha_esES.txt",
+				Type = DictionaryType.PlainTextDictionary,
+				File = fileStream,
 				NumberOfPasswords = 10,
 				NumberOfWords = numberOfWords,
 				AverageWordLength = averageWordLength,
@@ -37,7 +39,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.DictionaryFile));
+			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
@@ -60,9 +62,11 @@ namespace PG.Tests.Business.Passwords.Generators
 		[TestMethod]
 		public void SuggestedGenerationTest()
 		{
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				DictionaryFile = @".\Resources\Dictionaries\words_alpha_esES.txt",
+				Type = DictionaryType.PlainTextDictionary,
+				File = fileStream,
 				NumberOfPasswords = 10,
 				NumberOfWords = 2,
 				AverageWordLength = 6,
@@ -76,7 +80,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			Debug.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.DictionaryFile));
+			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
 			Debug.WriteLine($"Generated passwords:");
@@ -104,9 +108,11 @@ namespace PG.Tests.Business.Passwords.Generators
 		[DataRow(KeystrokeOrder.OnlyRight)]
 		public void AlternatingHandsTest(KeystrokeOrder order)
 		{
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
 			{
-				DictionaryFile = @".\Resources\Dictionaries\words_alpha_esES.txt",
+				Type = DictionaryType.PlainTextDictionary,
+				File = fileStream,
 				NumberOfPasswords = 50,
 				NumberOfWords = 2,
 				AverageWordLength = 6,
@@ -122,7 +128,7 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			// For each keystroke order, generate a password
 			options.KeystrokeOrder = order;
-			var result = new DictionaryPasswordGenerator(options, new RandomService(), GetWordTree(options.DictionaryFile)).Generate();
+			var result = new DictionaryPasswordGenerator(options, new RandomService(), GetWordTree(options.File)).Generate();
 
 			Debug.WriteLine(string.Join(Environment.NewLine, result.Passwords));
 
@@ -144,7 +150,8 @@ namespace PG.Tests.Business.Passwords.Generators
 		[TestMethod]
 		public void ExceptionsTest()
 		{
-			DictionaryPasswordGeneratorOptions options = new() { DictionaryFile = @".\Resources\Dictionaries\words_alpha_esES.txt" };
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
+			DictionaryPasswordGeneratorOptions options = new() { Type = DictionaryType.PlainTextDictionary, File = fileStream };
 
 			void SetDefaults()
 			{
@@ -161,7 +168,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			}
 
 			SetDefaults();
-			WordDictionaryTree wordTree = GetWordTree(options.DictionaryFile);
+			WordDictionaryTree wordTree = GetWordTree(options.File);
 
 			Debug.WriteLine("Starting password generation for exceptions...");
 			try
@@ -232,7 +239,7 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			try
 			{
-				wordTree =  new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"])).Load();
+				wordTree =  new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"])).Load(null!);
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
 			}
@@ -243,10 +250,10 @@ namespace PG.Tests.Business.Passwords.Generators
 			// Be aware that at this point "wordTree" contains the tree of only two words.
 		}
 
-		private static WordDictionaryTree GetWordTree(string dictionaryFile)
+		private static WordDictionaryTree GetWordTree(Stream fileStream)
 		{
-			IDictionariesData data = new DictionariesDataFactory().CreateForDictionaryFile(dictionaryFile, Encoding.UTF8);
-			WordDictionaryTree wordTree = new WordDictionaryLoader(data).Load();
+			IDictionariesData data = new DictionariesDataFactory().CreateForDictionaryFile(DictionaryType.PlainTextDictionary, Encoding.UTF8);
+			WordDictionaryTree wordTree = new WordDictionaryLoader(data).Load(fileStream);
 			return wordTree;
 		}
 	}

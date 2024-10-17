@@ -1,4 +1,5 @@
-﻿using PG.Interface.Command.PasswordGeneration.Entities;
+﻿using PG.Data.Files.DataFiles;
+using PG.Interface.Command.PasswordGeneration.Entities;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.ErrorHandling;
@@ -137,11 +138,20 @@ namespace PG.Interface.Command.PasswordGeneration
 
 		private static DictionaryPasswordGeneratorOptions ConvertToDictionaryGeneratorOptions(PassGenieSettings settings)
 		{
-			FileInfo file = settings.Dictionary ?? settings.WordTree 
+			FileInfo file = settings.Dictionary ?? settings.WordTree
 				?? throw new InvalidDictionaryException("Dictionary or word tree file path is required for the dictionary strategy.");
 
 			if (!file.Exists)
 				throw new InvalidDictionaryException($"Data file '{file.FullName}' does not exist.");
+
+			DictionaryType type = file.Extension.ToLower() switch
+			{
+				".txt" => DictionaryType.PlainTextDictionary,
+				".gz" => DictionaryType.WordTree,
+				_ => throw new NotSupportedException($"File extension '{file.Extension}' is not supported.")
+			};
+
+			byte[] fileBytes = File.ReadAllBytes(file.FullName);
 
 			return new()
 			{
@@ -154,8 +164,8 @@ namespace PG.Interface.Command.PasswordGeneration
 				IncludeSeparatorSymbols = settings.IncludeSeparatorSymbols,
 				CustomSpecialCharacters = settings.CustomSymbols.ToCharArray(),
 				RemoveHighAsciiCharacters = settings.RemoveHighAsciiTable,
-				DictionaryFile = settings.Dictionary?.FullName,
-				WordTreeFile = settings.WordTree?.FullName,
+				Type = type,
+				File = new MemoryStream(fileBytes),
 				NumberOfWords = settings.NumberOfWords,
 				AverageWordLength = settings.AverageWordLength,
 				DepthLevel = settings.DepthLevel,

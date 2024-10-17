@@ -9,7 +9,7 @@ namespace PG.Data.Files.DataFiles
 	/// </summary>
 	public interface IDictionariesDataFactory
 	{
-		IDictionariesData CreateForDictionaryFile(string filePath, Encoding encoding);
-		IWordTreeData CreateForWordTreeFile(string filePath);
+		IDictionariesData CreateForDictionaryFile(DictionaryType type, Encoding encoding);
+		IWordTreeData CreateForWordTreeFile(DictionaryType type);
 	}
 }

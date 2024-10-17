@@ -2,10 +2,10 @@
 
 namespace PG.Tests.Business.Passwords.Generators.Mockups
 {
-    internal class DictionaryDataMockup(string[] words) : IDictionariesData
+	internal class DictionaryDataMockup(string[] words) : IDictionariesData
 	{
 		private readonly string[] _words = words;
 
-		public IEnumerable<string> FetchAllWords() => _words;
+		public IEnumerable<string> FetchAllWords(Stream file) => _words;
 	}
 }
