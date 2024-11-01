@@ -7,7 +7,7 @@ using PG.Shared.Services;
 
 namespace PG.Tests.Interface.PasswordGeneration
 {
-    [TestClass()]
+	[TestClass()]
 	public class PassGenieParserTests
 	{
 		private readonly ServiceProvider _provider;

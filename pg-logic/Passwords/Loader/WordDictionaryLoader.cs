@@ -5,7 +5,7 @@ using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Loader
 {
-    public class WordDictionaryLoader(IDictionariesData data) : IDictionaryLoader
+	public class WordDictionaryLoader(IDictionariesData data) : IDictionaryLoader
 	{
 		private const int MINIMUM_WORD_LENGTH = 2;
 		private readonly HashSet<char> VOWEL_AND_DIACRITIC_CHARS = [

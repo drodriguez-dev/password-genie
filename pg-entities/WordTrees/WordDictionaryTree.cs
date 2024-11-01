@@ -30,7 +30,7 @@ namespace PG.Entities.WordTrees
 		public static bool operator !=(WordDictionaryTree? left, WordDictionaryTree? right)
 		{
 			return !(left == right);
-		} 
+		}
 		#endregion
 
 		public override string ToString() => $"{Root.Children.Count} nodes";

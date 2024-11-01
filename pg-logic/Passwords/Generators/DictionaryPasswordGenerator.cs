@@ -233,7 +233,7 @@ namespace PG.Logic.Passwords.Generators
 				if (children.Count == 0) break;
 
 				var next = children[_random.Next(children.Count)];
-				wordBuilder.Append(next.Value);
+				wordBuilder = wordBuilder.Append(next.Value);
 
 				curFinger = GetFingerForKeystroke(next.Value);
 
