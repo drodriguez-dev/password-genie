@@ -3,7 +3,7 @@ using PG.Entities.WordTrees;
 using PG.Shared.Extensions;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
-namespace PG.Logic.Passwords.Loader
+namespace PG.Logic.Passwords.Loaders
 {
 	public class WordDictionaryLoader(IDictionariesData data) : IDictionaryLoader
 	{

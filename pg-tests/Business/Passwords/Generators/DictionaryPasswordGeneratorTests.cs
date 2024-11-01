@@ -4,7 +4,7 @@ using PG.Entities.Files;
 using PG.Entities.WordTrees;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
-using PG.Logic.Passwords.Loader;
+using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 using PG.Tests.Business.Passwords.Generators.Mockups;
 using System.Diagnostics;

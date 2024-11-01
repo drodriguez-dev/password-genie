@@ -3,7 +3,7 @@ using PG.Data.Files.DataFiles;
 using PG.Interface.Command.PasswordGeneration;
 using PG.Interface.Command.PasswordGeneration.Entities;
 using PG.Logic.Passwords.Generators;
-using PG.Logic.Passwords.Loader;
+using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 
 namespace PG.Console.PasswordGenie
