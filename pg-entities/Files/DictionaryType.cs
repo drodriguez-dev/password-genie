@@ -1,4 +1,4 @@
-﻿namespace PG.Data.Files.DataFiles
+﻿namespace PG.Entities.Files
 {
 	public enum DictionaryType { PlainTextDictionary, WordTree }
 }

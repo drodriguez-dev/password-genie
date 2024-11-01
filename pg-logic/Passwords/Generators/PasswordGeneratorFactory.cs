@@ -1,4 +1,4 @@
-﻿using PG.Data.Files.DataFiles;
+﻿using PG.Entities.Files;
 using PG.Entities.WordTrees;
 using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
