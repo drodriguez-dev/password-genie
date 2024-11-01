@@ -2,7 +2,7 @@
 
 namespace PG.Interface.Command.PasswordGeneration.Entities
 {
-	internal class PassGenieSettings
+	internal class GeneratorSettings : CommonSettings
 	{
 		// Common options
 		public int NumberOfPasswords { get; set; } = 1;
@@ -14,7 +14,6 @@ namespace PG.Interface.Command.PasswordGeneration.Entities
 		public bool IncludeSeparatorSymbols { get; set; } = true;
 		public string CustomSymbols { get; set; } = string.Empty;
 		public bool RemoveHighAsciiTable { get; set; } = false;
-		public bool Verbose { get; set; }
 
 		// Options for the random strategy
 		public int NumberOfLetters { get; set; } = 10;

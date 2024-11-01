@@ -1,10 +1,10 @@
 ﻿using PG.Data.Files.DataFiles;
 using PG.Data.Files.DataFiles.Dictionaries;
 using PG.Data.Files.DataFiles.WordTrees;
-using System.Reflection;
+using PG.Entities.Files;
 using System.Text;
 
-namespace PG.Logic.Passwords.Loader
+namespace PG.Logic.Passwords.Loaders
 {
 	public class DictionaryLoaderFactory(IServiceProvider provider) : IDictionaryLoaderFactory
 	{

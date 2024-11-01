@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PG.Data.Files.DataFiles;
 using PG.Interface.Command.PasswordGeneration;
+using PG.Logic.Passwords.Extractors;
 using PG.Logic.Passwords.Generators;
-using PG.Logic.Passwords.Loader;
+using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 
 namespace PG.Tests.Interface.PasswordGeneration
 {
-    [TestClass()]
+	[TestClass()]
 	public class PassGenieParserTests
 	{
 		private readonly ServiceProvider _provider;
@@ -16,6 +17,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 		{
 			_provider = new ServiceCollection()
 				.AddSingleton<PasswordGeneratorFactory>()
+				.AddSingleton<WordExtractorFactory>()
 				.AddSingleton<IDictionaryLoaderFactory, DictionaryLoaderFactory>()
 				.AddSingleton<IDictionariesDataFactory, DictionariesDataFactory>()
 				.AddTransient<RandomService>()
@@ -85,6 +87,22 @@ namespace PG.Tests.Interface.PasswordGeneration
 			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;
 
 			Assert.AreEqual(0, result, "Unexpected result");
+		}
+
+		[TestMethod]
+		public void ParseForWordExtractorTest()
+		{
+			string outputFilePath = @".\Resources\Dictionaries\words_alpha_esES_test.dat.gz";
+			string[] arguments = [
+				"extract", "plain",
+				"-i", @".\Resources\Dictionaries\words_alpha_esES.txt",
+				"-o", outputFilePath,
+			];
+
+			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;
+
+			Assert.AreEqual(0, result, "Unexpected result");
+			Assert.IsTrue(File.Exists(outputFilePath), "Output file not found");
 		}
 	}
 }

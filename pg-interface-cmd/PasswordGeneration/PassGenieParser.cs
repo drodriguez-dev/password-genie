@@ -1,5 +1,7 @@
-﻿using PG.Data.Files.DataFiles;
+﻿using PG.Entities.Files;
 using PG.Interface.Command.PasswordGeneration.Entities;
+using PG.Logic.Passwords.Extractors;
+using PG.Logic.Passwords.Extractors.Entities;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.ErrorHandling;
@@ -28,6 +30,7 @@ namespace PG.Interface.Command.PasswordGeneration
 		{
 			RootCommand rootCommand = CreateRootCommand();
 			rootCommand.AddCommand(CreateGenerationCommand());
+			rootCommand.AddCommand(CreateExtractionCommand());
 
 			Parser parser = new CommandLineBuilder(rootCommand)
 				.UseVersionOption("--Version", "-v")
@@ -47,15 +50,6 @@ namespace PG.Interface.Command.PasswordGeneration
 		private static RootCommand CreateRootCommand()
 		{
 			var command = new RootCommand("Generates passwords based on different strategies and options");
-			command.AddGlobalOption(new Option<int>(["--NumberOfPasswords", "-p"], () => 1, "Number of passwords to generate"));
-			command.AddGlobalOption(new Option<int>(["--Length", "-l"], () => 12, "Length of the password (approximate)"));
-			command.AddGlobalOption(new Option<int>(["--NumberOfNumbers", "-n"], () => 1, "Number of numbers in the password"));
-			command.AddGlobalOption(new Option<int>(["--NumberOfSpecialCharacters", "-s"], () => 1, "Number of special characters in the password"));
-			command.AddGlobalOption(new Option<bool>(["--IncludeGroupSymbols", "-sg"], () => true, @"Include group symbols ('()[]{}<>') in the password."));
-			command.AddGlobalOption(new Option<bool>(["--IncludeMarkSymbols", "-sm"], () => true, @"Include mark symbols ('!@#$%^*+=|;:\""?') in the password."));
-			command.AddGlobalOption(new Option<bool>(["--IncludeSeparatorSymbols", "-sp"], () => true, @"Include separator symbols (' -_/\&,.') in the password."));
-			command.AddGlobalOption(new Option<string>(["--CustomSymbols", "-sc"], () => string.Empty, "Use custom set of symbols. All 'Include' options are ignored."));
-			command.AddGlobalOption(new Option<bool>(["--RemoveHighAsciiTable", "-r"], () => false, @"Remove characters of the high ASCII table (128-255) from the password."));
 			command.AddGlobalOption(new Option<bool>(["--Verbose"], "Show additional information about the generated password."));
 
 			return command;
@@ -65,6 +59,17 @@ namespace PG.Interface.Command.PasswordGeneration
 		{
 			var command = new System.CommandLine.Command("generate", "Generates passwords based on different strategies and options");
 			command.AddArgument(new Argument<GeneratorType>("type", "The strategy to use for generating the password"));
+
+			// Options for both of the strategies
+			command.AddOption(new Option<int>(["--NumberOfPasswords", "-p"], () => 1, "Number of passwords to generate"));
+			command.AddOption(new Option<int>(["--Length", "-l"], () => 12, "Length of the password (approximate)"));
+			command.AddOption(new Option<int>(["--NumberOfNumbers", "-n"], () => 1, "Number of numbers in the password"));
+			command.AddOption(new Option<int>(["--NumberOfSpecialCharacters", "-s"], () => 1, "Number of special characters in the password"));
+			command.AddOption(new Option<bool>(["--IncludeGroupSymbols", "-sg"], () => true, @"Include group symbols ('()[]{}<>') in the password."));
+			command.AddOption(new Option<bool>(["--IncludeMarkSymbols", "-sm"], () => true, @"Include mark symbols ('!@#$%^*+=|;:\""?') in the password."));
+			command.AddOption(new Option<bool>(["--IncludeSeparatorSymbols", "-sp"], () => true, @"Include separator symbols (' -_/\&,.') in the password."));
+			command.AddOption(new Option<string>(["--CustomSymbols", "-sc"], () => string.Empty, "Use custom set of symbols. All 'Include' options are ignored."));
+			command.AddOption(new Option<bool>(["--RemoveHighAsciiTable", "-r"], () => false, @"Remove characters of the high ASCII table (128-255) from the password."));
 
 			// Options for the random strategy
 			command.AddOption(new Option<int>(["--NumberOfLetters", "-c"], () => 10, "Number of letters in the password"));
@@ -83,7 +88,7 @@ namespace PG.Interface.Command.PasswordGeneration
 			command.AddOption(new Option<KeystrokeOrder>(["--KeystrokeOrder", "-ko"], () => KeystrokeOrder.Random,
 				$"The order in which keystrokes are generated ({string.Join(", ", Enum.GetNames(typeof(KeystrokeOrder)))})"));
 
-			command.Handler = CommandHandler.Create<GeneratorType, PassGenieSettings>(ExecuteCommand);
+			command.Handler = CommandHandler.Create<GeneratorType, GeneratorSettings>(ExecuteGeneration);
 
 			return command;
 
@@ -98,7 +103,21 @@ namespace PG.Interface.Command.PasswordGeneration
 			}
 		}
 
-		private int ExecuteCommand(GeneratorType type, PassGenieSettings settings)
+		private System.CommandLine.Command CreateExtractionCommand()
+		{
+			var command = new System.CommandLine.Command("extract", "Generates passwords based on different strategies and options");
+			command.AddArgument(new Argument<DictionaryFormat>("format", "The format of the dictionary"));
+
+			command.AddOption(new Option<FileInfo>(["--Input", "-i"], "File path for the dictionary file"));
+			command.AddOption(new Option<FileInfo>(["--Output", "-o"], "File path for the generated word tree file"));
+			command.AddOption(new Option<bool>(["--Overwrite", "-ow"], () => false, "Overwrite the output file if it already exists"));
+
+			command.Handler = CommandHandler.Create<DictionaryFormat, ExtractorSettings>(ExecuteExtraction);
+
+			return command;
+		}
+
+		private int ExecuteGeneration(GeneratorType type, GeneratorSettings settings)
 		{
 			var factory = _provider.GetService(typeof(PasswordGeneratorFactory)) as PasswordGeneratorFactory
 				?? throw new InvalidOperationException("Password generator factory is not registered as a service provider.");
@@ -119,7 +138,7 @@ namespace PG.Interface.Command.PasswordGeneration
 			return NO_ERROR;
 		}
 
-		private static RandomPasswordGeneratorOptions ConvertToRandomGeneratorOptions(PassGenieSettings settings)
+		private static RandomPasswordGeneratorOptions ConvertToRandomGeneratorOptions(GeneratorSettings settings)
 		{
 			return new()
 			{
@@ -136,7 +155,7 @@ namespace PG.Interface.Command.PasswordGeneration
 			};
 		}
 
-		private static DictionaryPasswordGeneratorOptions ConvertToDictionaryGeneratorOptions(PassGenieSettings settings)
+		private static DictionaryPasswordGeneratorOptions ConvertToDictionaryGeneratorOptions(GeneratorSettings settings)
 		{
 			FileInfo file = settings.Dictionary ?? settings.WordTree
 				?? throw new InvalidDictionaryException("Dictionary or word tree file path is required for the dictionary strategy.");
@@ -173,19 +192,6 @@ namespace PG.Interface.Command.PasswordGeneration
 			};
 		}
 
-		private void HandleCommandException(Exception exception, InvocationContext context)
-		{
-			if (exception is TargetInvocationException targetInvocationException)
-				exception = targetInvocationException.InnerException ?? exception;
-
-			if (exception is BaseException baseException)
-				Output(TraceLevel.Warning, "{0}", baseException.Message);
-			else
-				Output(TraceLevel.Error, "{0}", exception.Message);
-
-			context.ExitCode = UNEXPECTED_ERROR;
-		}
-
 		/// <summary>
 		/// Using predefined ranges, returns a text representation of the entropy.
 		/// </summary>
@@ -202,6 +208,45 @@ namespace PG.Interface.Command.PasswordGeneration
 			if (entropy < 128)
 				return "Strong";
 			return "Very strong";
+		}
+
+		private int ExecuteExtraction(DictionaryFormat format, ExtractorSettings settings)
+		{
+			FileInfo inputFile = settings.Input
+				?? throw new InvalidDictionaryException("Input file is required to extract the words.");
+
+			if (!inputFile.Exists)
+				throw new InvalidDictionaryException($"Data file '{inputFile.FullName}' does not exist.");
+
+			FileInfo outputFile = settings.Output
+				?? throw new InvalidDictionaryException("Ouput file is required to save extracted words.");
+
+			if (outputFile.Exists && !settings.Overwrite)
+				throw new InvalidDictionaryException("Output file already exists, overwrite option is not enabled");
+
+			var factory = _provider.GetService(typeof(WordExtractorFactory)) as WordExtractorFactory
+				?? throw new InvalidOperationException("Word extractor factory is not registered as a service provider.");
+
+			IWordExtractor extractor = factory.Create(format);
+
+			using (Stream inputStream = new FileStream(inputFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+			using (Stream outputStream = new FileStream(outputFile.FullName, FileMode.Create, FileAccess.Write, FileShare.Read))
+				extractor.ExtractWordTree(inputStream, outputStream);
+
+			return NO_ERROR;
+		}
+
+		private void HandleCommandException(Exception exception, InvocationContext context)
+		{
+			if (exception is TargetInvocationException targetInvocationException)
+				exception = targetInvocationException.InnerException ?? exception;
+
+			if (exception is BaseException baseException)
+				Output(TraceLevel.Warning, "{0}", baseException.Message);
+			else
+				Output(TraceLevel.Error, "{0}", exception.Message);
+
+			context.ExitCode = UNEXPECTED_ERROR;
 		}
 
 		private void Output(TraceLevel level, string format, params object[] args)

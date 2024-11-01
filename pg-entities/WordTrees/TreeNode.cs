@@ -44,7 +44,7 @@ namespace PG.Entities.WordTrees
 		public static bool operator !=(TreeNode<T>? left, TreeNode<T>? right)
 		{
 			return !(left == right);
-		} 
+		}
 		#endregion
 
 		public override string ToString() => $"{Value} (+{Children.Count})";

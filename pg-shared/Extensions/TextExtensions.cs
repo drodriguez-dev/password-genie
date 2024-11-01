@@ -5,8 +5,8 @@ namespace PG.Shared.Extensions
 	public static class TextExtensions
 	{
 		private static readonly HashSet<char> WhitespaceCharacters = new([
-		  ' ', '\t', '\n', '\r', '\v', '\f',
-		  '\u00A0', '\u2000', '\u2001', '\u2002', '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u200B', '\u202F', '\u205F', '\u3000'
+			' ', '\t', '\n', '\r', '\v', '\f',
+			'\u00A0', '\u2000', '\u2001', '\u2002', '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u200B', '\u202F', '\u205F', '\u3000'
 		]);
 
 		/// <summary>
@@ -14,7 +14,7 @@ namespace PG.Shared.Extensions
 		/// </summary>
 		/// <param name="c">The character to check.</param>
 		/// <returns><c>true</c> if the character is printable; otherwise, <c>false</c>.</returns>
-		public static bool IsPrintable(this char c) => (c > 32 && c <= 126) || c >= 128 && c <= 255;
+		public static bool IsPrintable(this char c) => (c > 32 && c <= 126) || (c >= 128 && c <= 255);
 
 		/// <summary>
 		/// Determines if a character is any type of space.

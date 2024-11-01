@@ -1,5 +1,6 @@
 ﻿using PG.Data.Files.DataFiles;
 using PG.Data.Files.DataFiles.Dictionaries;
+using PG.Entities.Files;
 using System.Diagnostics;
 using System.Text;
 

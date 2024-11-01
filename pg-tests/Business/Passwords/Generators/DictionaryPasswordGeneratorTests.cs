@@ -1,9 +1,10 @@
 ﻿using PG.Data.Files.DataFiles;
 using PG.Data.Files.DataFiles.Dictionaries;
+using PG.Entities.Files;
 using PG.Entities.WordTrees;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
-using PG.Logic.Passwords.Loader;
+using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 using PG.Tests.Business.Passwords.Generators.Mockups;
 using System.Diagnostics;
@@ -239,7 +240,7 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			try
 			{
-				wordTree =  new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"])).Load(null!);
+				wordTree = new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"])).Load(null!);
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
 			}

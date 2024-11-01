@@ -1,4 +1,4 @@
-﻿using PG.Data.Files.DataFiles;
+﻿using PG.Entities.Files;
 
 namespace PG.Logic.Passwords.Generators.Entities
 {

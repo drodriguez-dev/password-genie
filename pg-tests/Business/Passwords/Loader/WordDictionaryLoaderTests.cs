@@ -1,7 +1,8 @@
 ﻿using PG.Data.Files.DataFiles;
 using PG.Data.Files.DataFiles.Dictionaries;
+using PG.Entities.Files;
 using PG.Entities.WordTrees;
-using PG.Logic.Passwords.Loader;
+using PG.Logic.Passwords.Loaders;
 using System.Text;
 
 namespace PG.Tests.Business.Passwords.Loader

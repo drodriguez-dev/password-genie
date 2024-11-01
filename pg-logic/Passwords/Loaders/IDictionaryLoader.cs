@@ -1,6 +1,6 @@
 ﻿using PG.Entities.WordTrees;
 
-namespace PG.Logic.Passwords.Loader
+namespace PG.Logic.Passwords.Loaders
 {
 	public interface IDictionaryLoader
 	{

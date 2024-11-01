@@ -1,8 +1,8 @@
-﻿using PG.Data.Files.DataFiles;
+﻿using PG.Entities.Files;
 using PG.Entities.WordTrees;
 using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
-using PG.Logic.Passwords.Loader;
+using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 
 namespace PG.Logic.Passwords.Generators

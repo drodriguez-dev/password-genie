@@ -2,17 +2,18 @@
 using PG.Data.Files.DataFiles;
 using PG.Interface.Command.PasswordGeneration;
 using PG.Interface.Command.PasswordGeneration.Entities;
+using PG.Logic.Passwords.Extractors;
 using PG.Logic.Passwords.Generators;
-using PG.Logic.Passwords.Loader;
+using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 
 namespace PG.Console.PasswordGenie
 {
-    static class Program
+	internal static class Program
 	{
 		private static readonly ServiceProvider _provider = GetServiceProvider();
 
-		static async Task<int> Main(string[] args)
+		private static async Task<int> Main(string[] args)
 		{
 			PassGenieParser passGenieParser = _provider.GetRequiredService<PassGenieParser>();
 			passGenieParser.OutputReport += HandleOutputReport;
@@ -57,6 +58,7 @@ namespace PG.Console.PasswordGenie
 			return new ServiceCollection()
 				.AddSingleton<PassGenieParser>()
 				.AddSingleton<PasswordGeneratorFactory>()
+				.AddSingleton<WordExtractorFactory>()
 				.AddSingleton<IDictionaryLoaderFactory, DictionaryLoaderFactory>()
 				.AddSingleton<IDictionariesDataFactory, DictionariesDataFactory>()
 				.AddTransient<RandomService>()

@@ -26,7 +26,7 @@ namespace PG.Tests.Shared.Extensions
 		{
 			try
 			{
-				"".Right(0);
+				_ = "".Right(0);
 				Assert.Fail("Expected ArgumentOutOfRangeException");
 			}
 			catch (ArgumentOutOfRangeException) { /* Expected */ }

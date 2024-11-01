@@ -1,7 +1,6 @@
 ﻿using PG.Entities.WordTrees;
 using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
-using PG.Logic.Passwords.Loader;
 using PG.Shared.Extensions;
 using PG.Shared.Services;
 using System.Text;
@@ -234,7 +233,7 @@ namespace PG.Logic.Passwords.Generators
 				if (children.Count == 0) break;
 
 				var next = children[_random.Next(children.Count)];
-				wordBuilder.Append(next.Value);
+				wordBuilder = wordBuilder.Append(next.Value);
 
 				curFinger = GetFingerForKeystroke(next.Value);
 
