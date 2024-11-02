@@ -1,5 +1,5 @@
 ---
-name: Feed-back
+name: Feedback
 about: Suggestion about a current or desired feature.
 title: ''
 labels: suggestion
