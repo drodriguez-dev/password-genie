@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="emoji"
+   viewBox="0 0 72 72"
+   version="1.1"
+   sodipodi:docname="turban-white.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   inkscape:export-filename="turban-white_32x.png"
+   inkscape:export-xdpi="42.666668"
+   inkscape:export-ydpi="42.666668"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs16" />
+  <sodipodi:namedview
+     id="namedview16"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showguides="true"
+     inkscape:zoom="11.625"
+     inkscape:cx="36"
+     inkscape:cy="36"
+     inkscape:window-width="1920"
+     inkscape:window-height="1057"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g2"
+     showgrid="false" />
+  <g
+     id="g2">
+    <g
+       id="g1"
+       transform="matrix(2.3266474,0,0,2.3266474,-49.407248,-7.8170297)"
+       inkscape:label="turban">
+      <path
+         fill="#ffffff"
+         d="m 49.1748,14.6732 c -13.1713,4.1165 -24.51,13.5184 -24.51,13.5184 0,0 -3.96,-5.3394 -2.2369,-10.7265 0,0 2.2369,-8.0773 13.036,-8.0773 7.7035,0 11.5948,3.1694 13.7108,5.2854 6.1464,8.7249 -2.1347,13.6042 -2.1347,13.6042 a 126.1662,126.1662 0 0 1 -9.655,-8.3413"
+         id="path5" />
+      <path
+         fill="#d0cfce"
+         d="M 49.1748,14.6732 C 55.3211,23.3981 47.04,28.2774 47.04,28.2774 43.635719,25.235655 39.987336,22.498989 36.485815,20.409355"
+         id="path6"
+         sodipodi:nodetypes="ccc" />
+      <path
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="2"
+         d="m 49.047126,14.713524 c -9.772938,3.52595 -17.753021,6.959708 -24.374164,13.384176 -0.07,0.06 -0.007,0.09 -0.007,0.09 0,0 -3.96,-5.34 -2.24,-10.72 0,0 2.24,-8.08 13.04,-8.08 7.7,0 11.246539,2.311348 13.71,5.29 5.58,7.91 -0.72,12.65 -1.94,13.47 -0.13,0.09 -0.2,0.13 -0.2,0.13 0,0 -4.741279,-5.087514 -10.639067,-8.227051"
+         id="path13"
+         style="stroke-width:1.5;stroke-dasharray:none"
+         sodipodi:nodetypes="ccccscccc" />
+    </g>
+    <g
+       id="g18"
+       style="display:none;stroke-width:1.5;stroke-dasharray:none"
+       transform="matrix(2.3266474,0,0,2.3266474,-49.183972,-7.4867007)"
+       inkscape:label="password">
+      <circle
+         style="fill:#99ccff;fill-opacity:1;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="path18"
+         cx="30.619608"
+         cy="13.771724"
+         r="1.4670908" />
+      <circle
+         style="fill:#99ccff;fill-opacity:1;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="path18-3"
+         cx="41.574268"
+         cy="13.771724"
+         r="1.4670908" />
+      <circle
+         style="fill:#99ccff;fill-opacity:1;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="path18-1"
+         cx="36.096939"
+         cy="13.771724"
+         r="1.4670908" />
+    </g>
+  </g>
+</svg>

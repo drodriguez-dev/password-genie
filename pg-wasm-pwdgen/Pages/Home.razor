@@ -1,0 +1,22 @@
+﻿@page "/"
+
+<PageTitle>Password Genierator</PageTitle>
+
+<h1>Password <strong class="title">Genie</strong>rator</h1>
+<p>Fictional words based password generator.</p>
+
+<button @onclick="GeneratePassword">Generate Password</button>
+<p>@Password</p>
+
+<ErrorBoundary>
+	<Counter />
+</ErrorBoundary>
+
+@code {
+		private string Password { get; set; } = string.Empty;
+
+		private void GeneratePassword()
+		{
+				Password = int.Parse("Runtime error test").ToString();
+		}
+}

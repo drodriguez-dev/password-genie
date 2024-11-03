@@ -1,0 +1,87 @@
+@font-face {
+	font-family: 'Anta';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url(../fonts/Anta/Anta-Regular.ttf) format('truetype');
+}
+
+@font-face {
+	font-family: 'Exo 2';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url(../fonts/Exo_2/Exo2-VariableFont_wght.ttf) format('truetype');
+}
+
+@font-face {
+	font-family: 'Exo 2';
+	font-style: italic;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url(../fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf) format('truetype');
+}
+
+:root {
+	--main-bg-color: #141921;
+	--alt-bg-color: #2F3B4D;
+	--main-text-color: #E6F0FF;
+	--alt-text-color: #D9E9FF;
+	--emphasis1-color: #668FCC;
+	--emphasis2-color: #CC298A;
+	--emphasis3-color: #33CC29;
+	--emphasis4-color: #CC9529;
+	--font-family-primary: "Exo 2", "Trebuchet MS", Helvetica, sans-serif;
+	--font-family-secondary: "Anta", "Trebuchet MS", Helvetica, sans-serif;
+}
+
+html, body {
+	font-family: var(--font-family-primary);
+	font-weight: 400;
+	font-style: normal;
+	background-color: var(--main-bg-color);
+	color: var(--main-text-color);
+}
+
+h1, h2, h3 {
+	font-family: var(--font-family-secondary);
+}
+
+h1 {
+	color: var(--emphasis1-color);
+}
+
+h2 {
+	color: var(--emphasis2-color);
+}
+
+h3 {
+	color: var(--emphasis3-color);
+}
+
+h4 {
+	color: var(--emphasis4-color);
+	font-style: italic;
+}
+
+.alternate {
+	color: var(--alt-text-color);
+}
+
+blockquote {
+	padding: 1rem 1rem 1rem 3.7rem;
+	background-color: var(--alt-bg-color);
+}
+
+strong {
+	color: var(--emphasis1-color);
+	font-style: italic;
+}
+
+	strong.title {
+		word-spacing: -0.22em; /* Because italic causes the last word to be too tight, we add a little space between words. */
+	}
+
+		strong.title::after {
+			content: " ";
+		}

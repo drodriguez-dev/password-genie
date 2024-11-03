@@ -1,0 +1,22 @@
+{
+  "name": "Password Genierator",
+  "short_name": "Password Genie",
+  "id": "./",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#03173d",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "images/cliparts/password-genie-blue_512x.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "images/cliparts/password-genie-blue_192x.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ]
+}
