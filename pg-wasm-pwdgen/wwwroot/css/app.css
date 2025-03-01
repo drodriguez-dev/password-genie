@@ -23,8 +23,8 @@
 }
 
 :root {
-	--main-bg-color: #141921;
-	--alt-bg-color: #2F3B4D;
+	--main-bg-color: hsl(217 25% 10% / 1);
+	--alt-bg-color: hsl(217 24% 24% / 1);
 	--main-text-color: #E6F0FF;
 	--alt-text-color: #D9E9FF;
 	--emphasis1-color: #668FCC;
@@ -33,6 +33,14 @@
 	--emphasis4-color: #CC9529;
 	--font-family-primary: "Exo 2", "Trebuchet MS", Helvetica, sans-serif;
 	--font-family-secondary: "Anta", "Trebuchet MS", Helvetica, sans-serif;
+	/* Bootstrap overrides */
+	--bs-primary: var(--main-bg-color);
+	--bs-secondary: var(--alt-bg-color);
+	--bb-sidebar-background-color: hsl(217 25% 10% / 1);
+	--bb-sidebar-nav-item-text-active-color: hsl(217 25% 90% / 90%);
+	--bb-sidebar-nav-item-text-color: hsl(217 95% 85% / 90%);
+	--bb-sidebar-content-border-color: var(--alt-bg-color);
+	--bb-sidebar-navbar-toggler-background-color: hsl(256deg 100% 95%);
 }
 
 html, body {

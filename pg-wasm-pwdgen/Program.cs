@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using PG.Data.Files.DataFiles;
+using PG.Logic.Passwords.Extractors;
 using PG.Logic.Passwords.Generators;
+using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 using PG.Wasm.PasswordGenerator;
 
@@ -14,8 +17,12 @@ internal class Program
 
 		builder.Services
 			.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) })
-			//.AddSingleton<PasswordGeneratorFactory>()
-			//.AddTransient<RandomService>()
+			.AddBlazorBootstrap()
+			.AddSingleton<PasswordGeneratorFactory>()
+			.AddSingleton<WordExtractorFactory>()
+			.AddSingleton<IDictionaryLoaderFactory, DictionaryLoaderFactory>()
+			.AddSingleton<IDictionariesDataFactory, DictionariesDataFactory>()
+			.AddTransient<RandomService>()
 			.BuildServiceProvider();
 
 		await builder.Build().RunAsync();

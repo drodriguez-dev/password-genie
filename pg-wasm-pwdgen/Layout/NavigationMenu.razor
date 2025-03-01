@@ -1,0 +1,23 @@
+﻿<Sidebar Href="/password-genie" ImageSrc="images/cliparts/turban-white.svg" Title="Passwrod Genie" DataProvider="SidebarDataProvider" />
+
+@code {
+	IEnumerable<NavItem>? navItems;
+
+	private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+	{
+		if (navItems is null)
+			navItems = GetNavItems();
+
+		return await Task.FromResult(request.ApplyTo(navItems));
+	}
+
+	private static IEnumerable<NavItem> GetNavItems()
+	{
+		return new List<NavItem>
+		{
+			new NavItem { Href = "", IconName = IconName.HouseDoorFill, Text = "Home" },
+			new NavItem { Href = "password/random", IconName = IconName.BracesAsterisk, Text = "Random" },
+			new NavItem { Href = "password/dictionary", IconName = IconName.Book, Text = "Dictionary" },
+		};
+	}
+}

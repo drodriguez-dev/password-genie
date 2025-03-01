@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\data\word_tree_enUS.dat.gz" />
+    <Content Remove="wwwroot\data\word_tree_esES.dat.gz" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.10" PrivateAssets="all" />
@@ -26,6 +31,11 @@
     <Content Update="App.razor">
       <CustomToolNamespace></CustomToolNamespace>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="wwwroot\data\word_tree_enUS.dat.gz" />
+    <Resource Include="wwwroot\data\word_tree_esES.dat.gz" />
   </ItemGroup>
 
 </Project>

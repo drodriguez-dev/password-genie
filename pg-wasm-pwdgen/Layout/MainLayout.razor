@@ -1,3 +1,17 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+<div class="page">
+	<div class="sidebar">
+		<NavigationMenu />
+	</div>
+
+	<main>
+		<div class="top-row px-4">
+			<a href="https://github.com/drodriguez-dev/password-genie"><i class="bi bi-github"></i></a>
+		</div>
+
+		<article class="content px-4">
+			@Body
+		</article>
+	</main>
+</div>

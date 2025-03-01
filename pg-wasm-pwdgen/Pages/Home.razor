@@ -1,22 +1,11 @@
 ﻿@page "/"
 
-<PageTitle>Password Genierator</PageTitle>
+<PageTitle>Home - Password Genie</PageTitle>
 
-<h1>Password <strong class="title">Genie</strong>rator</h1>
-<p>Fictional words based password generator.</p>
+<div class="text-center">
+  <h1>Password <strong class="title">Genie</strong>rator</h1>
+  @* <Image Src="images/cliparts/password-genie-blue_256x.png" Class="rounded" Alt="placeholder" /> *@
+  <p>Fictional words based password generator.</p>
+  <Icon Name="IconName.Fan" Size="IconSize.x2" Color="IconColor.Primary" />
+</div>
 
-<button @onclick="GeneratePassword">Generate Password</button>
-<p>@Password</p>
-
-<ErrorBoundary>
-	<Counter />
-</ErrorBoundary>
-
-@code {
-		private string Password { get; set; } = string.Empty;
-
-		private void GeneratePassword()
-		{
-				Password = int.Parse("Runtime error test").ToString();
-		}
-}

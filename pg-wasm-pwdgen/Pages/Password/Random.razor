@@ -1,0 +1,57 @@
+﻿@page "/password/random"
+@using PG.Logic.Passwords.Generators
+@using PG.Logic.Passwords.Generators.Entities
+@inject PG.Logic.Passwords.Generators.PasswordGeneratorFactory PasswordFactory
+
+<h2>Random password generation</h2>
+
+@if (!string.IsNullOrEmpty(lastPassword))
+{
+	<p role="status">Password: @lastPassword</p>
+}
+
+<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" /> Generate new password </Button>
+
+@code {
+	private string lastPassword = string.Empty;
+	private IPasswordGenerator? _generator = null;
+
+	private Timer? timer;
+	private static readonly TimeSpan PASSWORD_UPDATE_INTERVAL = TimeSpan.FromSeconds(5);
+
+	protected override void OnInitialized()
+	{
+		if (PasswordFactory is null)
+			throw new InvalidOperationException("Password generator factory is not initialized.");
+
+		var options = new RandomPasswordGeneratorOptions()
+			{
+				NumberOfPasswords = 1,
+				NumberOfLetters = 8,
+				NumberOfNumbers = 2,
+				NumberOfSpecialCharacters = 1,
+				IncludeMarkSymbols = true,
+				IncludeSeparatorSymbols = true,
+			};
+
+		_generator = PasswordFactory.Create(GeneratorType.Random, options);
+
+		timer = new Timer(GeneratePassword, null, TimeSpan.Zero, PASSWORD_UPDATE_INTERVAL);
+	}
+
+	private void GenerateNewPassword(MouseEventArgs e)
+	{
+		timer?.Change(TimeSpan.Zero, PASSWORD_UPDATE_INTERVAL);
+
+		GeneratePassword(null);
+	}
+
+	private void GeneratePassword(object? state)
+	{
+		if (_generator is null)
+			throw new InvalidOperationException("Password factory is not initialized.");
+
+		lastPassword = _generator.Generate().Passwords[0];
+		StateHasChanged();
+	}
+}
