@@ -97,6 +97,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"extract", "plain",
 				"-i", @".\Resources\Dictionaries\words_alpha_esES.txt",
 				"-o", outputFilePath,
+				"-ow"
 			];
 
 			int result = new PassGenieParser(_provider).ParseAndExecute(arguments).Result;
