@@ -43,8 +43,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Dictionaries\word_tree_enUS.dat.gz" />
-    <Resource Include="Resources\Dictionaries\word_tree_esES.dat.gz" />
+    <Content Include="Resources\Dictionaries\word_tree_enUS.dat.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Dictionaries\word_tree_esES.dat.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
