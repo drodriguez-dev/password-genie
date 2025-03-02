@@ -7,11 +7,6 @@
 
 <h2>Dictionary based password generator</h2>
 
-@if (isLoading)
-{
-	<p>Loading the dictionary, please wait...</p>
-}
-
 @if (!string.IsNullOrEmpty(lastPassword))
 {
 	<p role="status">Password: @lastPassword</p>
@@ -32,17 +27,16 @@
 
 <Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" /> Generate new password </Button>
 
+<Modal @ref="modal" ShowCloseButton="false" CloseOnEscape="false" UseStaticBackdrop="true" />
+
 @code {
 	private Uri? _baseUri;
 	private IPasswordGenerator? _generator = null;
 
-	private bool isLoading = false;
+	private Modal? modal = default;
 	private string lastPassword = string.Empty;
 	private string lastEntropy = string.Empty;
 	private string selectedLanguage = "en-US";
-
-	// private Timer? timer;
-	// private static readonly TimeSpan PASSWORD_UPDATE_INTERVAL = TimeSpan.FromSeconds(5);
 
 	protected override async void OnInitialized()
 	{
@@ -51,14 +45,11 @@
 			throw new InvalidOperationException("Password generator factory is not initialized.");
 
 		await InitializePasswordGenerator();
-
-		// timer = new Timer(GeneratePassword, null, TimeSpan.Zero, PASSWORD_UPDATE_INTERVAL);
 	}
 
 	private async Task InitializePasswordGenerator()
 	{
-		isLoading = true;
-		StateHasChanged();
+		await ShowLoadingModal();
 
 		try
 		{
@@ -89,12 +80,11 @@
 					CustomSpecialCharacters = new char[] { '-', '.', '/' },
 				};
 
-			_generator = PasswordFactory.Create(GeneratorType.Dictionary, options);
+			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Dictionary, options));			
 		}
 		finally
 		{
-			isLoading = false;
-			StateHasChanged();
+			await HideLoadingModal();
 		}
 	}
 
@@ -119,6 +109,32 @@
 
 		var httpClient = new HttpClient();
 		return await httpClient.GetStreamAsync(new Uri(_baseUri, relativeUri: relativePath));
+	}
+
+	private async Task ShowLoadingModal()
+	{
+		if (modal is null) return;
+
+		var parameters = new Dictionary<string, object>()
+		{
+			{ "Message", "Loading dictionary, please wait..." }
+		};
+
+		await modal.ShowAsync<LoadingModal>(title: "Loading", parameters: parameters);
+
+		await Task.Delay(200);
+	}
+
+	private void HideLoadingModal(object? state)
+	{
+		_ = HideLoadingModal();
+	}
+
+	private async Task HideLoadingModal()
+	{
+		if (modal is null) return;
+
+		await modal.HideAsync();
 	}
 
 	private async void SelectLanguage(string language)

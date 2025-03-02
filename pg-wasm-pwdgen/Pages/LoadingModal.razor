@@ -1,0 +1,14 @@
+﻿<div class="row mb-3">
+	<div class="col-12">@Message</div>
+</div>
+
+<div class="row mb-3">
+	<div class="col-12 text-center">
+		<Spinner Type="SpinnerType.Dots" Color="SpinnerColor.Light" Size="SpinnerSize.Large" />
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public required string Message { get; set; }
+}
