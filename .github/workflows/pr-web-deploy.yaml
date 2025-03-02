@@ -41,7 +41,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Publish
-        run: dotnet publish pg-wasm-pwdgen-demo/pg-wasm-pwdgen-demo.csproj -c Release -o publish --nologo
+        run: dotnet publish pg-wasm-pwdgen/pg-wasm-pwdgen.csproj -c Release -o publish --nologo
 
       - name: Add .nojekyll file to bypass Jekyll processing
         run: touch publish/wwwroot/.nojekyll
