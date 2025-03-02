@@ -1,4 +1,5 @@
 ﻿@page "/password/dictionary"
+@using BlazorBootstrap
 @using PG.Entities.Files
 @using PG.Logic.Passwords.Generators
 @using PG.Logic.Passwords.Generators.Entities
@@ -7,72 +8,86 @@
 
 <h2>Dictionary based password generator</h2>
 
-@if (isLoading)
-{
-	<p>Loading the dictionary, please wait...</p>
-}
+<div class="row mb-3">
+	<div class="col-12 align-items-center">
+		<Dropdown Color="DropdownColor.Secondary" Direction="DropdownDirection.Dropend">
+			<DropdownToggleButton>Dictionary</DropdownToggleButton>
+			<DropdownMenu>
+				<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "en-US")' Disabled='@(SelectedLanguage == "en-US")'
+											@onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
+				<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "es-ES")' Disabled='@(SelectedLanguage == "es-ES")'
+											@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
+			</DropdownMenu>
+		</Dropdown>
 
-@if (!string.IsNullOrEmpty(lastPassword))
-{
-	<p role="status">Password: @lastPassword</p>
+		<span><Spinner Type="SpinnerType.Border" Color="SpinnerColor.Light" Visible='@(IsLoading)' /></span>
+		@if (string.IsNullOrWhiteSpace(SelectedLanguage))
+		{
+			<span role="note" class="text-muted">Select the language for the dictionary.</span>
+		}
+		else if (IsGeneratorAvailable)
+		{
+			<span role="note">Language: @(SelectedLanguage)</span>
+		}
+	</div>
+</div>
 
-	@if (!string.IsNullOrEmpty(lastEntropy))
-	{
-		<p role="note">Entropy: @lastEntropy</p>
-	}
-}
+<div class="row mb-3">
+	<div class="col-12">
+		<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" /> Generate new password </Button>
+	</div>
+</div>
 
-<Dropdown Color="DropdownColor.Secondary" Direction="DropdownDirection.Dropend">
-	<DropdownToggleButton>Dictionary</DropdownToggleButton>
-	<DropdownMenu>
-		<DropdownItem Type="DropdownItemType.Button" Active='@(selectedLanguage == "en-US")' @onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
-		<DropdownItem Type="DropdownItemType.Button" Active='@(selectedLanguage == "es-ES")' @onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
-	</DropdownMenu>
-</Dropdown>
+<div class="row mb-3">
+	<div class="col-12">
+		@if (!string.IsNullOrEmpty(lastPassword))
+		{
+			<p role="status">Password: @lastPassword</p>
 
-<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" /> Generate new password </Button>
+			@if (!string.IsNullOrEmpty(lastEntropy))
+			{
+				<p role="note" class="text-muted">Entropy: @lastEntropy</p>
+			}
+		}
+	</div>
+</div>
 
 @code {
 	private Uri? _baseUri;
 	private IPasswordGenerator? _generator = null;
 
 	private bool isLoading = false;
+	private bool IsLoading { get => isLoading; set { isLoading = value; StateHasChanged(); } }
+
+	private string selectedLanguage = string.Empty;
+	private string SelectedLanguage { get => selectedLanguage; set { selectedLanguage = value; StateHasChanged(); } }
+
+	private bool IsGeneratorAvailable => _generator is not null && !string.IsNullOrWhiteSpace(SelectedLanguage) && !IsLoading;
+
 	private string lastPassword = string.Empty;
+	private string LastPassword { get => lastPassword; set { lastPassword = value; StateHasChanged(); } }
+
 	private string lastEntropy = string.Empty;
-	private string selectedLanguage = "en-US";
+	private string LastEntropy { get => lastEntropy; set { lastEntropy = value; StateHasChanged(); } }
 
-	// private Timer? timer;
-	// private static readonly TimeSpan PASSWORD_UPDATE_INTERVAL = TimeSpan.FromSeconds(5);
-
-	protected override async void OnInitialized()
+	protected override void OnInitialized()
 	{
 		_baseUri = new Uri(Navigation.BaseUri);
 		if (PasswordFactory is null)
 			throw new InvalidOperationException("Password generator factory is not initialized.");
-
-		await InitializePasswordGenerator();
-
-		// timer = new Timer(GeneratePassword, null, TimeSpan.Zero, PASSWORD_UPDATE_INTERVAL);
 	}
 
-	private async Task InitializePasswordGenerator()
+	private async Task LoadPasswordGenerator()
 	{
-		isLoading = true;
-		StateHasChanged();
+		if (string.IsNullOrWhiteSpace(SelectedLanguage)) return;
 
+		IsLoading = true;
 		try
 		{
-			string wordTreePath = string.Empty;
-			Stream file;
-			try
-			{
-				wordTreePath = GetWordTreePath(selectedLanguage);
-				file = await LoadFile(wordTreePath);
-			}
-			catch (Exception ex)
-			{
-				throw new InvalidOperationException($"Error loading dictionary file: \"{wordTreePath}\"", ex);
-			}
+			LastPassword = string.Empty;
+			LastEntropy = string.Empty;
+
+			Stream file = await GetWordTreeFile(SelectedLanguage);
 
 			var options = new DictionaryPasswordGeneratorOptions()
 				{
@@ -89,52 +104,45 @@
 					CustomSpecialCharacters = new char[] { '-', '.', '/' },
 				};
 
-			_generator = PasswordFactory.Create(GeneratorType.Dictionary, options);
+			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Dictionary, options));
 		}
 		finally
 		{
-			isLoading = false;
-			StateHasChanged();
+			IsLoading = false;
 		}
 	}
 
-	private string GetWordTreePath(string language)
+	private async Task<Stream> GetWordTreeFile(string language)
 	{
 		if (_baseUri is null)
 			throw new InvalidOperationException("Base URI not initialized");
 
-		string relativePath = language switch
+		Uri? wordTreePath = default;
+		try
 		{
-			"es-ES" => "data/word_tree_esES.dat.gz",
-			_ => "data/word_tree_enUS.dat.gz",
-		};
+			string relativePath = language switch
+			{
+				"es-ES" => "data/word_tree_esES.dat.gz",
+				"en-US" => "data/word_tree_enUS.dat.gz",
+				_ => throw new InvalidOperationException($"Unsupported language: \"{language}\""),
+			};
 
-		return new Uri(_baseUri, relativePath).ToString();
-	}
-
-	private async Task<Stream> LoadFile(string relativePath)
-	{
-		if (_baseUri is null)
-			throw new InvalidOperationException("Base URI not initialized");
-
-		var httpClient = new HttpClient();
-		return await httpClient.GetStreamAsync(new Uri(_baseUri, relativeUri: relativePath));
+			return await new HttpClient().GetStreamAsync(new Uri(_baseUri, relativePath));
+		}
+		catch (Exception ex)
+		{
+			throw new InvalidOperationException($"Error loading dictionary file: \"{wordTreePath?.ToString()}\"", ex);
+		}
 	}
 
 	private async void SelectLanguage(string language)
 	{
-		selectedLanguage = language;
-		await InitializePasswordGenerator();
+		SelectedLanguage = language;
 
-		StateHasChanged();
+		await LoadPasswordGenerator();
 	}
 
 	private void GenerateNewPassword(MouseEventArgs e)
-	{
-		GeneratePassword(null);
-	}
-
-	private void GeneratePassword(object? state)
 	{
 		if (_generator is null)
 			throw new InvalidOperationException("Password factory is not initialized.");
@@ -151,8 +159,7 @@
 			_ => "Very strong",
 		};
 
-		lastPassword = generationResult.Passwords[0];
-		lastEntropy = $"{entropy:F2} bits ({entropyText})";
-		StateHasChanged();
+		LastPassword = generationResult.Passwords[0];
+		LastEntropy = $"{entropy:F2} bits ({entropyText})";
 	}
 }

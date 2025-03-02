@@ -36,6 +36,7 @@
 	/* Bootstrap overrides */
 	--bs-primary: var(--main-bg-color);
 	--bs-secondary: var(--alt-bg-color);
+	--bs-secondary-color: hsl(217 13% 70% / 1);
 	--bb-sidebar-background-color: hsl(217 25% 10% / 1);
 	--bb-sidebar-nav-item-text-active-color: hsl(217 25% 90% / 90%);
 	--bb-sidebar-nav-item-text-color: hsl(217 95% 85% / 90%);
