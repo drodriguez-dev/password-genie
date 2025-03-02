@@ -35,24 +35,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\Dictionaries\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\pg-wasm-pwdgen-demo\wwwroot\sample-data\word_tree_enUS.dat.gz" Link="Resources\Dictionaries\word_tree_enUS.dat.gz">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\pg-wasm-pwdgen-demo\wwwroot\sample-data\word_tree_esES.dat.gz" Link="Resources\Dictionaries\word_tree_esES.dat.gz">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\pg-data-files\pg-data-files.csproj" />
     <ProjectReference Include="..\pg-entities\pg-entities.csproj" />
     <ProjectReference Include="..\pg-interface-cmd\pg-interface-cmd.csproj" />
     <ProjectReference Include="..\pg-logic\pg-logic.csproj" />
     <ProjectReference Include="..\pg-shared\pg-shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\Dictionaries\word_tree_enUS.dat.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Dictionaries\word_tree_esES.dat.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
