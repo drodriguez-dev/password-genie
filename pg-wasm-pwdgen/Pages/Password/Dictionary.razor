@@ -81,6 +81,7 @@
 					NumberOfPasswords = 1,
 					NumberOfWords = 2,
 					AverageWordLength = 7,
+					MinimumLength = 12,
 					DepthLevel = 4,
 					KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
 					NumberOfNumbers = 1,
@@ -130,8 +131,6 @@
 
 	private void GenerateNewPassword(MouseEventArgs e)
 	{
-		// timer?.Change(TimeSpan.Zero, PASSWORD_UPDATE_INTERVAL);
-
 		GeneratePassword(null);
 	}
 
