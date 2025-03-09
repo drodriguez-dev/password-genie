@@ -37,18 +37,18 @@ namespace PG.Tests.Business.Passwords.Generators
 			Debug.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in result.Passwords)
 			{
-				Debug.WriteLine($"  {passwordPart}");
+				Debug.WriteLine($"  {passwordPart.Password}");
+				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
+				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
 
-				Assert.IsTrue(options.MinimumLength <= passwordPart.Length, "Password length does not match the minimum length requirement.");
+				Assert.IsTrue(options.MinimumLength <= passwordPart.Password.Length, "Password length does not match the minimum length requirement.");
 				if (options.NumberOfLetters > 0)
-					Assert.IsTrue(passwordPart.Any(char.IsLetter), $"There are no letters in the password: {passwordPart}");
+					Assert.IsTrue(passwordPart.Password.Any(char.IsLetter), $"There are no letters in the password: {passwordPart.Password}");
 				if (options.NumberOfNumbers > 0)
-					Assert.IsTrue(passwordPart.Any(char.IsDigit), $"There are no numbers in the password: {passwordPart}");
+					Assert.IsTrue(passwordPart.Password.Any(char.IsDigit), $"There are no numbers in the password: {passwordPart.Password}");
 				if (options.NumberOfSpecialCharacters > 0)
-					Assert.IsTrue(passwordPart.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart}");
+					Assert.IsTrue(passwordPart.Password.Any(c => !char.IsLetterOrDigit(c)), $"There are no special characters in the password: {passwordPart.Password}");
 			}
-
-			Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
 		}
 
 		/// <summary>
@@ -82,33 +82,36 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			options.NumberOfLetters = 0;
 			options.NumberOfNumbers = 1;
-			entropy[++index] = GenerateAndGetEntropy(options);
+			entropy[++index] = GenerateAndGetAverageEntropy(options);
 			Assert.IsTrue(entropy[index] > 0, "Entropy is not greater than 0.");
 			Assert.IsTrue(CheckEntropy(entropy[index], Math.Pow(10, 1)), "Entropy should be precisely the log2 of the number of possible combinations.");
 
 			options.NumberOfLetters = 0;
 			options.NumberOfNumbers = 2;
-			entropy[++index] = GenerateAndGetEntropy(options);
+			entropy[++index] = GenerateAndGetAverageEntropy(options);
 			Assert.IsTrue(entropy[index] > 0, "Entropy is not greater than 0.");
 			Assert.IsTrue(CheckEntropy(entropy[index], Math.Pow(10, 2)), "Entropy should be precisely the log2 of the number of possible combinations.");
 			Assert.IsTrue(entropy[index] > entropy[index - 1], "Entropy should be higher than the previous.");
 
 			options.NumberOfNumbers = 1;
 			options.NumberOfLetters = 2;
-			entropy[++index] = GenerateAndGetEntropy(options);
+			entropy[++index] = GenerateAndGetAverageEntropy(options);
 			Assert.IsTrue(entropy[index] > 0, "Entropy is not greater than 0.");
 			Assert.IsTrue(CheckEntropy(entropy[index], Math.Pow(52, 2) * 10 * 2), "Entropy should be precisely the log2 of the number of possible combinations.");
 			Assert.IsTrue(entropy[index] > entropy[index - 1], "Entropy should be higher than the previous.");
 		}
 
-		private static double GenerateAndGetEntropy(RandomPasswordGeneratorOptions options)
+		private static double GenerateAndGetAverageEntropy(RandomPasswordGeneratorOptions options)
 		{
 			RandomPasswordGenerator passwordGenerator = new(options, new RandomService());
 			var result = passwordGenerator.Generate();
+			var averageTrueEntropy = result.Passwords.Select(p => p.TrueEntropy).Average();
+			var averageDerivedEntropy = result.Passwords.Select(p => p.DerivedEntropy).Average();
 
-			Debug.WriteLine($"Entropy for '{options}': {result.AverageEntropy}");
+			Debug.WriteLine($"True entropy for '{options}': {averageTrueEntropy}");
+			Debug.WriteLine($"Derived entropy for '{options}': {averageDerivedEntropy}");
 
-			return result.AverageEntropy;
+			return averageTrueEntropy;
 		}
 
 		public static bool CheckEntropy(double entropy, double combinations)
@@ -140,22 +143,21 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				options.KeystrokeOrder = order;
 				var result = new RandomPasswordGenerator(options, new RandomService()).Generate();
+				var passwords = result.Passwords.Select(p => p.Password).ToList();
 
-				Debug.WriteLine($"  {order}: {string.Join(", ", result.Passwords)}");
+				Debug.WriteLine($"  {order}: {string.Join(", ", passwords)}");
 
-				Assert.IsTrue(result.Passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
-				Assert.IsTrue(result.Passwords.All(p => LettersPattern().Matches(p).Count == options.NumberOfLetters), "Password does not have the expected number of letters.");
+				Assert.IsTrue(passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
+				Assert.IsTrue(passwords.All(p => LettersPattern().Matches(p).Count == options.NumberOfLetters), "Password does not have the expected number of letters.");
 
 				if (options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-					Assert.IsTrue(result.Passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
+					Assert.IsTrue(passwords.All(p => LeftHandPattern().IsMatch(p) && RightHandPattern().IsMatch(p)), "Password does not contains both left and right hand keystrokes.");
 
 				if (options.KeystrokeOrder == KeystrokeOrder.OnlyLeft)
-					Assert.IsTrue(!result.Passwords.Any(RightHandPattern().IsMatch), "Password should not contain left hand keystrokes only.");
+					Assert.IsTrue(!passwords.Any(RightHandPattern().IsMatch), "Password should not contain left hand keystrokes only.");
 
 				if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
-					Assert.IsTrue(!result.Passwords.Any(LeftHandPattern().IsMatch), "Password should not contain right hand keystrokes only.");
-
-				Debug.WriteLine($"Password entropy is: {0:N2}", result.AverageEntropy);
+					Assert.IsTrue(!passwords.Any(LeftHandPattern().IsMatch), "Password should not contain right hand keystrokes only.");
 			}
 		}
 

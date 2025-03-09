@@ -41,14 +41,24 @@ namespace PG.Logic.Passwords.Generators
 
 		public virtual GenerationResult Generate()
 		{
-			List<string> passwords = [];
+			List<PasswordResult> passwords = [];
 			foreach (var passwordPart in GeneratePasswordParts())
-				passwords.Add(passwordPart);
+			{
+				PasswordResult result = new()
+				{
+					Password = passwordPart,
+					TrueEntropy = GetAndResetPasswordEntropy(),
+					DerivedEntropy = EntropyService.CalculatePasswordEntropy(passwordPart),
+				};
+				result.TrueStrength = CalculateStrength(result.TrueEntropy);
+				result.DerivedStrength = CalculateStrength(result.DerivedEntropy);
+
+				passwords.Add(result);
+			}
 
 			return new GenerationResult()
 			{
 				Passwords = [.. passwords],
-				AverageEntropy = GetAndResetPasswordEntropy()
 			};
 		}
 
@@ -190,6 +200,18 @@ namespace PG.Logic.Passwords.Generators
 			_entropyValues.Clear();
 
 			return entropy;
+		}
+
+		public static PasswordStrength CalculateStrength(double entropy)
+		{
+			return entropy switch
+			{
+				< 28 => PasswordStrength.VeryWeak,
+				< 36 => PasswordStrength.Weak,
+				< 60 => PasswordStrength.Reasonable,
+				< 128 => PasswordStrength.Strong,
+				_ => PasswordStrength.VeryStrong
+			};
 		}
 	}
 }

@@ -129,11 +129,27 @@ namespace PG.Interface.Command.PasswordGeneration
 				_ => throw new InvalidOperationException($"Invalid generator type ('{type}')")
 			};
 
-			var result = generator.Generate();
-			Output(TraceLevel.Info, "{0}", string.Join(Environment.NewLine, result.Passwords));
+			Output(TraceLevel.Verbose, "Generating {0} password(s) with the following settings:", settings.NumberOfPasswords);
+			Output(TraceLevel.Verbose, "  Length: {0}", settings.Length);
+			Output(TraceLevel.Verbose, "  Numbers: {0}", settings.NumberOfNumbers);
+			Output(TraceLevel.Verbose, "  Special characters: {0}", settings.NumberOfSpecialCharacters);
+			Output(TraceLevel.Verbose, "  Include group symbols: {0}", settings.IncludeGroupSymbols);
+			Output(TraceLevel.Verbose, "  Include mark symbols: {0}", settings.IncludeMarkSymbols);
+			Output(TraceLevel.Verbose, "  Include separator symbols: {0}", settings.IncludeSeparatorSymbols);
+			Output(TraceLevel.Verbose, "  Custom symbols: {0}", settings.CustomSymbols);
+			Output(TraceLevel.Verbose, "  Remove high ASCII table: {0}", settings.RemoveHighAsciiTable);
 
-			if (settings.Verbose)
-				Output(TraceLevel.Verbose, "\nPassword entropy is: {0:N2} ({1})", result.AverageEntropy, GetEntropyText(result.AverageEntropy));
+			var result = generator.Generate();
+			foreach (var passwordResult in result.Passwords)
+			{
+				Output(TraceLevel.Info, "{0}", passwordResult.Password);
+
+				if (settings.Verbose)
+				{
+					Output(TraceLevel.Verbose, "  True entropy: {0:N2} ({1})", passwordResult.TrueEntropy, GetEntropyText(passwordResult.TrueStrength));
+					Output(TraceLevel.Verbose, "  Derived entropy: {0:N2} ({1})", passwordResult.DerivedEntropy, GetEntropyText(passwordResult.DerivedStrength));
+				}
+			}
 
 			return NO_ERROR;
 		}
@@ -195,19 +211,17 @@ namespace PG.Interface.Command.PasswordGeneration
 		/// <summary>
 		/// Using predefined ranges, returns a text representation of the entropy.
 		/// </summary>
-		private static string GetEntropyText(double entropy)
+		private static string GetEntropyText(PasswordStrength strength)
 		{
-			if (entropy < 1)
-				return "(error)";
-			if (entropy < 28)
-				return "Very weak";
-			if (entropy < 36)
-				return "Weak";
-			if (entropy < 60)
-				return "Reasonable";
-			if (entropy < 128)
-				return "Strong";
-			return "Very strong";
+			return strength switch
+			{
+				PasswordStrength.VeryWeak => "Very weak",
+				PasswordStrength.Weak => "Weak",
+				PasswordStrength.Reasonable => "Reasonable",
+				PasswordStrength.Strong => "Strong",
+				PasswordStrength.VeryStrong => "Very strong",
+				_ => "(error)"
+			};
 		}
 
 		private int ExecuteExtraction(DictionaryFormat format, ExtractorSettings settings)

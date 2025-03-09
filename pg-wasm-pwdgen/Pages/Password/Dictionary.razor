@@ -38,19 +38,36 @@
 	</div>
 </div>
 
-<div class="row mb-3">
-	<div class="col-12">
-		@if (!string.IsNullOrEmpty(lastPassword))
-		{
+@if (!string.IsNullOrEmpty(lastPassword))
+{
+	<div class="row mb-3">
+		<div class="col-12">
 			<p role="status">Password: @lastPassword</p>
-
-			@if (!string.IsNullOrEmpty(lastEntropy))
-			{
-				<p role="note" class="text-muted">Entropy: @lastEntropy</p>
-			}
-		}
+		</div>
 	</div>
-</div>
+
+	@if (!string.IsNullOrEmpty(lastEntropy))
+	{
+		<div class="row mb-3">
+			<div class="col-12">
+				<Tooltip Placement="TooltipPlacement.Left" Title="Entropy is a measure of the randomness of the password, indicating how unpredictable it is.">
+					<h4>Entropy</h4>
+				</Tooltip>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-12">
+				<Tooltip Placement="TooltipPlacement.Left" Title="True entropy is calculated based on the number of possible combinations occurred during the password generation.">
+					<p role="note" class="text-muted"><strong>True:</strong> @lastEntropy</p>
+				</Tooltip>
+				<Tooltip Placement="TooltipPlacement.Left" Title="Derived entropy is calculated based on the generated password, based on the different types of characters and the password length.">
+					<p role="note" class="text-muted"><strong>Derived:</strong> @lastDerivedEntropy</p>
+				</Tooltip>
+			</div>
+		</div>
+	}
+}
 
 @code {
 	private Uri? _baseUri;
@@ -69,6 +86,9 @@
 
 	private string lastEntropy = string.Empty;
 	private string LastEntropy { get => lastEntropy; set { lastEntropy = value; StateHasChanged(); } }
+
+	private string lastDerivedEntropy = string.Empty;
+	private string LastDerivedEntropy { get => lastDerivedEntropy; set { lastDerivedEntropy = value; StateHasChanged(); } }
 
 	protected override void OnInitialized()
 	{
@@ -148,18 +168,23 @@
 			throw new InvalidOperationException("Password factory is not initialized.");
 
 		GenerationResult generationResult = _generator.Generate();
-		double entropy = generationResult.AverageEntropy;
-		string entropyText = entropy switch
-		{
-			_ when entropy < 1 => "(error)",
-			_ when entropy < 28 => "Very weak",
-			_ when entropy < 36 => "Weak",
-			_ when entropy < 60 => "Reasonable",
-			_ when entropy < 128 => "Strong",
-			_ => "Very strong",
-		};
+		PasswordResult passwordResult = generationResult.Passwords[0];
 
-		LastPassword = generationResult.Passwords[0];
-		LastEntropy = $"{entropy:F2} bits ({entropyText})";
+		LastPassword = passwordResult.Password;
+		LastEntropy = $"{passwordResult.TrueEntropy:F2} bits ({GetEntropyText(passwordResult.TrueStrength)})";
+		LastDerivedEntropy = $"{passwordResult.DerivedEntropy:F2} bits ({GetEntropyText(passwordResult.DerivedStrength)})";
+	}
+
+	private string GetEntropyText(PasswordStrength strength)
+	{
+		return strength switch
+		{
+			PasswordStrength.VeryWeak => "Very weak",
+			PasswordStrength.Weak => "Weak",
+			PasswordStrength.Reasonable => "Medium",
+			PasswordStrength.Strong => "Strong",
+			PasswordStrength.VeryStrong => "Very strong",
+			_ => "Unknown",
+		};
 	}
 }
