@@ -3,13 +3,14 @@
 @using PG.Entities.Files
 @using PG.Logic.Passwords.Generators
 @using PG.Logic.Passwords.Generators.Entities
+@using PG.Wasm.PasswordGenerator.Components.Passwords
 @inject NavigationManager Navigation
 @inject PG.Logic.Passwords.Generators.PasswordGeneratorFactory PasswordFactory
 
 <h2>Dictionary based password generator</h2>
 
 <div class="row mb-3">
-	<div class="col-12 align-items-center">
+	<div class="col-4 align-items-center">
 		<Dropdown Color="DropdownColor.Secondary" Direction="DropdownDirection.Dropend">
 			<DropdownToggleButton>Dictionary</DropdownToggleButton>
 			<DropdownMenu>
@@ -19,7 +20,9 @@
 											@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
 			</DropdownMenu>
 		</Dropdown>
+	</div>
 
+	<div class="col-8 align-items-center">
 		<span><Spinner Type="SpinnerType.Border" Color="SpinnerColor.Light" Visible='@(IsLoading)' /></span>
 		@if (string.IsNullOrWhiteSpace(SelectedLanguage))
 		{
@@ -38,36 +41,11 @@
 	</div>
 </div>
 
-@if (!string.IsNullOrEmpty(lastPassword))
-{
-	<div class="row mb-3">
-		<div class="col-12">
-			<p role="status">Password: @lastPassword</p>
-		</div>
+<div class="row mb-3">
+	<div class="col-12">
+    <OneLinePassword Password="@lastPassword" />
 	</div>
-
-	@if (!string.IsNullOrEmpty(lastEntropy))
-	{
-		<div class="row mb-3">
-			<div class="col-12">
-				<Tooltip Placement="TooltipPlacement.Left" Title="Entropy is a measure of the randomness of the password, indicating how unpredictable it is.">
-					<h4>Entropy</h4>
-				</Tooltip>
-			</div>
-		</div>
-
-		<div class="row">
-			<div class="col-12">
-				<Tooltip Placement="TooltipPlacement.Left" Title="True entropy is calculated based on the number of possible combinations occurred during the password generation.">
-					<p role="note" class="text-muted"><strong>True:</strong> @lastEntropy</p>
-				</Tooltip>
-				<Tooltip Placement="TooltipPlacement.Left" Title="Derived entropy is calculated based on the generated password, based on the different types of characters and the password length.">
-					<p role="note" class="text-muted"><strong>Derived:</strong> @lastDerivedEntropy</p>
-				</Tooltip>
-			</div>
-		</div>
-	}
-}
+</div>
 
 @code {
 	private Uri? _baseUri;
@@ -81,55 +59,15 @@
 
 	private bool IsGeneratorAvailable => _generator is not null && !string.IsNullOrWhiteSpace(SelectedLanguage) && !IsLoading;
 
-	private string lastPassword = string.Empty;
-	private string LastPassword { get => lastPassword; set { lastPassword = value; StateHasChanged(); } }
-
-	private string lastEntropy = string.Empty;
-	private string LastEntropy { get => lastEntropy; set { lastEntropy = value; StateHasChanged(); } }
-
-	private string lastDerivedEntropy = string.Empty;
-	private string LastDerivedEntropy { get => lastDerivedEntropy; set { lastDerivedEntropy = value; StateHasChanged(); } }
+	private PasswordResult? lastPassword;
+	private PasswordResult? LastPassword { get => lastPassword; set { lastPassword = value; StateHasChanged(); } }
 
 	protected override void OnInitialized()
 	{
-		_baseUri = new Uri(Navigation.BaseUri);
 		if (PasswordFactory is null)
 			throw new InvalidOperationException("Password generator factory is not initialized.");
-	}
 
-	private async Task LoadPasswordGenerator()
-	{
-		if (string.IsNullOrWhiteSpace(SelectedLanguage)) return;
-
-		IsLoading = true;
-		try
-		{
-			LastPassword = string.Empty;
-			LastEntropy = string.Empty;
-
-			Stream file = await GetWordTreeFile(SelectedLanguage);
-
-			var options = new DictionaryPasswordGeneratorOptions()
-				{
-					Type = DictionaryType.WordTree,
-					File = file,
-					NumberOfPasswords = 1,
-					NumberOfWords = 2,
-					AverageWordLength = 7,
-					MinimumLength = 12,
-					DepthLevel = 4,
-					KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
-					NumberOfNumbers = 1,
-					NumberOfSpecialCharacters = 1,
-					CustomSpecialCharacters = new char[] { '-', '.', '/' },
-				};
-
-			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Dictionary, options));
-		}
-		finally
-		{
-			IsLoading = false;
-		}
+		_baseUri = new Uri(Navigation.BaseUri);
 	}
 
 	private async Task<Stream> GetWordTreeFile(string language)
@@ -162,6 +100,40 @@
 		await LoadPasswordGenerator();
 	}
 
+	private async Task LoadPasswordGenerator()
+	{
+		if (string.IsNullOrWhiteSpace(SelectedLanguage)) return;
+
+		IsLoading = true;
+		try
+		{
+			LastPassword = null;
+
+			Stream file = await GetWordTreeFile(SelectedLanguage);
+
+			var options = new DictionaryPasswordGeneratorOptions()
+				{
+					Type = DictionaryType.WordTree,
+					File = file,
+					NumberOfPasswords = 1,
+					NumberOfWords = 2,
+					AverageWordLength = 7,
+					MinimumLength = 12,
+					DepthLevel = 4,
+					KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
+					NumberOfNumbers = 1,
+					NumberOfSpecialCharacters = 1,
+					CustomSpecialCharacters = new char[] { '-', '.', '/' },
+				};
+
+			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Dictionary, options));
+		}
+		finally
+		{
+			IsLoading = false;
+		}
+	}
+
 	private void GenerateNewPassword(MouseEventArgs e)
 	{
 		if (_generator is null)
@@ -170,21 +142,6 @@
 		GenerationResult generationResult = _generator.Generate();
 		PasswordResult passwordResult = generationResult.Passwords[0];
 
-		LastPassword = passwordResult.Password;
-		LastEntropy = $"{passwordResult.TrueEntropy:F2} bits ({GetEntropyText(passwordResult.TrueStrength)})";
-		LastDerivedEntropy = $"{passwordResult.DerivedEntropy:F2} bits ({GetEntropyText(passwordResult.DerivedStrength)})";
-	}
-
-	private string GetEntropyText(PasswordStrength strength)
-	{
-		return strength switch
-		{
-			PasswordStrength.VeryWeak => "Very weak",
-			PasswordStrength.Weak => "Weak",
-			PasswordStrength.Reasonable => "Medium",
-			PasswordStrength.Strong => "Strong",
-			PasswordStrength.VeryStrong => "Very strong",
-			_ => "Unknown",
-		};
+		LastPassword = passwordResult;
 	}
 }
