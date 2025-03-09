@@ -56,9 +56,9 @@ Usage:
 More information can be found in the [Wiki](https://github.com/drodriguez-dev/password-genie/wiki) section.
 
 # Road map
-Check open issues with the tag "[enhacement](issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement+)".
+Check open issues with the tag "[enhacement](https://github.com/drodriguez-dev/password-genie/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)".
 
 # About the author
-I am a self-taught software developer with a passion for creating useful applications that help people with recurrent tasks that can be done by a machine. This project was inspired because I needed a way to generate secure passwords that were easy to remember and type. I've realized words are easier to remember than random characters, so I've decided to create a way to generate passwords using fictional words from a dictionary file.
+I am a self-taught software developer with a passion for creating useful applications that help people with recurrent tasks that can be done by a machine. This project was inspired because I needed a way to generate secure passwords that were easy to remember and type. I've realized words are easier to remember than random characters, so I've decided to create a way to generate fictional words from a dictionary file and use them as passwords.
 
 I hope you find this project useful and that it helps you.

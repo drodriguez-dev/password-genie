@@ -24,31 +24,41 @@ namespace PG.Logic.Passwords.Generators
 		protected static readonly char[] _separatorSymbols = @" -_/\&,.".ToCharArray();
 
 		// Characters that are typed with the left hand in the US keyboard layout.
-		protected static readonly char[] _leftHandKeyStrokes = @" 12345qwertasdfgzxcvbQWERTASDFGZXCVB~`!@#$%".ToCharArray();
 		protected static readonly char[] _leftThumbKeyStrokes = @" ".ToCharArray();
 		protected static readonly char[] _leftPinkyKeyStrokes = @"1qazQAZ~`!".ToCharArray();
 		protected static readonly char[] _leftRingKeyStrokes = @"2wsxWSX@".ToCharArray();
 		protected static readonly char[] _leftMiddleKeyStrokes = @"3edcEDC#".ToCharArray();
 		protected static readonly char[] _leftIndexKeyStrokes = @"45rfvRFVtgbTGB$%".ToCharArray();
+		protected static readonly char[] _leftHandKeyStrokes = [.. _leftThumbKeyStrokes, .. _leftPinkyKeyStrokes, .. _leftRingKeyStrokes, .. _leftMiddleKeyStrokes, .. _leftIndexKeyStrokes];
 
 		// Characters that are typed with the right hand in the US keyboard layout.
-		protected static readonly char[] _rightHandKeyStrokes = @" 67890yuiophjklnmYUIOPHJKLNM^&*()-_+={}[]|\:;""'<>,.?/".ToCharArray();
 		protected static readonly char[] _rightThumbKeyStrokes = @" ".ToCharArray();
 		protected static readonly char[] _rightPinkyKeyStrokes = @"0pP)-_+={}[]|\:;""'?/".ToCharArray();
 		protected static readonly char[] _rightRingKeyStrokes = @"9olOL(.>".ToCharArray();
 		protected static readonly char[] _rightMiddleKeyStrokes = @"8ikIK*,<".ToCharArray();
 		protected static readonly char[] _rightIndexKeyStrokes = @"67ujmUJM^&".ToCharArray();
+		protected static readonly char[] _rightHandKeyStrokes = [.. _rightThumbKeyStrokes, .. _rightPinkyKeyStrokes, .. _rightRingKeyStrokes, .. _rightMiddleKeyStrokes, .. _rightIndexKeyStrokes];
 
 		public virtual GenerationResult Generate()
 		{
-			List<string> passwords = [];
+			List<PasswordResult> passwords = [];
 			foreach (var passwordPart in GeneratePasswordParts())
-				passwords.Add(passwordPart);
+			{
+				PasswordResult result = new()
+				{
+					Password = passwordPart,
+					TrueEntropy = GetAndResetPasswordEntropy(),
+					DerivedEntropy = EntropyService.CalculatePasswordEntropy(passwordPart),
+				};
+				result.TrueStrength = CalculateStrength(result.TrueEntropy);
+				result.DerivedStrength = CalculateStrength(result.DerivedEntropy);
+
+				passwords.Add(result);
+			}
 
 			return new GenerationResult()
 			{
 				Passwords = [.. passwords],
-				AverageEntropy = GetAndResetPasswordEntropy()
 			};
 		}
 
@@ -190,6 +200,18 @@ namespace PG.Logic.Passwords.Generators
 			_entropyValues.Clear();
 
 			return entropy;
+		}
+
+		public static PasswordStrength CalculateStrength(double entropy)
+		{
+			return entropy switch
+			{
+				< 28 => PasswordStrength.VeryWeak,
+				< 36 => PasswordStrength.Weak,
+				< 60 => PasswordStrength.Reasonable,
+				< 128 => PasswordStrength.Strong,
+				_ => PasswordStrength.VeryStrong
+			};
 		}
 	}
 }

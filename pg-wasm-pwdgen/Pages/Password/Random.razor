@@ -5,21 +5,56 @@
 
 <h2>Random password generation</h2>
 
+<div class="row mb-3">
+	<div class="col-12">
+		<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" /> Generate new password </Button>
+	</div>
+</div>
+
 @if (!string.IsNullOrEmpty(lastPassword))
 {
-	<p role="status">Password: @lastPassword</p>
+	<div class="row mb-3">
+		<div class="col-12">
+			<p role="status">Password: @lastPassword</p>
+		</div>
+	</div>
+
+	@if (!string.IsNullOrEmpty(lastEntropy))
+	{
+		<div class="row mb-3">
+			<div class="col-12">
+				<Tooltip Placement="TooltipPlacement.Left" Title="Entropy is a measure of the randomness of the password, indicating how unpredictable it is.">
+					<h4>Entropy</h4>
+				</Tooltip>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-12">
+				<Tooltip Placement="TooltipPlacement.Left" Title="True entropy is calculated based on the number of possible combinations occurred during the password generation.">
+					<p role="note" class="text-muted"><strong>True:</strong> @lastEntropy</p>
+				</Tooltip>
+				<Tooltip Placement="TooltipPlacement.Left" Title="Derived entropy is calculated based on the generated password, based on the different types of characters and the password length.">
+					<p role="note" class="text-muted"><strong>Derived:</strong> @lastDerivedEntropy</p>
+				</Tooltip>
+			</div>
+		</div>
+	}
 }
 
-<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" /> Generate new password </Button>
-
 @code {
-	private string lastPassword = string.Empty;
 	private IPasswordGenerator? _generator = null;
 
-	private Timer? timer;
-	private static readonly TimeSpan PASSWORD_UPDATE_INTERVAL = TimeSpan.FromSeconds(5);
+	private string lastPassword = string.Empty;
+	private string LastPassword { get => lastPassword; set { lastPassword = value; StateHasChanged(); } }
 
-	protected override void OnInitialized()
+	private string lastEntropy = string.Empty;
+	private string LastEntropy { get => lastEntropy; set { lastEntropy = value; StateHasChanged(); } }
+
+	private string lastDerivedEntropy = string.Empty;
+	private string LastDerivedEntropy { get => lastDerivedEntropy; set { lastDerivedEntropy = value; StateHasChanged(); } }
+
+	protected async override void OnInitialized()
 	{
 		if (PasswordFactory is null)
 			throw new InvalidOperationException("Password generator factory is not initialized.");
@@ -34,24 +69,32 @@
 				IncludeSeparatorSymbols = true,
 			};
 
-		_generator = PasswordFactory.Create(GeneratorType.Random, options);
-
-		timer = new Timer(GeneratePassword, null, TimeSpan.Zero, PASSWORD_UPDATE_INTERVAL);
+		_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Random, options));
 	}
 
 	private void GenerateNewPassword(MouseEventArgs e)
 	{
-		timer?.Change(TimeSpan.Zero, PASSWORD_UPDATE_INTERVAL);
-
-		GeneratePassword(null);
-	}
-
-	private void GeneratePassword(object? state)
-	{
 		if (_generator is null)
 			throw new InvalidOperationException("Password factory is not initialized.");
 
-		lastPassword = _generator.Generate().Passwords[0];
-		StateHasChanged();
+		GenerationResult generationResult = _generator.Generate();
+		PasswordResult passwordResult = generationResult.Passwords[0];
+
+		LastPassword = passwordResult.Password;
+		LastEntropy = $"{passwordResult.TrueEntropy:F2} bits ({GetEntropyText(passwordResult.TrueStrength)})";
+		LastDerivedEntropy = $"{passwordResult.DerivedEntropy:F2} bits ({GetEntropyText(passwordResult.DerivedStrength)})";
+	}
+
+	private string GetEntropyText(PasswordStrength strength)
+	{
+		return strength switch
+		{
+			PasswordStrength.VeryWeak => "Very weak",
+			PasswordStrength.Weak => "Weak",
+			PasswordStrength.Reasonable => "Medium",
+			PasswordStrength.Strong => "Strong",
+			PasswordStrength.VeryStrong => "Very strong",
+			_ => "Unknown",
+		};
 	}
 }

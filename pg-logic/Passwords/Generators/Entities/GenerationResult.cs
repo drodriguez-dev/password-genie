@@ -2,7 +2,6 @@
 {
 	public class GenerationResult
 	{
-		public string[] Passwords { get; set; } = [];
-		public double AverageEntropy { get; set; }
+		public PasswordResult[] Passwords { get; set; } = [];
 	}
 }
