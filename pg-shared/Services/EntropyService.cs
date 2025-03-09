@@ -10,7 +10,7 @@ namespace PG.Shared.Services
 	/// symbol type (lower case letters, upper case letters, numbers, etc.), it counts how many characters of that type there are in your password. It 
 	/// returns the number of bits of entropy is the password.
 	/// </remarks>
-	public class EntropyService
+	public static class EntropyService
 	{
 		private const int AlphabetSize = 26;
 		private const int NumericSize = 10;
@@ -32,7 +32,7 @@ namespace PG.Shared.Services
 				if (char.GetUnicodeCategory(character) == System.Globalization.UnicodeCategory.NonSpacingMark)
 					baseLetter = character.ToString().Normalize(System.Text.NormalizationForm.FormD)[0];
 
-			  if (char.IsLower(baseLetter) || char.IsUpper(baseLetter))
+				if (char.IsLower(baseLetter) || char.IsUpper(baseLetter))
 					possibleCombinations *= AlphabetSize;
 				else if (char.IsDigit(baseLetter))
 					possibleCombinations *= NumericSize;
