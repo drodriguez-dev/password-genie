@@ -22,6 +22,14 @@
 	src: url(../fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf) format('truetype');
 }
 
+@font-face {
+	font-family: 'Reddit Mono';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url(../fonts/Reddit_Mono/RedditMono-VariableFont_wght.ttf) format('truetype');
+}
+
 :root {
 	--main-bg-color: hsl(217 25% 10% / 1);
 	--alt-bg-color: hsl(217 24% 24% / 1);
@@ -33,6 +41,7 @@
 	--emphasis4-color: #CC9529;
 	--font-family-primary: "Exo 2", "Trebuchet MS", Helvetica, sans-serif;
 	--font-family-secondary: "Anta", "Trebuchet MS", Helvetica, sans-serif;
+	--font-family-fixed: "Reddit Mono", 'Consolas', 'Courier New', monospace;
 	/* Bootstrap overrides */
 	--bs-primary: var(--main-bg-color);
 	--bs-secondary: var(--alt-bg-color);
