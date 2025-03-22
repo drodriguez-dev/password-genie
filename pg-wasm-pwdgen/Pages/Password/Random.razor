@@ -14,15 +14,14 @@
 
 <div class="row mb-3">
 	<div class="col-12">
-		<OneLinePassword Password="@lastPassword" />
+		<BestPasswords @ref="bestPasswordsComponent" MaxPasswords="7" />
 	</div>
 </div>
 
 @code {
 	private IPasswordGenerator? _generator = null;
 
-	private PasswordResult? lastPassword;
-	private PasswordResult? LastPassword { get => lastPassword; set { lastPassword = value; StateHasChanged(); } }
+	private BestPasswords? bestPasswordsComponent;
 
 	protected async override void OnInitialized()
 	{
@@ -48,6 +47,7 @@
 			throw new InvalidOperationException("Password factory is not initialized.");
 
 		GenerationResult generationResult = _generator.Generate();
-		LastPassword = generationResult.Passwords[0];
+		PasswordResult passwordResult = generationResult.Passwords[0];
+		bestPasswordsComponent?.Add(passwordResult);
 	}
 }
