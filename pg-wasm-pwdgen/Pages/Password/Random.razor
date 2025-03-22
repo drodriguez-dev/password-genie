@@ -8,18 +8,20 @@
 
 <div class="row mb-3">
 	<div class="col-12">
-		<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" /> Generate new password </Button>
+		<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" Class="me-1"/>Generate new password</Button>
+		<Button Color="ButtonColor.Primary" @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
 	</div>
 </div>
 
 <div class="row mb-3">
 	<div class="col-12">
-		<BestPasswords @ref="bestPasswordsComponent" MaxPasswords="7" />
+		<BestPasswords @ref="bestPasswordsComponent" MaxPasswords="@(maxPasswordsCount)" />
 	</div>
 </div>
 
 @code {
 	private IPasswordGenerator? _generator = null;
+	private static readonly int maxPasswordsCount = 7;
 
 	private BestPasswords? bestPasswordsComponent;
 
@@ -49,5 +51,11 @@
 		GenerationResult generationResult = _generator.Generate();
 		PasswordResult passwordResult = generationResult.Passwords[0];
 		bestPasswordsComponent?.Add(passwordResult);
+	}
+
+	private void GenerateMultiplePasswords(MouseEventArgs args)
+	{
+		for (int i = 0; i < maxPasswordsCount + 1; i++)
+			GenerateNewPassword(args);
 	}
 }
