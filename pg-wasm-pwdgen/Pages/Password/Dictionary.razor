@@ -23,7 +23,6 @@
 	</div>
 
 	<div class="col-8 align-items-center">
-		<span><Spinner Type="SpinnerType.Border" Color="SpinnerColor.Light" Visible='@(IsLoading)' /></span>
 		@if (string.IsNullOrWhiteSpace(SelectedLanguage))
 		{
 			<span role="note" class="text-muted">Select the language for the dictionary.</span>
@@ -55,13 +54,13 @@
 	private IPasswordGenerator? _generator = null;
 	private static readonly int maxPasswordsCount = 7;
 
-	private bool isLoading = false;
-	private bool IsLoading { get => isLoading; set { isLoading = value; StateHasChanged(); } }
+	[Inject]
+	protected PreloadService PreloadService { get; set; } = default!;
 
 	private string selectedLanguage = string.Empty;
 	private string SelectedLanguage { get => selectedLanguage; set { selectedLanguage = value; StateHasChanged(); } }
 
-	private bool IsGeneratorAvailable => _generator is not null && !string.IsNullOrWhiteSpace(SelectedLanguage) && !IsLoading;
+	private bool IsGeneratorAvailable => _generator is not null && !string.IsNullOrWhiteSpace(SelectedLanguage);
 
 	private BestPasswords? bestPasswordsComponent;
 
@@ -107,7 +106,7 @@
 	{
 		if (string.IsNullOrWhiteSpace(SelectedLanguage)) return;
 
-		IsLoading = true;
+		PreloadService.Show(SpinnerColor.Primary, "Loading the dictionary...");
 		try
 		{
 			bestPasswordsComponent?.Clear();
@@ -133,7 +132,8 @@
 		}
 		finally
 		{
-			IsLoading = false;
+			PreloadService.Hide();
+			StateHasChanged();
 		}
 	}
 
