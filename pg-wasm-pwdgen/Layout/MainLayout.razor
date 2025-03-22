@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using PG.Shared.Services
+@inherits LayoutComponentBase
+@inject ApplicationService ApplicationService
 
 <div class="page">
 	<div class="sidebar">
@@ -7,6 +9,7 @@
 
 	<main>
 		<div class="top-row px-4">
+			<span>@(version)</span>
 			<a href="https://github.com/drodriguez-dev/password-genie"><i class="bi bi-github"></i></a>
 		</div>
 
@@ -15,3 +18,7 @@
 		</article>
 	</main>
 </div>
+
+@code {
+	private string version { get => $"v{ApplicationService.GetVersion()}"; }
+}

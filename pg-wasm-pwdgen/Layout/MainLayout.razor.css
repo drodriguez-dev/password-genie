@@ -35,12 +35,43 @@ main {
 			text-overflow: ellipsis;
 		}
 
+.bottom-row {
+	border-top: 1px solid var(--alt-bg-color);
+	justify-content: flex-end;
+	height: 3rem;
+	display: flex;
+	align-items: center;
+}
+
+	.bottom-row ::deep a, .top-row ::deep .btn-link {
+		white-space: nowrap;
+		margin-left: 1.5rem;
+		text-decoration: none;
+	}
+
+		.bottom-row ::deep a:hover, .top-row ::deep .btn-link:hover {
+			text-decoration: underline;
+		}
+
+		.bottom-row ::deep a:first-child {
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
 @media (max-width: 640.98px) {
 	.top-row {
 		justify-content: space-between;
 	}
 
 		.top-row ::deep a, .top-row ::deep .btn-link {
+			margin-left: 0;
+		}
+
+	.bottom-row {
+		justify-content: space-between;
+	}
+
+		.bottom-row ::deep a, .top-row ::deep .btn-link {
 			margin-left: 0;
 		}
 }
