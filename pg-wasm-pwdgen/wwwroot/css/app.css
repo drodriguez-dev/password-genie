@@ -82,6 +82,11 @@ h4 {
 	font-style: italic;
 }
 
+h5 {
+	color: var(--emphasis1-color);
+	font-style: italic;
+}
+
 .alternate {
 	color: var(--alt-text-color);
 }
@@ -103,10 +108,3 @@ strong {
 		strong.title::after {
 			content: " ";
 		}
-
-.password {
-	font-family: var(--font-family-fixed);
-	font-weight: 500;
-	font-style: normal;
-	font-size: 1.5rem;
-}
