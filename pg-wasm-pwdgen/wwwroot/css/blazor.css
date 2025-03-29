@@ -30,7 +30,7 @@
 	}
 }
 
-﻿.valid.modified:not([type=checkbox]) {
+.valid.modified:not([type=checkbox]) {
 	outline: 1px solid var(--emphasis3-color);
 }
 
@@ -40,6 +40,12 @@
 
 .validation-message {
 	color: var(--emphasis2-color);
+	list-style-type: none;
+}
+
+.validation-errors {
+	padding: 0;
+	margin: 1px;
 }
 
 #blazor-error-ui {

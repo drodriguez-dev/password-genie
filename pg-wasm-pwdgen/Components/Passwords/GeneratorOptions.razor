@@ -1,0 +1,65 @@
+@using PG.Logic.Passwords.Generators
+@using PG.Logic.Passwords.Generators.Entities
+@using PG.Wasm.PasswordGenerator.Components.Passwords
+@using PG.Wasm.PasswordGenerator.Components.Passwords.Models
+@using System.ComponentModel
+
+@code
+{
+	[Parameter]
+	public PasswordOptions Options { get; set; } = default!;
+}
+
+<div class="container-fluid">
+	<div class="row">
+		<Card Class="col">
+			<CardTitle Class="mx-2 my-1">Configuration</CardTitle>
+			<CardBody Class="m-2">
+				<EditForm EditContext="@editContext">
+					<DataAnnotationsValidator />
+
+					<div class="container-fluid">
+						<div class="row g-1 align-items-center justify-content-between">
+							<div class="col-12 col-md-6 cal-xl-4">
+								<label class="form-label" for="numberOfLettersInput">Number of letters</label>
+								<NumberInput Id="numberOfLettersInput" TValue="int" @bind-Value="Options.NumberOfLetters"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" Placeholder="a-z, A-Z" />
+							</div>
+
+							<div class="col-12 col-md-6 cal-xl-4">
+								<label class="form-label" for="numberOfNumbers">Number of numbers</label>
+								<NumberInput Id="numberOfNumbers" TValue="int" @bind-Value="Options.NumberOfNumbers"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" Placeholder="0-9" />
+							</div>
+
+							<div class="col-12 col-md-6 cal-xl-4">
+								<label class="form-label" for="numberOfSpecialCharacters">Number of special characters</label>
+								<NumberInput Id="numberOfSpecialCharacters" TValue="int" @bind-Value="Options.NumberOfSpecialCharacters"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" Placeholder="()[]{}&lt;&gt;!&#64;#$%^*+=|;:\&quot;?" />
+							</div>
+						</div>
+
+						<div class="row mt-3">
+							<div class="col-12">
+								<ValidationSummary />
+							</div>
+						</div>
+					</div>
+				</EditForm>
+			</CardBody>
+		</Card>
+	</div>
+</div>
+
+@code
+{
+	public bool IsValid => editContext?.Validate() ?? false;
+
+	private EditContext? editContext;
+
+	protected override void OnInitialized()
+	{
+		editContext = new EditContext(Options);
+		base.OnInitialized();
+	}
+}
