@@ -13,6 +13,7 @@ main {
 }
 
 .top-row {
+	background-color: var(--main-bg-color);
 	border-bottom: 1px solid var(--alt-bg-color);
 	justify-content: flex-end;
 	height: 3.5rem;
