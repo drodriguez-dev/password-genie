@@ -1,51 +1,61 @@
 ﻿@page "/password/dictionary"
-@using BlazorBootstrap
 @using PG.Entities.Files
 @using PG.Logic.Passwords.Generators
 @using PG.Logic.Passwords.Generators.Entities
 @using PG.Wasm.PasswordGenerator.Components.Passwords
 @inject NavigationManager Navigation
 @inject PG.Logic.Passwords.Generators.PasswordGeneratorFactory PasswordFactory
+@inject IJSRuntime JSRuntime
 
-<h2>Dictionary based password generator</h2>
+<Toasts class="p-3" Messages="messages" AutoHide="true" Delay="1500" Placement="ToastsPlacement.TopRight" />
 
-<div class="row mb-3">
-	<div class="col-4 align-items-center">
-		<Dropdown Color="DropdownColor.Secondary" Direction="DropdownDirection.Dropend">
-			<DropdownToggleButton>Dictionary</DropdownToggleButton>
-			<DropdownMenu>
-				<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "en-US")' Disabled='@(SelectedLanguage == "en-US")'
-				@onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
-				<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "es-ES")' Disabled='@(SelectedLanguage == "es-ES")'
-				@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
-			</DropdownMenu>
-		</Dropdown>
+<div class="container-md">
+	<div class="row">
+		<div class="col">
+			<h2>Dictionary based password generator</h2>
+		</div>
 	</div>
 
-	<div class="col-8 align-items-center">
-		@if (string.IsNullOrWhiteSpace(SelectedLanguage))
-		{
-			<span role="note" class="text-muted">Select the language for the dictionary.</span>
-		}
-		else if (IsGeneratorAvailable)
-		{
-			<span role="note">Language: @(SelectedLanguage)</span>
-		}
-	</div>
-</div>
+	<div class="row g-1 mb-3">
+		<div class="col-4 align-items-center">
+			<Dropdown Color="DropdownColor.Secondary" Direction="DropdownDirection.Dropend">
+				<DropdownToggleButton>Dictionary</DropdownToggleButton>
+				<DropdownMenu>
+					<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "en-US")' Disabled='@(SelectedLanguage == "en-US")'
+												@onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
+					<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "es-ES")' Disabled='@(SelectedLanguage == "es-ES")'
+												@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
+				</DropdownMenu>
+			</Dropdown>
+		</div>
 
-<div class="row mb-3">
-	<div class="col-12">
-		<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateNewPassword">
-			<Icon Name="IconName.BracesAsterisk" Class="me-1"/>Generate new password
-		</Button>
-		<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
+		<div class="col-8 align-items-center">
+			@if (string.IsNullOrWhiteSpace(SelectedLanguage))
+			{
+				<span role="note" class="text-muted">Select the language for the dictionary.</span>
+			}
+			else if (IsGeneratorAvailable)
+			{
+				<span role="note">Language: @(SelectedLanguage)</span>
+			}
+		</div>
 	</div>
-</div>
 
-<div class="row mb-3">
-	<div class="col-12">
-		<BestPasswords @ref="bestPasswordsComponent" MaxPasswords="@(maxPasswordsCount)" />
+	<div class="row g-1 mb-3">
+		<div class="col text-nowrap">
+			<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateNewPassword">
+				<Icon Name="IconName.BracesAsterisk" Class="me-1" />Generate new password
+			</Button>
+			<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
+		</div>
+		<div class="col-auto">
+		</div>
+	</div>
+
+	<div class="row mb-3">
+		<div class="col">
+			<BestPasswords @ref="bestPasswordsComponent" MaxPasswords="@(maxPasswordsCount)" />
+		</div>
 	</div>
 </div>
 
@@ -64,12 +74,33 @@
 
 	private BestPasswords? bestPasswordsComponent;
 
+	private List<ToastMessage> messages = new List<ToastMessage>();
+
 	protected override void OnInitialized()
 	{
 		if (PasswordFactory is null)
 			throw new InvalidOperationException("Password generator factory is not initialized.");
 
 		_baseUri = new Uri(Navigation.BaseUri);
+	}
+
+	private void ShowMessage(ToastType toastType, string message) => messages.Add(CreateToastMessage(toastType, message));
+
+	private async Task ShowException(Exception ex)
+	{
+		await JSRuntime.InvokeVoidAsync("console.error", ex.ToString());
+
+		ShowMessage(ToastType.Danger, ex.Message);
+	}
+
+	private ToastMessage CreateToastMessage(ToastType toastType, string message)
+	{
+		return new ToastMessage
+			{
+				Type = toastType,
+				AutoHide = !(new[] { ToastType.Danger, ToastType.Warning }.Contains(toastType)),
+				Message = message,
+			};
 	}
 
 	private async Task<Stream> GetWordTreeFile(string language)
@@ -137,19 +168,36 @@
 		}
 	}
 
-	private void GenerateNewPassword(MouseEventArgs e)
+	private async Task GenerateNewPassword(MouseEventArgs e)
+	{
+		var generationResult = await GenerateOrDefault();
+		if (generationResult != null)
+		{
+			PasswordResult passwordResult = generationResult.Passwords[0];
+			bestPasswordsComponent?.Add(passwordResult);
+		}
+	}
+
+	private async Task GenerateMultiplePasswords(MouseEventArgs args)
+	{
+		for (int i = 0; i < maxPasswordsCount + 1; i++)
+			await GenerateNewPassword(args);
+	}
+
+	private async Task<GenerationResult?> GenerateOrDefault()
 	{
 		if (_generator is null)
 			throw new InvalidOperationException("Password factory is not initialized.");
 
-		GenerationResult generationResult = _generator.Generate();
-		PasswordResult passwordResult = generationResult.Passwords[0];
-		bestPasswordsComponent?.Add(passwordResult);
-	}
+		try
+		{
+			return await Task.Run(() => _generator.Generate());
+		}
+		catch (Exception ex)
+		{
+			await ShowException(ex);
 
-	private void GenerateMultiplePasswords(MouseEventArgs args)
-	{
-		for (int i = 0; i < maxPasswordsCount + 1; i++)
-			GenerateNewPassword(args);
+			return null;
+		}
 	}
 }

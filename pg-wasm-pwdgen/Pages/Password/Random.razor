@@ -4,6 +4,7 @@
 @using PG.Wasm.PasswordGenerator.Components.Passwords
 @using PG.Wasm.PasswordGenerator.Components.Passwords.Models
 @inject PG.Logic.Passwords.Generators.PasswordGeneratorFactory PasswordFactory
+@inject IJSRuntime JSRuntime
 
 <Toasts class="p-3" Messages="messages" AutoHide="true" Delay="1500" Placement="ToastsPlacement.TopRight" />
 
@@ -14,14 +15,12 @@
 		</div>
 	</div>
 
-	<div class="row mb-3 flex-nowrap">
-		<div class="col">
+	<div class="row g-1 mb-3">
+		<div class="col text-nowrap">
 			<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" Class="me-1" />Generate new password</Button>
-		</div>
-		<div class="col">
 			<Button Color="ButtonColor.Primary" @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
 		</div>
-		<div class="col-auto text-end">
+		<div class="col-auto">
 			<Button Color="ButtonColor.Secondary" @onclick="ToggleConfigurationAsync"><Icon Name="IconName.Gear" /></Button>
 		</div>
 	</div>
@@ -42,7 +41,7 @@
 </div>
 
 @code {
-	private IPasswordGenerator? _generator = null;
+	private IPasswordGenerator? _generator = default;
 	private static readonly int maxPasswordsCount = 7;
 
 	private GeneratorOptions? optionsForm;
@@ -63,6 +62,13 @@
 	}
 
 	private void ShowMessage(ToastType toastType, string message) => messages.Add(CreateToastMessage(toastType, message));
+
+	private async Task ShowException(Exception ex)
+	{
+		await JSRuntime.InvokeVoidAsync("console.error", ex.ToString());
+
+		ShowMessage(ToastType.Danger, ex.Message);
+	}
 
 	private ToastMessage CreateToastMessage(ToastType toastType, string message)
 	{
@@ -99,11 +105,15 @@
 		}
 	}
 
+	private async Task ToggleConfigurationAsync(MouseEventArgs args)
+	{
+		if (settingsCollapse == null) return;
+
+		await settingsCollapse.ToggleAsync();
+	}
+
 	private async Task GenerateNewPassword(MouseEventArgs e)
 	{
-		if (_generator is null)
-			throw new InvalidOperationException("Password factory is not initialized.");
-
 		if (!(optionsForm?.IsValid ?? false))
 			ShowMessage(ToastType.Danger, "Configuration invalid, please review parameters.");
 		else
@@ -111,9 +121,12 @@
 			if (Options.HasChanges)
 				await LoadPasswordGenerator();
 
-			GenerationResult generationResult = _generator.Generate();
-			PasswordResult passwordResult = generationResult.Passwords[0];
-			bestPasswordsComponent?.Add(passwordResult);
+			var generationResult = await GenerateOrDefault();
+			if (generationResult != null)
+			{
+				PasswordResult passwordResult = generationResult.Passwords[0];
+				bestPasswordsComponent?.Add(passwordResult);
+			}
 		}
 	}
 
@@ -123,10 +136,20 @@
 			await GenerateNewPassword(args);
 	}
 
-	private async Task ToggleConfigurationAsync(MouseEventArgs args)
+	private async Task<GenerationResult?> GenerateOrDefault()
 	{
-		if (settingsCollapse == null) return;
+		if (_generator is null)
+			throw new InvalidOperationException("Password factory is not initialized.");
 
-		await settingsCollapse.ToggleAsync();
+		try
+		{
+			return await Task.Run(() => _generator.Generate());
+		}
+		catch (Exception ex)
+		{
+			await ShowException(ex);
+
+			return null;
+		}
 	}
 }
