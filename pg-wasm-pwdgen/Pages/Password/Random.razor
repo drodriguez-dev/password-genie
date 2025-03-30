@@ -17,6 +17,8 @@
 	<div class="row mb-3 flex-nowrap">
 		<div class="col">
 			<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" Class="me-1" />Generate new password</Button>
+		</div>
+		<div class="col">
 			<Button Color="ButtonColor.Primary" @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
 		</div>
 		<div class="col-auto text-end">
@@ -82,11 +84,11 @@
 					NumberOfLetters = Options.NumberOfLetters,
 					NumberOfNumbers = Options.NumberOfNumbers,
 					NumberOfSpecialCharacters = Options.NumberOfSpecialCharacters,
-					IncludeMarkSymbols = true,
-					IncludeSeparatorSymbols = true,
-					IncludeSetSymbols = true,
-					CustomSpecialCharacters = [],
-					KeystrokeOrder = KeystrokeOrder.Random,
+					IncludeMarkSymbols = Options.IncludeMarkSymbols,
+					IncludeSeparatorSymbols = Options.IncludeSeparatorSymbols,
+					IncludeSetSymbols = Options.IncludeSetSymbols,
+					CustomSpecialCharacters = Options.CustomSpecialCharacters.ToArray(),
+					KeystrokeOrder = Options.KeystrokeOrder,
 				};
 
 			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Random, options));
