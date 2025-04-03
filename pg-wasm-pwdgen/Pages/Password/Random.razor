@@ -28,7 +28,7 @@
 	<Collapse @ref="settingsCollapse">
 		<div class="row mb-3">
 			<div class="col">
-				<GeneratorOptions @ref="optionsForm" Options="@Options" />
+				<RandomGeneratorOptions @ref="optionsForm" Options="@Options" />
 			</div>
 		</div>
 	</Collapse>
@@ -44,7 +44,7 @@
 	private IPasswordGenerator? _generator = default;
 	private static readonly int maxPasswordsCount = 7;
 
-	private GeneratorOptions? optionsForm;
+	private RandomGeneratorOptions? optionsForm;
 	private PasswordOptions options = new PasswordOptions();
 	private PasswordOptions Options { get => options; set { options = value; StateHasChanged(); } }
 
