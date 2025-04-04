@@ -6,8 +6,8 @@ namespace PG.Logic.Passwords.Generators
 {
 	public class RandomPasswordGenerator(RandomPasswordGeneratorOptions options, RandomService random) : PasswordGeneratorBase(random)
 	{
-		private readonly RandomPasswordGeneratorOptions _options = options;
-		private readonly int TotalCharacters = options.NumberOfLetters + options.NumberOfNumbers + options.NumberOfSpecialCharacters;
+		private RandomPasswordGeneratorOptions _options = options;
+		private int GetTotalCharacters(RandomPasswordGeneratorOptions options) => options.NumberOfLetters + options.NumberOfNumbers + options.NumberOfSpecialCharacters;
 
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
@@ -18,16 +18,24 @@ namespace PG.Logic.Passwords.Generators
 
 		protected static readonly char[] _letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
+		public override void Configure(CommonPasswordGeneratorOptions config)
+		{
+			if (config is not RandomPasswordGeneratorOptions options)
+				throw new ArgumentException($"Invalid configuration type ({config.GetType()}).", nameof(config));
+
+			_options = options;
+		}
+
 		protected override IEnumerable<string> GeneratePasswordParts()
 		{
 			if (_options.NumberOfPasswords < 1)
 				throw new InvalidOptionException("At least one password must be requested");
 
-			if (TotalCharacters < 1)
+			if (GetTotalCharacters(_options) < 1)
 				throw new InvalidOptionException("At least one character group must be included.");
 
-			if (_options.MinimumLength > TotalCharacters)
-				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({TotalCharacters}).");
+			if (_options.MinimumLength > GetTotalCharacters(_options))
+				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({GetTotalCharacters}).");
 
 			return BuildPasswordParts(_options.NumberOfPasswords, _options.MinimumLength);
 		}
@@ -40,7 +48,7 @@ namespace PG.Logic.Passwords.Generators
 			HandSide currentHand = ChooseFirstHand();
 			Finger? currentFinger = null;
 
-			var password = Enumerable.Range(1, TotalCharacters)
+			var password = Enumerable.Range(1, GetTotalCharacters(_options))
 				.Select(i => ChooseCharacterSet(i, letters, numbers, specialCharacters))
 				.Select(cs => GetAndDiscountAvailableCharacters(cs, ref letters, ref numbers, ref specialCharacters))
 				.Select(aC => FilterPossibleCharacters(aC, ref currentHand, currentFinger))

@@ -13,7 +13,8 @@ namespace PG.Logic.Passwords.Generators
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 		private const int WORD_VARIANCE_DIVIDER = 2;
 
-		private readonly DictionaryPasswordGeneratorOptions _options = options;
+		private DictionaryPasswordGeneratorOptions _options = options;
+
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
 		protected override bool IncludeSeparatorSymbols => _options.IncludeSeparatorSymbols;
@@ -22,6 +23,14 @@ namespace PG.Logic.Passwords.Generators
 		protected override KeystrokeOrder KeystrokeOrder => _options.KeystrokeOrder;
 
 		private readonly WordDictionaryTree _wordTree = wordTree;
+
+		public override void Configure(CommonPasswordGeneratorOptions config)
+		{
+			if (config is not DictionaryPasswordGeneratorOptions options)
+				throw new ArgumentException($"Invalid configuration type ({config.GetType()}).", nameof(config));
+
+			_options = options;
+		}
 
 		protected override IEnumerable<string> GeneratePasswordParts()
 		{

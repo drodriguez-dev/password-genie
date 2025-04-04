@@ -39,6 +39,8 @@ namespace PG.Logic.Passwords.Generators
 		protected static readonly char[] _rightIndexKeyStrokes = @"67ujmUJM^&".ToCharArray();
 		protected static readonly char[] _rightHandKeyStrokes = [.. _rightThumbKeyStrokes, .. _rightPinkyKeyStrokes, .. _rightRingKeyStrokes, .. _rightMiddleKeyStrokes, .. _rightIndexKeyStrokes];
 
+		public abstract void Configure(CommonPasswordGeneratorOptions config);
+
 		public virtual GenerationResult Generate()
 		{
 			List<PasswordResult> passwords = [];
