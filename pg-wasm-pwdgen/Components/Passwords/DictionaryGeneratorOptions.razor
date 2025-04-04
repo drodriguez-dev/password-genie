@@ -1,0 +1,155 @@
+@using PG.Logic.Passwords.Generators
+@using PG.Logic.Passwords.Generators.Entities
+@using PG.Wasm.PasswordGenerator.Components.Passwords
+@using PG.Wasm.PasswordGenerator.Components.Passwords.Models
+@using System.ComponentModel
+
+@code
+{
+	[Parameter]
+	public PasswordOptions Options { get; set; } = default!;
+}
+
+<div class="container-fluid p-0">
+	<div class="row g-0">
+		<Card Class="col">
+			<CardTitle Class="mx-2 my-1">Configuration</CardTitle>
+			<CardBody>
+				<EditForm EditContext="@editContext">
+					<DataAnnotationsValidator />
+
+					<div class="container-fluid p-0">
+						<div class="row g-1 align-items-start justify-content-between">
+							<div class="col-12 col-md-6 col-lg-3">
+								<label class="form-label" for="numberOfWordsInput">Number of words</label>
+								<NumberInput Id="numberOfWordsInput" TValue="int" @bind-Value="Options.NumberOfWords"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" />
+							</div>
+
+							<div class="col-12 col-md-6 col-lg-3">
+								<label class="form-label" for="numberOfWordsInput">Average word length</label>
+								<NumberInput Id="averageWorkLengthInput" TValue="int" @bind-Value="Options.AverageWordLength"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" />
+							</div>
+
+							<div class="col-12 col-md-6 col-lg-3">
+								<label class="form-label" for="numberOfWordsInput">Depth level</label>
+								<NumberInput Id="depthLevelInput" TValue="int" @bind-Value="Options.DepthLevel"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" />
+							</div>
+
+							<div class="col-12 col-md-6 col-lg-3">
+								<label class="form-label" for="numberOfNumbers">Number of numbers</label>
+								<NumberInput Id="numberOfNumbers" TValue="int" @bind-Value="Options.NumberOfNumbers"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" Placeholder="0-9" />
+							</div>
+
+							<div class="w-100"></div>
+
+							<div class="col-12 col-md-4">
+								<label class="form-label" for="numberOfSpecialCharacters">Number of special characters</label>
+								<NumberInput Id="numberOfSpecialCharacters" TValue="int" @bind-Value="Options.NumberOfSpecialCharacters"
+														 AllowNegativeNumbers="false" TextAlignment="Alignment.End" />
+							</div>
+
+							<div class="col-12 col-md-8">
+								<label class="form-label" for="includeSetSymbols">Custom special characters</label>
+								<TextInput id="customSpecialCharacters" @bind-Value="Options.CustomSpecialCharacters" Disabled="isCustomSpecialCharactersDisabled" />
+							</div>
+
+							<div class="w-100"></div>
+
+							<div class="col-12 col-xl-4">
+								<div class="row flex-nowrap">
+									<div class="col-auto">
+										<Switch Id="includeMarkSymbols" @bind-Value="Options.IncludeMarkSymbols" Disabled="@(areSymbolInclusionsDisabled)" />
+									</div>
+									<div class="col">
+										<label class="form-label" for="includeMarkSymbols"><span class="text-nowrap">Include marks</span> <code class="text-nowrap">!&#64;#$%^*+=|;:\&quot;?</code></label>
+									</div>
+								</div>
+							</div>
+
+							<div class="col-12 col-xl-4">
+								<div class="row flex-nowrap">
+									<div class="col-auto">
+										<Switch Id="includeSeparatorSymbols" @bind-Value="Options.IncludeSeparatorSymbols" Disabled="@(areSymbolInclusionsDisabled)" />
+									</div>
+									<div class="col">
+										<label class="form-label" for="includeSeparatorSymbols"><span class="text-nowrap">Include separators</span> <code class="text-nowrap">-_/\&amp;,.</code></label>
+									</div>
+								</div>
+							</div>
+
+							<div class="col-12 col-xl-4">
+								<div class="row flex-nowrap">
+									<div class="col-auto">
+										<Switch Id="includeSetSymbols" @bind-Value="Options.IncludeSetSymbols" Disabled="@(areSymbolInclusionsDisabled)" />
+									</div>
+									<div class="col">
+										<label class="form-label" for="includeSetSymbols"><span class="text-nowrap">Include sets</span> <code class="text-nowrap">()[]{}&lt;&gt;</code></label>
+									</div>
+								</div>
+							</div>
+
+							<div class="w-100"></div>
+
+							<div class="col-12">
+								<label class="form-label">Keystroke order</label>
+							</div>
+
+							<div class="w-100"></div>
+
+							<div class="col-12 col-lg-2">
+								<RadioInput Name="keystrokeOrder" Label="Random" @bind-Value="Options.IsRandomStrokeOrder" />
+							</div>
+							<div class="col-12 col-lg-3">
+								<RadioInput Name="keystrokeOrder" Label="Alternating hand" @bind-Value="Options.IsAlternatingStrokeOrder" />
+							</div>
+							<div class="col-12 col-lg-3">
+								<RadioInput Name="keystrokeOrder" Label="Alternating word" @bind-Value="Options.IsAlternatingWordKeystroke" />
+							</div>
+							<div class="col-12 col-lg-2">
+								<RadioInput Name="keystrokeOrder" Label="Only left hand" @bind-Value="Options.IsOnlyLeftKeystrokes" />
+							</div>
+							<div class="col-12 col-lg-2">
+								<RadioInput Name="keystrokeOrder" Label="Only right hand" @bind-Value="Options.IsOnlyRightKeystrokes" />
+							</div>
+						</div>
+
+						<div class="row mt-3">
+							<div class="col-12">
+								<ValidationSummary />
+							</div>
+						</div>
+					</div>
+				</EditForm>
+			</CardBody>
+		</Card>
+	</div>
+</div>
+
+@code
+{
+	public bool IsValid => editContext?.Validate() ?? false;
+
+	private EditContext? editContext;
+
+	private bool areSymbolInclusionsDisabled => (Options.NumberOfSpecialCharacters == 0) || !string.IsNullOrEmpty(Options.CustomSpecialCharacters);
+	private bool isCustomSpecialCharactersDisabled => Options.NumberOfSpecialCharacters == 0;
+
+	protected override void OnInitialized()
+	{
+		editContext = new EditContext(Options);
+
+		Options.PropertyChanged += OptionsChanged;
+
+		base.OnInitialized();
+	}
+
+	private void OptionsChanged(object? sender, PropertyChangedEventArgs e)
+	{
+		if (e.PropertyName == nameof(Options.CustomSpecialCharacters))
+			StateHasChanged();
+	}
+}

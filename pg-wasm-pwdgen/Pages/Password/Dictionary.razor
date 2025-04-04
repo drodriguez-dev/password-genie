@@ -3,6 +3,7 @@
 @using PG.Logic.Passwords.Generators
 @using PG.Logic.Passwords.Generators.Entities
 @using PG.Wasm.PasswordGenerator.Components.Passwords
+@using PG.Wasm.PasswordGenerator.Components.Passwords.Models
 @inject NavigationManager Navigation
 @inject PG.Logic.Passwords.Generators.PasswordGeneratorFactory PasswordFactory
 @inject IJSRuntime JSRuntime
@@ -49,8 +50,17 @@
 			<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
 		</div>
 		<div class="col-auto">
+			<Button Color="ButtonColor.Secondary" @onclick="ToggleConfigurationAsync"><Icon Name="IconName.Gear" /></Button>
 		</div>
 	</div>
+
+	<Collapse @ref="settingsCollapse">
+		<div class="row mb-3">
+			<div class="col">
+				<DictionaryGeneratorOptions @ref="optionsForm" Options="@Options" />
+			</div>
+		</div>
+	</Collapse>
 
 	<div class="row mb-3">
 		<div class="col">
@@ -64,6 +74,10 @@
 	private IPasswordGenerator? _generator = null;
 	private static readonly int maxPasswordsCount = 7;
 
+	private DictionaryGeneratorOptions? optionsForm;
+	private PasswordOptions options = new PasswordOptions();
+	private PasswordOptions Options { get => options; set { options = value; StateHasChanged(); } }
+
 	[Inject]
 	protected PreloadService PreloadService { get; set; } = default!;
 
@@ -72,6 +86,7 @@
 
 	private bool IsGeneratorAvailable => _generator is not null && !string.IsNullOrWhiteSpace(SelectedLanguage);
 
+	private Collapse? settingsCollapse;
 	private BestPasswords? bestPasswordsComponent;
 
 	private List<ToastMessage> messages = new List<ToastMessage>();
@@ -129,59 +144,76 @@
 	private async void SelectLanguage(string language)
 	{
 		SelectedLanguage = language;
-
-		await LoadPasswordGenerator();
+		await LoadPasswordGenerator(SelectedLanguage);
 	}
 
-	private async Task LoadPasswordGenerator()
+	private async Task LoadPasswordGenerator(string language)
 	{
 		if (string.IsNullOrWhiteSpace(SelectedLanguage)) return;
+
+		bestPasswordsComponent?.Clear();
 
 		PreloadService.Show(SpinnerColor.Primary, "Loading the dictionary...");
 		try
 		{
-			bestPasswordsComponent?.Clear();
+			var generatorOptions = ConvertToOptions(Options);
+			generatorOptions.File = await GetWordTreeFile(language);
 
-			Stream file = await GetWordTreeFile(SelectedLanguage);
-
-			var options = new DictionaryPasswordGeneratorOptions()
-				{
-					Type = DictionaryType.WordTree,
-					File = file,
-					NumberOfPasswords = 1,
-					NumberOfWords = 2,
-					AverageWordLength = 7,
-					MinimumLength = 12,
-					DepthLevel = 4,
-					KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
-					NumberOfNumbers = 1,
-					NumberOfSpecialCharacters = 1,
-					CustomSpecialCharacters = new char[] { '-', '.', '/' },
-				};
-
-			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Dictionary, options));
+			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Dictionary, generatorOptions));
 		}
 		finally
 		{
 			PreloadService.Hide();
+
+			Options.HasChanges = false;
 			StateHasChanged();
 		}
 	}
 
-	private async Task GenerateNewPassword(MouseEventArgs e)
+	private DictionaryPasswordGeneratorOptions ConvertToOptions(PasswordOptions options)
 	{
-		var generationResult = await GenerateOrDefault();
-		if (generationResult != null)
-		{
-			PasswordResult passwordResult = generationResult.Passwords[0];
-			bestPasswordsComponent?.Add(passwordResult);
-		}
+		return new DictionaryPasswordGeneratorOptions()
+			{
+				Type = DictionaryType.WordTree,
+				File = null!, // File is only needed when creating the generator
+				NumberOfPasswords = 1,
+				NumberOfWords = options.NumberOfWords,
+				AverageWordLength = options.AverageWordLength,
+				DepthLevel = options.DepthLevel,
+				MinimumLength = options.MinimumLength,
+				IncludeMarkSymbols = options.IncludeMarkSymbols,
+				IncludeSeparatorSymbols = options.IncludeSeparatorSymbols,
+				IncludeSetSymbols = options.IncludeSetSymbols,
+				KeystrokeOrder = options.KeystrokeOrder,
+				NumberOfNumbers = options.NumberOfNumbers,
+				NumberOfSpecialCharacters = options.NumberOfSpecialCharacters,
+				CustomSpecialCharacters = options.CustomSpecialCharacters.ToArray(),
+			};
+	}
+
+	private async Task ToggleConfigurationAsync(MouseEventArgs args)
+	{
+		if (settingsCollapse == null) return;
+
+		await settingsCollapse.ToggleAsync();
 	}
 
 	private async Task GenerateMultiplePasswords(MouseEventArgs args)
 	{
 		for (int i = 0; i < maxPasswordsCount + 1; i++)
 			await GenerateNewPassword(args);
+	}
+
+	private async Task GenerateNewPassword(MouseEventArgs e)
+	{
+		if (!(optionsForm?.IsValid ?? false))
+			ShowMessage(ToastType.Danger, "Configuration invalid, please review parameters.");
+		else
+		{
+			var generationResult = await GenerateOrDefault();
+			if (generationResult != null)
+				bestPasswordsComponent?.Add(generationResult.Passwords[0]);
+		}
 	}
 
 	private async Task<GenerationResult?> GenerateOrDefault()
@@ -191,6 +223,12 @@
 
 		try
 		{
+			if (Options.HasChanges)
+			{
+				var generatorOptions = ConvertToOptions(Options);
+				_generator.Configure(generatorOptions);
+			}
+
 			return await Task.Run(() => _generator.Generate());
 		}
 		catch (Exception ex)

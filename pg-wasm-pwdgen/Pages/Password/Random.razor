@@ -84,25 +84,31 @@
 	{
 		try
 		{
-			RandomPasswordGeneratorOptions options = new RandomPasswordGeneratorOptions()
-				{
-					NumberOfPasswords = 1,
-					NumberOfLetters = Options.NumberOfLetters,
-					NumberOfNumbers = Options.NumberOfNumbers,
-					NumberOfSpecialCharacters = Options.NumberOfSpecialCharacters,
-					IncludeMarkSymbols = Options.IncludeMarkSymbols,
-					IncludeSeparatorSymbols = Options.IncludeSeparatorSymbols,
-					IncludeSetSymbols = Options.IncludeSetSymbols,
-					CustomSpecialCharacters = Options.CustomSpecialCharacters.ToArray(),
-					KeystrokeOrder = Options.KeystrokeOrder,
-				};
+			RandomPasswordGeneratorOptions generatorOptions = ConvertToOptions(Options);
 
-			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Random, options));
+			_generator = await Task.Run(() => PasswordFactory.Create(GeneratorType.Random, generatorOptions));
 		}
 		finally
 		{
 			Options.HasChanges = false;
+			StateHasChanged();
 		}
+	}
+
+	private RandomPasswordGeneratorOptions ConvertToOptions(PasswordOptions options)
+	{
+		return new RandomPasswordGeneratorOptions()
+			{
+				NumberOfPasswords = 1,
+				NumberOfLetters = options.NumberOfLetters,
+				NumberOfNumbers = options.NumberOfNumbers,
+				NumberOfSpecialCharacters = options.NumberOfSpecialCharacters,
+				IncludeMarkSymbols = options.IncludeMarkSymbols,
+				IncludeSeparatorSymbols = options.IncludeSeparatorSymbols,
+				IncludeSetSymbols = options.IncludeSetSymbols,
+				CustomSpecialCharacters = options.CustomSpecialCharacters.ToArray(),
+				KeystrokeOrder = options.KeystrokeOrder,
+			};
 	}
 
 	private async Task ToggleConfigurationAsync(MouseEventArgs args)
@@ -112,28 +118,22 @@
 		await settingsCollapse.ToggleAsync();
 	}
 
+	private async Task GenerateMultiplePasswords(MouseEventArgs args)
+	{
+		for (int i = 0; i < maxPasswordsCount + 1; i++)
+			await GenerateNewPassword(args);
+	}
+
 	private async Task GenerateNewPassword(MouseEventArgs e)
 	{
 		if (!(optionsForm?.IsValid ?? false))
 			ShowMessage(ToastType.Danger, "Configuration invalid, please review parameters.");
 		else
 		{
-			if (Options.HasChanges)
-				await LoadPasswordGenerator();
-
 			var generationResult = await GenerateOrDefault();
 			if (generationResult != null)
-			{
-				PasswordResult passwordResult = generationResult.Passwords[0];
-				bestPasswordsComponent?.Add(passwordResult);
-			}
+				bestPasswordsComponent?.Add(generationResult.Passwords[0]);
 		}
-	}
-
-	private async Task GenerateMultiplePasswords(MouseEventArgs args)
-	{
-		for (int i = 0; i < maxPasswordsCount + 1; i++)
-			await GenerateNewPassword(args);
 	}
 
 	private async Task<GenerationResult?> GenerateOrDefault()
@@ -143,6 +143,12 @@
 
 		try
 		{
+			if (Options.HasChanges)
+			{
+				var generatorOptions = ConvertToOptions(Options);
+				_generator.Configure(generatorOptions);
+			}
+
 			return await Task.Run(() => _generator.Generate());
 		}
 		catch (Exception ex)
