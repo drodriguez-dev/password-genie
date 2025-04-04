@@ -1,36 +1,4 @@
-﻿
-/* Because the side bar is using part of the width, it's necessary to reduce the default container width speficied in Bootstrap. */
-@media (min-width: 576px) {
-	.container, .container-sm {
-		max-width: 340px;
-	}
-}
-
-@media (min-width: 768px) {
-	.container, .container-md, .container-sm {
-		max-width: 520px;
-	}
-}
-
-@media (min-width: 992px) {
-	.container, .container-lg, .container-md, .container-sm {
-		max-width: 730px;
-	}
-}
-
-@media (min-width: 1200px) {
-	.container, .container-lg, .container-md, .container-sm, .container-xl {
-		max-width: 940px;
-	}
-}
-
-@media (min-width: 1400px) {
-	.container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
-		max-width: 1140px;
-	}
-}
-
-.valid.modified:not([type=checkbox]) {
+﻿.valid.modified:not([type=checkbox]) {
 	outline: 1px solid var(--emphasis3-color);
 }
 
