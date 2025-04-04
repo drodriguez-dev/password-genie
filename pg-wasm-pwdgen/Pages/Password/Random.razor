@@ -20,18 +20,22 @@
 			<Button Color="ButtonColor.Primary" @onclick="GenerateNewPassword"><Icon Name="IconName.BracesAsterisk" Class="me-1" />Generate new password</Button>
 			<Button Color="ButtonColor.Primary" @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
 		</div>
-		<div class="col-auto">
-			<Button Color="ButtonColor.Secondary" @onclick="ToggleConfigurationAsync"><Icon Name="IconName.Gear" /></Button>
-		</div>
 	</div>
 
-	<Collapse @ref="settingsCollapse">
-		<div class="row mb-3">
-			<div class="col">
-				<RandomGeneratorOptions @ref="optionsForm" Options="@Options" />
-			</div>
+	<div class="row mb-3">
+		<div class="col">
+			<Accordion>
+				<AccordionItem>
+					<TitleTemplate>
+						<Icon Name="IconName.Gear" Class="me-1" />Configuration
+					</TitleTemplate>
+					<Content>
+						<RandomGeneratorOptions @ref="optionsForm" Options="@Options" />
+					</Content>
+				</AccordionItem>
+			</Accordion>
 		</div>
-	</Collapse>
+	</div>
 
 	<div class="row mb-3">
 		<div class="col">
@@ -48,7 +52,6 @@
 	private PasswordOptions options = new PasswordOptions();
 	private PasswordOptions Options { get => options; set { options = value; StateHasChanged(); } }
 
-	private Collapse? settingsCollapse;
 	private BestPasswords? bestPasswordsComponent;
 
 	private List<ToastMessage> messages = new List<ToastMessage>();
@@ -109,13 +112,6 @@
 				CustomSpecialCharacters = options.CustomSpecialCharacters.ToArray(),
 				KeystrokeOrder = options.KeystrokeOrder,
 			};
-	}
-
-	private async Task ToggleConfigurationAsync(MouseEventArgs args)
-	{
-		if (settingsCollapse == null) return;
-
-		await settingsCollapse.ToggleAsync();
 	}
 
 	private async Task GenerateMultiplePasswords(MouseEventArgs args)
