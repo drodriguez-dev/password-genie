@@ -20,7 +20,7 @@ namespace PG.Wasm.PasswordGenerator.Components.Passwords.Models
 		private bool isOnlyRightKeystrokes = false;
 		private int numberOfWords = 2;
 		private int averageWordLength = 7;
-		private int depthLevel = 4;
+		private int depthLevel = 3;
 
 		#region Dictionary specific options
 		[Required(ErrorMessage = "Number of words is required")]
@@ -106,10 +106,10 @@ namespace PG.Wasm.PasswordGenerator.Components.Passwords.Models
 		public static ValidationResult ValidateDepthLowerThanAverage(object _, ValidationContext validationContext)
 		{
 			var options = validationContext.ObjectInstance as PasswordOptions;
-			if (options is not null && options.DepthLevel < options.AverageWordLength)
+			if (options is not null && options.DepthLevel <= Math.Round(options.AverageWordLength / 2, digits: 0))
 				return ValidationResult.Success!;
 
-			return new ValidationResult("Depth level must be lower than the average word length");
+			return new ValidationResult("Depth level must be lower than the half of the average word length.");
 		}
 	}
 }

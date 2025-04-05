@@ -86,10 +86,11 @@ namespace PG.Shared.Services
 		/// <param name="choices">The items to use to populate the span.</param>
 		/// <param name="destination">The span to be filled with items.</param>
 		/// <exception cref="ArgumentException">Thrown when choices is empty.</exception>
-		public void GetItems<T>(ReadOnlySpan<T> choices, Span<T> destination)
+		public void GetItems<T>(ReadOnlySpan<T> choices, Span<T> destination, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, choices.Length);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, choices.Length));
+
 			_random.GetItems(choices, destination);
 		}
 
@@ -103,10 +104,11 @@ namespace PG.Shared.Services
 		/// <exception cref="ArgumentException">Thrown when choices is empty.</exception>
 		/// <exception cref="ArgumentNullException">Thrown when choices is null.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown when length is not zero or a positive number.</exception>
-		public T[] GetItems<T>(T[] choices, int length)
+		public T[] GetItems<T>(T[] choices, int length, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, choices.Length * length);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+			  IncrementEntropy(Math.Max(1, choices.Length * length));
+
 			return _random.GetItems(choices, length);
 		}
 
@@ -114,9 +116,11 @@ namespace PG.Shared.Services
 		/// Returns a non-negative random integer.
 		/// </summary>
 		/// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than Int32.MaxValue.</returns>
-		public virtual int Next()
+		public virtual int Next(bool updateEntropy = true)
 		{
-			IncrementEntropy(int.MaxValue);
+			if (updateEntropy)
+				IncrementEntropy(int.MaxValue);
+
 			return _random.Next();
 		}
 
@@ -126,10 +130,11 @@ namespace PG.Shared.Services
 		/// <param name="maxValue">The exclusive upper bound of the random number to be generated. maxValue must be greater than or equal to 0.</param>
 		/// <returns>A 32-bit signed integer that is greater than or equal to 0, and less than maxValue; that is, the range of return values ordinarily includes 0 but not maxValue. However, if maxValue equals 0, 0 is returned.</returns>
 		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when maxValue is less than 0.</exception>
-		public virtual int Next(int maxValue)
+		public virtual int Next(int maxValue, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, maxValue);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, maxValue));
+
 			return _random.Next(maxValue);
 		}
 
@@ -140,10 +145,11 @@ namespace PG.Shared.Services
 		/// <param name="maxValue">The exclusive upper bound of the random number returned. maxValue must be greater than or equal to minValue.</param>
 		/// <returns>A 32-bit signed integer greater than or equal to minValue and less than maxValue; that is, the range of return values includes minValue but not maxValue. If minValue equals maxValue, minValue is returned.</returns>
 		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when minValue is greater than maxValue.</exception>
-		public virtual int Next(int minValue, int maxValue)
+		public virtual int Next(int minValue, int maxValue, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, maxValue - minValue);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, maxValue - minValue));
+
 			return _random.Next(minValue, maxValue);
 		}
 
@@ -152,10 +158,11 @@ namespace PG.Shared.Services
 		/// </summary>
 		/// <param name="buffer">The array to be filled with random numbers.</param>
 		/// <exception cref="ArgumentNullException">Thrown when buffer is null.</exception>
-		public virtual void NextBytes(byte[] buffer)
+		public virtual void NextBytes(byte[] buffer, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, buffer.Length);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, buffer.Length));
+
 			_random.NextBytes(buffer);
 		}
 
@@ -163,10 +170,11 @@ namespace PG.Shared.Services
 		/// Fills the elements of a specified span of bytes with random numbers.
 		/// </summary>
 		/// <param name="buffer">The array to be filled with random numbers.</param>
-		public virtual void NextBytes(Span<byte> buffer)
+		public virtual void NextBytes(Span<byte> buffer, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, buffer.Length);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, buffer.Length));
+
 			_random.NextBytes(buffer);
 		}
 
@@ -174,9 +182,11 @@ namespace PG.Shared.Services
 		/// Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
 		/// </summary>
 		/// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
-		public virtual double NextDouble()
+		public virtual double NextDouble(bool updateEntropy = true)
 		{
-			IncrementEntropy(BigInteger.Pow(10, GetPrecission(typeof(double))));
+			if (updateEntropy)
+				IncrementEntropy(BigInteger.Pow(10, GetPrecission(typeof(double))));
+
 			return _random.NextDouble();
 		}
 
@@ -184,9 +194,11 @@ namespace PG.Shared.Services
 		/// Returns a non-negative random integer.
 		/// </summary>
 		/// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than Int64.MaxValue.</returns>
-		public virtual long NextInt64()
+		public virtual long NextInt64(bool updateEntropy = true)
 		{
-			IncrementEntropy(long.MaxValue);
+			if (updateEntropy)
+				IncrementEntropy(long.MaxValue);
+
 			return _random.NextInt64();
 		}
 
@@ -196,10 +208,11 @@ namespace PG.Shared.Services
 		/// <param name="maxValue">The exclusive upper bound of the random number to be generated. maxValue must be greater than or equal to 0.</param>
 		/// <returns>A 64-bit signed integer that is greater than or equal to 0, and less than maxValue; that is, the range of return values ordinarily includes 0 but not maxValue. However, if maxValue equals 0, maxValue is returned.</returns>
 		/// <exception cref="System.ArgumentOutOfRangeException">maxValue is less than 0.</exception>
-		public virtual long NextInt64(long maxValue)
+		public virtual long NextInt64(long maxValue, bool updateEntropy = true)
 		{
-			long combinations = Math.Max(1, maxValue);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, maxValue));
+
 			return _random.NextInt64(maxValue);
 		}
 
@@ -210,10 +223,11 @@ namespace PG.Shared.Services
 		/// <param name="maxValue">The exclusive upper bound of the random number returned. maxValue must be greater than or equal to minValue.</param>
 		/// <returns>A 64-bit signed integer greater than or equal to minValue and less than maxValue; that is, the range of return values includes minValue but not maxValue. If minValue equals maxValue, minValue is returned.</returns>
 		/// <exception cref="System.ArgumentOutOfRangeException">minValue is greater than maxValue.</exception>
-		public virtual long NextInt64(long minValue, long maxValue)
+		public virtual long NextInt64(long minValue, long maxValue, bool updateEntropy = true)
 		{
-			long combinations = Math.Max(1, maxValue - minValue);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, maxValue - minValue));
+
 			return _random.NextInt64(minValue, maxValue);
 		}
 
@@ -221,9 +235,11 @@ namespace PG.Shared.Services
 		/// Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
 		/// </summary>
 		/// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0./returns>
-		public virtual float NextSingle()
+		public virtual float NextSingle(bool updateEntropy = true)
 		{
-			IncrementEntropy(BigInteger.Pow(10, GetPrecission(typeof(float))));
+			if (updateEntropy)
+				IncrementEntropy(BigInteger.Pow(10, GetPrecission(typeof(float))));
+
 			return _random.NextSingle();
 		}
 
@@ -233,10 +249,11 @@ namespace PG.Shared.Services
 		/// <typeparam name="T">The type of array.</typeparam>
 		/// <param name="values">The array to shuffle.</param>
 		/// <exception cref="ArgumentNullException">Thrown when values is null.</exception>"
-		public void Shuffle<T>(T[] values)
+		public void Shuffle<T>(T[] values, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, values.Length);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, values.Length));
+
 			_random.Shuffle(values);
 		}
 
@@ -245,10 +262,11 @@ namespace PG.Shared.Services
 		/// </summary>
 		/// <typeparam name="T">The type of span.</typeparam>
 		/// <param name="values">The span to shuffle.</param>
-		public void Shuffle<T>(Span<T> values)
+		public void Shuffle<T>(Span<T> values, bool updateEntropy = true)
 		{
-			int combinations = Math.Max(1, values.Length);
-			IncrementEntropy(combinations);
+			if (updateEntropy)
+				IncrementEntropy(Math.Max(1, values.Length));
+
 			_random.Shuffle(values);
 		}
 		#endregion
@@ -270,25 +288,26 @@ namespace PG.Shared.Services
 			var totalSumObjective = count * average;
 
 			// Calculate the minimum and maximum values based on the variance factor.
-			int numberVariance = Convert.ToInt32(Math.Max(1, average * AVERAGE_VARIANCE_FACTOR));
+			int numberVariance = (int)Math.Truncate(Math.Max(1, average * AVERAGE_VARIANCE_FACTOR));
 			var minObjective = average - numberVariance;
 			var maxObjective = average + numberVariance;
 
 			int currentTotal = 0;
-			foreach (int index in Enumerable.Range(0, count))
+			for (int index = 0; index < count; index++)
 			{
 				int reminder = totalSumObjective - currentTotal;
-				int remindingNumbers = count - index;
+				int remaining = count - index;
 
 				// Maximum and minimum achievable values for the remaining numbers (not including the current one)
-				int remainingMaxSum = (remindingNumbers - 1) * maxObjective;
-				int remainingMinSum = (remindingNumbers - 1) * minObjective;
+				int remainingMaxSum = (remaining - 1) * maxObjective;
+				int remainingMinSum = (remaining - 1) * minObjective;
 
 				// Range of possible values for the current number to achieve the average. Can be the objective min/max or a smaller range.
 				int maxRange = Math.Min(maxObjective, reminder - remainingMinSum);
 				int minRange = Math.Max(minObjective, reminder - remainingMaxSum);
 
-				int value = _random.Next(minRange, maxRange + 1);
+				int value = Next(minRange, maxRange + 1, updateEntropy: false);
+
 				currentTotal += value;
 				yield return value;
 			}

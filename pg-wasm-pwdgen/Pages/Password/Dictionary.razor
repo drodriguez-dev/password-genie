@@ -23,9 +23,9 @@
 				<DropdownToggleButton>Dictionary</DropdownToggleButton>
 				<DropdownMenu>
 					<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "en-US")' Disabled='@(SelectedLanguage == "en-US")'
-												@onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
+					@onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
 					<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "es-ES")' Disabled='@(SelectedLanguage == "es-ES")'
-												@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
+					@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
 				</DropdownMenu>
 			</Dropdown>
 		</div>
@@ -100,6 +100,16 @@
 			throw new InvalidOperationException("Password generator factory is not initialized.");
 
 		_baseUri = new Uri(Navigation.BaseUri);
+		options.NumberOfWords = 2;
+		options.AverageWordLength = 7;
+		options.DepthLevel = 3;
+		options.NumberOfNumbers = 1;
+		options.NumberOfSpecialCharacters = 1;
+		options.IncludeMarkSymbols = false;
+		options.IncludeSeparatorSymbols = true;
+		options.IncludeSetSymbols = false;
+		options.CustomSpecialCharacters = string.Empty;
+		options.KeystrokeOrder = KeystrokeOrder.AlternatingStroke;
 	}
 
 	private void ShowMessage(ToastType toastType, string message) => messages.Add(CreateToastMessage(toastType, message));

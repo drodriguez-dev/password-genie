@@ -109,7 +109,7 @@ namespace PG.Logic.Passwords.Generators
 				KeystrokeOrder.Random => HandSide.Any,
 				KeystrokeOrder.OnlyLeft => HandSide.Left,
 				KeystrokeOrder.OnlyRight => HandSide.Right,
-				KeystrokeOrder.AlternatingWord or KeystrokeOrder.AlternatingStroke => _random.Next(2) == 0 ? HandSide.Left : HandSide.Right,
+				KeystrokeOrder.AlternatingWord or KeystrokeOrder.AlternatingStroke => _random.Next(2, false) == 0 ? HandSide.Left : HandSide.Right,
 				_ => throw new NotImplementedException($"The keystroke order {KeystrokeOrder} is not implemented."),
 			};
 		}
