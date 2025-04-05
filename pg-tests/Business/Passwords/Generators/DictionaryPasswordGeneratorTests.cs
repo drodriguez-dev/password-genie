@@ -1,4 +1,5 @@
-﻿using PG.Data.Files.DataFiles;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PG.Data.Files.DataFiles;
 using PG.Data.Files.DataFiles.Dictionaries;
 using PG.Entities.Files;
 using PG.Entities.WordTrees;
@@ -139,6 +140,46 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			if (options.KeystrokeOrder == KeystrokeOrder.OnlyRight)
 				Assert.IsTrue(!passwords.Any(LeftHandPattern().IsMatch), "Password should contain right hand keystrokes only.");
+		}
+
+		[DataTestMethod]
+		[DataRow(1, 04, 03)]
+		[DataRow(2, 06, 05)]
+		[DataRow(3, 08, 07)]
+		[DataRow(4, 10, 05)]
+		[DataRow(5, 12, 06)]
+		[DataRow(6, 14, 07)]
+		public void AverageWordLengthTest(int numberOfWords, int averageWordLength, int depthLevel)
+		{
+			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
+			DictionaryPasswordGeneratorOptions options = new()
+			{
+				Type = DictionaryType.PlainTextDictionary,
+				File = fileStream,
+				NumberOfPasswords = 25,
+				NumberOfWords = numberOfWords,
+				AverageWordLength = averageWordLength,
+				DepthLevel = depthLevel,
+				NumberOfNumbers = 0,
+				NumberOfSpecialCharacters = 0,
+				CustomSpecialCharacters = [],
+				RemoveHighAsciiCharacters = true,
+			};
+
+			Debug.WriteLine("Starting password generation...");
+			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
+			var result = passwordGenerator.Generate();
+
+			Debug.WriteLine($"Generated passwords:");
+			foreach (var passwordPart in result.Passwords)
+			{
+				Debug.WriteLine($"  {passwordPart.Password}");
+				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
+				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
+
+				Assert.AreEqual(options.NumberOfWords * options.AverageWordLength, passwordPart.Password.Length, 
+					$"Password does not have the expected length: {passwordPart.Password}");
+			}
 		}
 
 		[TestMethod]

@@ -11,7 +11,6 @@ namespace PG.Logic.Passwords.Generators
 	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, RandomService random, WordDictionaryTree wordTree) : PasswordGeneratorBase(random)
 	{
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
-		private const int WORD_VARIANCE_DIVIDER = 2;
 
 		private DictionaryPasswordGeneratorOptions _options = options;
 
@@ -113,7 +112,7 @@ namespace PG.Logic.Passwords.Generators
 		{
 			if (length <= 0) yield break;
 
-			char[] symbols = GetAvailableSymbols().ToArray();
+			char[] symbols = [.. GetAvailableSymbols()];
 			if (symbols.Length == 0)
 				throw new InvalidOperationException("No symbols are available. Either provide custom symbols or enable the default ones.");
 
@@ -131,7 +130,9 @@ namespace PG.Logic.Passwords.Generators
 			HandSide currentHand = ChooseFirstHand();
 			_random.CommitEntropy();
 
-			foreach (int _ in Enumerable.Range(0, numberOfWords))
+			var wordLengths = _random.GetNumbersForAverage(numberOfWords, averageLength);
+
+			foreach (int wordLength in wordLengths)
 			{
 				string? word;
 				int iterations = 0;
@@ -141,7 +142,7 @@ namespace PG.Logic.Passwords.Generators
 				{
 					// If the previos word was not valid, discard the entropy and try again.
 					_random.DiscardEntropy();
-					word = GenerateWord(averageLength, depthLevel, ref currentHand);
+					word = GenerateWord(wordLength, depthLevel, ref currentHand);
 				}
 				while (iterations++ < Constants.MAX_ITERATIONS && string.IsNullOrEmpty(word) && IsLeafNodeReached(word));
 
@@ -214,44 +215,47 @@ namespace PG.Logic.Passwords.Generators
 		/// <remarks>
 		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
 		/// </remarks>
-		private string GenerateWord(int averageLength, int depthLevel, ref HandSide currentHand)
+		private string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand)
 		{
 			var wordBuilder = new StringBuilder();
 
-			// The variance is half of the average length. For example, if the average length is 8, the variance is 4; so the word length can be
-			// between 4 and 12.
-			var wordLengthVariance = Math.Max(1, averageLength / WORD_VARIANCE_DIVIDER);
-			int wordLength = averageLength + (_random.Next(wordLengthVariance * 2) - wordLengthVariance);
-
-			Finger? curFinger = null;
-			ITreeNode<string> node = _wordTree?.Root
-				?? throw new InvalidOperationException("The word tree has not been initialized.");
-
-			foreach (int _ in Enumerable.Range(0, wordLength))
+			int iterations = 0;
+			do
 			{
-				HandSide curHand = currentHand;
-				var children = node.Children.Select(kvp => kvp.Value)
-						.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
-						.Where(tn => IsProperHand(tn.Value[0], curHand))
-						.Where(tn => IsProperFinger(tn.Value[0], curHand, curFinger))
-						.ToList();
+				Finger? curFinger = null;
+				ITreeNode<string> node = _wordTree?.Root
+					?? throw new InvalidOperationException("The word tree has not been initialized.");
 
-				if (children.Count == 0) break;
+				wordBuilder.Clear();
+				foreach (int _ in Enumerable.Range(0, wordLength))
+				{
+					HandSide curHand = currentHand;
+					var children = node.Children.Select(kvp => kvp.Value)
+							.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
+							.Where(tn => IsProperHand(tn.Value[0], curHand))
+							.Where(tn => IsProperFinger(tn.Value[0], curHand, curFinger))
+							.ToList();
 
-				var next = children[_random.Next(children.Count)];
-				wordBuilder = wordBuilder.Append(next.Value);
+					if (children.Count == 0) break;
 
-				curFinger = GetFingerForKeystroke(next.Value);
+					var next = children[_random.Next(children.Count)];
+					wordBuilder = wordBuilder.Append(next.Value);
 
-				if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-					currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
+					curFinger = GetFingerForKeystroke(next.Value);
 
-				node = next;
+					if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
+						currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
 
-				// If the word is already in the dictionary, break the loop.
-				if (wordBuilder.Length >= depthLevel && !TrySearchLastPossibleLeafNode(wordBuilder.ToString(), depthLevel, out node))
-					break;
-			}
+					node = next;
+
+					// If the word is already in the dictionary, break the loop.
+					if (wordBuilder.Length >= depthLevel && !TrySearchLastPossibleLeafNode(wordBuilder.ToString(), depthLevel, out node))
+						break;
+				}
+			} while (wordBuilder.Length < wordLength && iterations++ < Constants.MAX_ITERATIONS);
+
+			if (iterations >= Constants.MAX_ITERATIONS)
+				throw new InvalidOperationException("Max iterations reached without being able to generate a valid word.");
 
 			// Return the word with the first letter capitalized.
 			string word = wordBuilder.ToString();
