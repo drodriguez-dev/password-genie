@@ -9,12 +9,21 @@ namespace PG.Shared.Services
 	public class RandomService
 	{
 		/// <summary>
+		/// The factor used to calculate the average variance. It is used to determine 
+		/// the range of values around the average that can be generated.
+		/// </summary>
+		/// <remarks>
+		/// It must be a number greater than 0 and less or equal than 1. The default value 
+		/// is 0.5, which means that the generated numbers can vary by 50% of the average.
+		/// </remarks>
+		private const double AVERAGE_VARIANCE_FACTOR = .5;
+
+		/// <summary>
 		/// The seed for the random number generator. It is set to the current tick count of the environment and incremented atomically. It's static to 
 		/// ensure that multiple instances of the service don't generate the same random numbers.
 		/// </summary>
 		private static int _seed = Environment.TickCount;
 		private readonly Random _random = new(Interlocked.Increment(ref _seed));
-
 		private BigInteger _possibleCombinations;
 
 		private BigInteger _definitiveCombinations;
@@ -69,6 +78,7 @@ namespace PG.Shared.Services
 			_definitiveCombinations = 1;
 		}
 
+		#region Random Number Generation pass-through methods
 		/// <summary>
 		/// Fills the elements of a specified span with items chosen at random from the provided set of choices.
 		/// </summary>
@@ -240,6 +250,48 @@ namespace PG.Shared.Services
 			int combinations = Math.Max(1, values.Length);
 			IncrementEntropy(combinations);
 			_random.Shuffle(values);
+		}
+		#endregion
+
+		/// <summary>
+		/// Generates a list of random numbers that add up to a given average.
+		/// </summary>
+		/// <param name="count">The number of random numbers to generate.</param>
+		/// <param name="average">The average value that the generated numbers should sum up to.</param>
+		/// <returns>A list of random integers that add up to the specified average.</returns>
+		public IEnumerable<int> GetNumbersForAverage(int count, int average)
+		{
+			if (count <= 0)
+				throw new ArgumentOutOfRangeException(nameof(count), "The count must be greater than zero.");
+			if (average <= 0)
+				throw new ArgumentOutOfRangeException(nameof(average), "The average must be greater than zero.");
+
+			// Total sum to match the average
+			var totalSumObjective = count * average;
+
+			// Calculate the minimum and maximum values based on the variance factor.
+			int numberVariance = Convert.ToInt32(Math.Max(1, average * AVERAGE_VARIANCE_FACTOR));
+			var minObjective = average - numberVariance;
+			var maxObjective = average + numberVariance;
+
+			int currentTotal = 0;
+			foreach (int index in Enumerable.Range(0, count))
+			{
+				int reminder = totalSumObjective - currentTotal;
+				int remindingNumbers = count - index;
+
+				// Maximum and minimum achievable values for the remaining numbers (not including the current one)
+				int remainingMaxSum = (remindingNumbers - 1) * maxObjective;
+				int remainingMinSum = (remindingNumbers - 1) * minObjective;
+
+				// Range of possible values for the current number to achieve the average. Can be the objective min/max or a smaller range.
+				int maxRange = Math.Min(maxObjective, reminder - remainingMinSum);
+				int minRange = Math.Max(minObjective, reminder - remainingMaxSum);
+
+				int value = _random.Next(minRange, maxRange + 1);
+				currentTotal += value;
+				yield return value;
+			}
 		}
 	}
 }
