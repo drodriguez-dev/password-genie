@@ -21,7 +21,6 @@ namespace PG.Wasm.PasswordGenerator.Components.Passwords.Models
 		private int numberOfWords = 2;
 		private int averageWordLength = 7;
 		private int depthLevel = 4;
-		private int minimumLength = 1;
 
 		#region Dictionary specific options
 		[Required(ErrorMessage = "Number of words is required")]
@@ -61,10 +60,6 @@ namespace PG.Wasm.PasswordGenerator.Components.Passwords.Models
 		public bool IncludeMarkSymbols { get => includeMarkSymbols; set { includeMarkSymbols = value; OnPropertyChanged(nameof(IncludeMarkSymbols)); } }
 
 		public string CustomSpecialCharacters { get => customSpecialCharacters; set { customSpecialCharacters = value; OnPropertyChanged(nameof(CustomSpecialCharacters)); } }
-
-		[Required(ErrorMessage = "Minimum length is required")]
-		[Range(1, 20, ErrorMessage = "Minimum length should be between 1 and 20.")]
-		public int MinimumLength { get => minimumLength; set { minimumLength = value; OnPropertyChanged(nameof(MinimumLength)); } }
 
 		public bool IsRandomStrokeOrder { get => isRandomStrokeOrder; set { isRandomStrokeOrder = value; OnPropertyChanged(nameof(IsRandomStrokeOrder)); } }
 

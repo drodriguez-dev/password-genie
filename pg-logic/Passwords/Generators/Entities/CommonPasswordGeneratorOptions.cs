@@ -4,8 +4,6 @@
 	{
 		public int NumberOfPasswords { get; set; }
 
-		public int MinimumLength { get; set; }
-
 		public int NumberOfNumbers { get; set; }
 
 		public int NumberOfSpecialCharacters { get; set; }
@@ -31,6 +29,6 @@
 
 		public KeystrokeOrder KeystrokeOrder { get; set; }
 
-		public override string ToString() => $"Q: {NumberOfPasswords}, min: {MinimumLength} (N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
+		public override string ToString() => $"Q: {NumberOfPasswords} (N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
 	}
 }

@@ -16,10 +16,10 @@ namespace PG.Tests.Business.Passwords.Generators
 	public class DictionaryPasswordGeneratorTests : PasswordGeneratorTestBase
 	{
 		[DataTestMethod]
-		[DataRow(8, 2, 4, 2, 2)]
-		[DataRow(4, 2, 5, 0, 0)]
-		[DataRow(12, 2, 6, 0, 0)]
-		public void PasswordGenerationTest(int minLength, int numberOfWords, int averageWordLength, int numberOfNumbers, int numberOfSpecials)
+		[DataRow(2, 4, 2, 2)]
+		[DataRow(2, 5, 0, 0)]
+		[DataRow(2, 6, 0, 0)]
+		public void PasswordGenerationTest(int numberOfWords, int averageWordLength, int numberOfNumbers, int numberOfSpecials)
 		{
 			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_enUS.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
@@ -32,7 +32,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				DepthLevel = 3,
 				NumberOfNumbers = numberOfNumbers,
 				NumberOfSpecialCharacters = numberOfSpecials,
-				MinimumLength = minLength,
 				IncludeSetSymbols = true,
 				IncludeMarkSymbols = true,
 				IncludeSeparatorSymbols = true,
@@ -50,7 +49,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
 				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
 
-				Assert.IsTrue(minLength <= passwordPart.Password.Length, "Password length does not match the minimum length requirement.");
 				if (numberOfWords > 0)
 					Assert.IsTrue(passwordPart.Password.Any(char.IsLetter), $"There are no letters in the password: {passwordPart.Password}");
 				if (numberOfNumbers > 0)
@@ -74,7 +72,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				DepthLevel = 3,
 				NumberOfNumbers = 1,
 				NumberOfSpecialCharacters = 1,
-				MinimumLength = 12,
 				CustomSpecialCharacters = " -.".ToCharArray(),
 				RemoveHighAsciiCharacters = true,
 				KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
@@ -91,7 +88,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
 				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
 
-				Assert.IsTrue(options.MinimumLength <= passwordPart.Password.Length, "Password length does not match the minimum length requirement.");
 				if (options.NumberOfWords > 0)
 					Assert.IsTrue(passwordPart.Password.Any(char.IsLetter), $"There are no letters in the password: {passwordPart.Password}");
 				if (options.NumberOfNumbers > 0)
@@ -120,7 +116,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				DepthLevel = 3,
 				NumberOfNumbers = 1,
 				NumberOfSpecialCharacters = 1,
-				MinimumLength = 12,
 				CustomSpecialCharacters = " ".ToCharArray(),
 				RemoveHighAsciiCharacters = true,
 			};
@@ -134,7 +129,6 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			Debug.WriteLine(string.Join(Environment.NewLine, passwords));
 
-			Assert.IsTrue(passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
 			Assert.IsTrue(passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
 
 			if (new[] { KeystrokeOrder.AlternatingStroke, KeystrokeOrder.AlternatingWord }.Contains(options.KeystrokeOrder))
@@ -161,7 +155,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.DepthLevel = 3;
 				options.NumberOfNumbers = 1;
 				options.NumberOfSpecialCharacters = 1;
-				options.MinimumLength = 12;
 				options.CustomSpecialCharacters = " ".ToCharArray();
 				options.RemoveHighAsciiCharacters = true;
 				options.KeystrokeOrder = KeystrokeOrder.AlternatingStroke;
@@ -208,16 +201,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.DepthLevel = 8;
 				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Depth level must be lower than the average word length (X)' not thrown.");
-			}
-			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
-			finally { SetDefaults(); }
-
-			try
-			{
-				options.NumberOfWords = 1;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
-				Assert.Fail("Expected exception 'Minimum length must be lower to the sum of the number of letters, numbers, and special characters (X)' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }

@@ -1,5 +1,4 @@
-﻿using PG.Logic.Common;
-using PG.Logic.Passwords.Generators.Entities;
+﻿using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.Services;
 
 namespace PG.Logic.Passwords.Generators
@@ -68,23 +67,12 @@ namespace PG.Logic.Passwords.Generators
 
 		protected abstract string BuildPasswordPart();
 
-		protected virtual IEnumerable<string> BuildPasswordParts(int numberOfPasswords, int minimumLength)
+		protected virtual IEnumerable<string> BuildPasswordParts(int numberOfPasswords)
 		{
 			foreach (int _ in Enumerable.Range(0, numberOfPasswords))
 			{
-				string passwordPart;
-				int iterations = 0;
 				_random.ResetEntropy();
-				do
-				{
-					// If the previous password part was not valid, discard the entropy and try again.
-					_random.DiscardEntropy();
-					passwordPart = BuildPasswordPart();
-				}
-				while (iterations++ < Constants.MAX_ITERATIONS && passwordPart.Length < minimumLength);
-
-				if (iterations >= Constants.MAX_ITERATIONS)
-					throw new InvalidOperationException("Could not generate a password with the required length and the current settings.");
+				string passwordPart = BuildPasswordPart();
 
 				_random.CommitEntropy();
 				_entropyValues.Add(_random.GetBitsOfEntropy());

@@ -6,7 +6,6 @@ namespace PG.Interface.Command.PasswordGeneration.Entities
 	{
 		// Common options
 		public int NumberOfPasswords { get; set; } = 1;
-		public int Length { get; set; } = 12;
 		public int NumberOfNumbers { get; set; } = 1;
 		public int NumberOfSpecialCharacters { get; set; } = 1;
 		public bool IncludeGroupSymbols { get; set; } = true;

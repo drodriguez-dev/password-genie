@@ -62,7 +62,6 @@ namespace PG.Interface.Command.PasswordGeneration
 
 			// Options for both of the strategies
 			command.AddOption(new Option<int>(["--NumberOfPasswords", "-p"], () => 1, "Number of passwords to generate"));
-			command.AddOption(new Option<int>(["--Length", "-l"], () => 12, "Length of the password (approximate)"));
 			command.AddOption(new Option<int>(["--NumberOfNumbers", "-n"], () => 1, "Number of numbers in the password"));
 			command.AddOption(new Option<int>(["--NumberOfSpecialCharacters", "-s"], () => 1, "Number of special characters in the password"));
 			command.AddOption(new Option<bool>(["--IncludeGroupSymbols", "-sg"], () => true, @"Include group symbols ('()[]{}<>') in the password."));
@@ -130,7 +129,6 @@ namespace PG.Interface.Command.PasswordGeneration
 			};
 
 			Output(TraceLevel.Verbose, "Generating {0} password(s) with the following settings:", settings.NumberOfPasswords);
-			Output(TraceLevel.Verbose, "  Length: {0}", settings.Length);
 			Output(TraceLevel.Verbose, "  Numbers: {0}", settings.NumberOfNumbers);
 			Output(TraceLevel.Verbose, "  Special characters: {0}", settings.NumberOfSpecialCharacters);
 			Output(TraceLevel.Verbose, "  Include group symbols: {0}", settings.IncludeGroupSymbols);
@@ -159,7 +157,6 @@ namespace PG.Interface.Command.PasswordGeneration
 			return new()
 			{
 				NumberOfPasswords = settings.NumberOfPasswords,
-				MinimumLength = settings.Length,
 				NumberOfLetters = settings.NumberOfLetters,
 				NumberOfNumbers = settings.NumberOfNumbers,
 				NumberOfSpecialCharacters = settings.NumberOfSpecialCharacters,
@@ -191,7 +188,6 @@ namespace PG.Interface.Command.PasswordGeneration
 			return new()
 			{
 				NumberOfPasswords = settings.NumberOfPasswords,
-				MinimumLength = settings.Length,
 				NumberOfNumbers = settings.NumberOfNumbers,
 				NumberOfSpecialCharacters = settings.NumberOfSpecialCharacters,
 				IncludeSetSymbols = settings.IncludeGroupSymbols,

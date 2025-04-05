@@ -10,7 +10,7 @@ namespace PG.Logic.Passwords.Generators.Entities
 		public int AverageWordLength { get; set; }
 		public int DepthLevel { get; set; }
 
-		public override string ToString() => $"Q: {NumberOfPasswords}, min: {MinimumLength} (W: {NumberOfWords}, N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
+		public override string ToString() => $"Q: {NumberOfPasswords} (W: {NumberOfWords}, N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
 	}
 
 	/// <summary>

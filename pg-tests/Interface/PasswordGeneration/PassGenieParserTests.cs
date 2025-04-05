@@ -30,7 +30,6 @@ namespace PG.Tests.Interface.PasswordGeneration
 			string[] arguments = [
 				"generate", "random",
 				"-p", "10",
-				"-l", "8",
 				"-c", "4",
 				"-n", "4",
 				"-s", "1",
@@ -50,7 +49,6 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"generate", "dictionary",
 				"-d", @".\Resources\Dictionaries\words_alpha_esES.txt",
 				"-p", "10",
-				"-l", "12",
 				"-w", "2",
 				"-n", "1",
 				"-s", "1",
@@ -73,7 +71,6 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"generate", "dictionary",
 				"-wt", @".\Resources\Dictionaries\word_tree_esES.dat.gz",
 				"-p", "10",
-				"-l", "12",
 				"-w", "2",
 				"-n", "1",
 				"-s", "1",

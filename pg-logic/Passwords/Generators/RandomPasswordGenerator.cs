@@ -7,7 +7,7 @@ namespace PG.Logic.Passwords.Generators
 	public class RandomPasswordGenerator(RandomPasswordGeneratorOptions options, RandomService random) : PasswordGeneratorBase(random)
 	{
 		private RandomPasswordGeneratorOptions _options = options;
-		private int GetTotalCharacters(RandomPasswordGeneratorOptions options) => options.NumberOfLetters + options.NumberOfNumbers + options.NumberOfSpecialCharacters;
+		private static int GetTotalCharacters(RandomPasswordGeneratorOptions options) => options.NumberOfLetters + options.NumberOfNumbers + options.NumberOfSpecialCharacters;
 
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
@@ -34,10 +34,7 @@ namespace PG.Logic.Passwords.Generators
 			if (GetTotalCharacters(_options) < 1)
 				throw new InvalidOptionException("At least one character group must be included.");
 
-			if (_options.MinimumLength > GetTotalCharacters(_options))
-				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({GetTotalCharacters}).");
-
-			return BuildPasswordParts(_options.NumberOfPasswords, _options.MinimumLength);
+			return BuildPasswordParts(_options.NumberOfPasswords);
 		}
 
 		protected override string BuildPasswordPart()

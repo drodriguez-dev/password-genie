@@ -47,13 +47,10 @@ namespace PG.Logic.Passwords.Generators
 			if (totalCharacterCount <= 0)
 				throw new InvalidOptionException("At least one character group must be included.");
 
-			if (_options.MinimumLength > totalCharacterCount)
-				throw new InvalidOptionException($"Minimum length must be lower to the sum of the number of letters, numbers, and special characters ({totalCharacterCount}).");
-
 			if (_options.DepthLevel > _options.AverageWordLength)
 				throw new InvalidOptionException($"Depth level must be lower than the average word length ({_options.DepthLevel}).");
 
-			return BuildPasswordParts(_options.NumberOfPasswords, _options.MinimumLength);
+			return BuildPasswordParts(_options.NumberOfPasswords);
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "Too complex")]

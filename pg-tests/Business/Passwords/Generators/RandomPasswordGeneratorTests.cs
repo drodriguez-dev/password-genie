@@ -23,7 +23,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				NumberOfLetters = numberOfLetters,
 				NumberOfNumbers = numberOfNumbers,
 				NumberOfSpecialCharacters = numberOfSpecials,
-				MinimumLength = minLength,
 				IncludeSetSymbols = true,
 				IncludeMarkSymbols = true,
 				IncludeSeparatorSymbols = true,
@@ -41,7 +40,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
 				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
 
-				Assert.IsTrue(options.MinimumLength <= passwordPart.Password.Length, "Password length does not match the minimum length requirement.");
 				if (options.NumberOfLetters > 0)
 					Assert.IsTrue(passwordPart.Password.Any(char.IsLetter), $"There are no letters in the password: {passwordPart.Password}");
 				if (options.NumberOfNumbers > 0)
@@ -67,7 +65,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				//NumberOfLetters = 0,
 				//NumberOfNumbers = 1,
 				NumberOfSpecialCharacters = 0,
-				MinimumLength = 0,
 				IncludeSetSymbols = true,
 				IncludeMarkSymbols = true,
 				IncludeSeparatorSymbols = true,
@@ -131,7 +128,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				NumberOfLetters = 8,
 				NumberOfNumbers = 1,
 				NumberOfSpecialCharacters = 1,
-				MinimumLength = 10,
 				CustomSpecialCharacters = " ".ToCharArray(),
 				RemoveHighAsciiCharacters = true,
 			};
@@ -147,7 +143,6 @@ namespace PG.Tests.Business.Passwords.Generators
 
 				Debug.WriteLine($"  {order}: {string.Join(", ", passwords)}");
 
-				Assert.IsTrue(passwords.All(p => p.Length >= options.MinimumLength), "Password length does not match the minimum length requirement.");
 				Assert.IsTrue(passwords.All(p => LettersPattern().Matches(p).Count == options.NumberOfLetters), "Password does not have the expected number of letters.");
 
 				if (options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
@@ -172,7 +167,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.NumberOfLetters = 2;
 				options.NumberOfNumbers = 1;
 				options.NumberOfSpecialCharacters = 1;
-				options.MinimumLength = 12;
 				options.CustomSpecialCharacters = " ".ToCharArray();
 				options.RemoveHighAsciiCharacters = true;
 				options.KeystrokeOrder = KeystrokeOrder.AlternatingStroke;
@@ -199,16 +193,6 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.NumberOfSpecialCharacters = 0;
 				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
 				Assert.Fail("Expected exception 'At least one character group must be included.");
-			}
-			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
-			finally { SetDefaults(); }
-
-			try
-			{
-				options.NumberOfLetters = 1;
-				_ = new RandomPasswordGenerator(options, new RandomService()).Generate();
-				Assert.Fail("Expected exception 'Minimum length must be lower to the sum of the number of letters, numbers, and special characters (X).' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
 			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
