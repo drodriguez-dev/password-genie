@@ -163,6 +163,24 @@ namespace PG.Logic.Passwords.Generators
 			};
 		}
 
+		/// <summary>
+		/// Checks if <paramref name="character"/> is in the last <paramref name="maxSearch"/> chars of the <paramref name="text"/>.
+		/// </summary>
+		/// <param name="character"></param>
+		/// <param name="text"></param>
+		/// <param name="maxSearch"></param>
+		/// <returns></returns>
+		protected static bool IsInLastChars(char character, string text, int maxSearch)
+		{
+			if (text.Length == 0) return false;
+			 
+			int startIndex = Math.Max(0, text.Length - maxSearch);
+			for (int i = startIndex; i < text.Length; i++)
+				if (text[i] == character) return true;
+
+			return false;
+		}
+
 		protected static Finger? GetFingerForKeystroke(string value)
 		{
 			// This method cannot determine the finger for multi-character keystrokes.

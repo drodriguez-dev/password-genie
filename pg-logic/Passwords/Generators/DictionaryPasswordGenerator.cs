@@ -219,21 +219,27 @@ namespace PG.Logic.Passwords.Generators
 		{
 			var wordBuilder = new StringBuilder();
 
+			ITreeNode<string> startNode = _wordTree?.Root
+				?? throw new InvalidOperationException("The word tree has not been initialized.");
+
 			int iterations = 0;
 			do
 			{
 				Finger? curFinger = null;
-				ITreeNode<string> node = _wordTree?.Root
-					?? throw new InvalidOperationException("The word tree has not been initialized.");
+				ITreeNode<string> node = startNode;
 
+				// If the previos word was not valid, discard the entropy and try again.
+				_random.DiscardEntropy();
 				wordBuilder.Clear();
-				foreach (int _ in Enumerable.Range(0, wordLength))
+
+				for (int index = 0; index < wordLength; index++)
 				{
 					HandSide curHand = currentHand;
 					var children = node.Children.Select(kvp => kvp.Value)
 							.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
 							.Where(tn => IsProperHand(tn.Value[0], curHand))
 							.Where(tn => IsProperFinger(tn.Value[0], curHand, curFinger))
+							.Where(tn => !IsInLastChars(tn.Value[0], wordBuilder.ToString(), depthLevel))
 							.ToList();
 
 					if (children.Count == 0) break;
@@ -255,7 +261,7 @@ namespace PG.Logic.Passwords.Generators
 			} while (wordBuilder.Length < wordLength && iterations++ < Constants.MAX_ITERATIONS);
 
 			if (iterations >= Constants.MAX_ITERATIONS)
-				throw new InvalidOperationException("Max iterations reached without being able to generate a valid word.");
+				throw new InvalidOperationException("Max iterations reached without being able to generate a valid word. Try to reduce the restrictions.");
 
 			// Return the word with the first letter capitalized.
 			string word = wordBuilder.ToString();
