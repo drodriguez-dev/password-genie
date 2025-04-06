@@ -90,7 +90,7 @@ namespace PG.Logic.Passwords.Generators
 				min = Math.Max(1, Math.Min(positions.Count, min));
 				max = Math.Max(1, Math.Min(positions.Count, max));
 
-				int index = _random.Next(max - min + 1, updateEntropy: false) + min - 1;
+				int index = _random.Next(max - min + 1) + min - 1;
 				int position = positions[index];
 				positions.RemoveAt(index);
 
