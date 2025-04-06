@@ -42,15 +42,6 @@
 		</div>
 	</div>
 
-	<div class="row g-1 mb-3">
-		<div class="col text-nowrap">
-			<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateNewPassword">
-				<Icon Name="IconName.BracesAsterisk" Class="me-1" />Generate new password
-			</Button>
-			<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
-		</div>
-	</div>
-
 	<div class="row mb-3">
 		<div class="col">
 			<Accordion>
@@ -63,6 +54,15 @@
 					</Content>
 				</AccordionItem>
 			</Accordion>
+		</div>
+	</div>
+
+	<div class="row g-1 mb-3">
+		<div class="col text-nowrap">
+			<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateNewPassword">
+				<Icon Name="IconName.BracesAsterisk" Class="me-1" />Generate new password
+			</Button>
+			<Button Color="ButtonColor.Primary" Disabled='@(!IsGeneratorAvailable)' @onclick="GenerateMultiplePasswords">x@(maxPasswordsCount + 1)</Button>
 		</div>
 	</div>
 

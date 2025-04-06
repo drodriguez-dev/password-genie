@@ -54,7 +54,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"-s", "1",
 				"-sc", " ",
 				"-wl", "6",
-				"-wd", "4",
+				"-wd", "3",
 				"-r",
 				"--Verbose",
 			];
@@ -76,7 +76,7 @@ namespace PG.Tests.Interface.PasswordGeneration
 				"-s", "1",
 				"-sc", " ",
 				"-wl", "6",
-				"-wd", "4",
+				"-wd", "3",
 				"-r",
 				"--Verbose",
 			];
