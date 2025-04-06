@@ -46,8 +46,12 @@ namespace PG.Logic.Passwords.Generators
 			if (totalCharacterCount <= 0)
 				throw new InvalidOptionException("At least one character group must be included.");
 
-			if (_options.DepthLevel > _options.AverageWordLength)
-				throw new InvalidOptionException($"Depth level must be lower than the average word length ({_options.DepthLevel}).");
+			// Calculate the maximum depth level based on the average word length. This ensures that the depth level
+			// is less than half of the average word length and decreases as the average word length increases. This
+			// validation avoids the "Max iterations reached" exception.
+			int maxDepthLevel = (int)Math.Round(Math.Sqrt(_options.AverageWordLength) * Constants.DEPTH_LEVEL_COEFFICIENT, digits: 0);
+			if (_options.DepthLevel > maxDepthLevel)
+				throw new InvalidOptionException($"Depth level must be lower for the specified average length (max: {maxDepthLevel}).");
 
 			return BuildPasswordParts(_options.NumberOfPasswords);
 		}

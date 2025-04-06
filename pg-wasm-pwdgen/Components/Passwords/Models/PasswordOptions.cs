@@ -1,4 +1,5 @@
 ﻿using PG.Logic.Passwords.Generators.Entities;
+using PG.Logic.Common;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -105,11 +106,17 @@ namespace PG.Wasm.PasswordGenerator.Components.Passwords.Models
 
 		public static ValidationResult ValidateDepthLowerThanAverage(object _, ValidationContext validationContext)
 		{
-			var options = validationContext.ObjectInstance as PasswordOptions;
-			if (options is not null && options.DepthLevel <= Math.Round(options.AverageWordLength / 2, digits: 0))
+			if (validationContext.ObjectInstance is not PasswordOptions options)
 				return ValidationResult.Success!;
 
-			return new ValidationResult("Depth level must be lower than the half of the average word length.");
+			// Calculate the maximum depth level based on the average word length. This ensures that the depth level
+			// is less than half of the average word length and decreases as the average word length increases. This
+			// validation avoids the "Max iterations reached" exception.
+			int maxDepthLevel = (int)Math.Truncate(Math.Sqrt(options.AverageWordLength) * Constants.DEPTH_LEVEL_COEFFICIENT);
+			if (options.DepthLevel > maxDepthLevel)
+				return new ValidationResult($"Depth level must be lower for the specified average length (max: {maxDepthLevel}).");
+
+			return ValidationResult.Success!;
 		}
 	}
 }
