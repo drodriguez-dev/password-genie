@@ -1,7 +1,7 @@
-﻿<Sidebar Href="/password-genie" ImageSrc="images/cliparts/turban-white.svg" Title="Passwrod Genie" DataProvider="SidebarDataProvider" />
+﻿<Sidebar Href="/password-genie" ImageSrc="images/cliparts/turban-white.svg" Title="Password Genie" DataProvider="SidebarDataProvider" Width="200" />
 
 @code {
-	IEnumerable<NavItem>? navItems;
+	private IEnumerable<NavItem>? navItems;
 
 	private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
 	{

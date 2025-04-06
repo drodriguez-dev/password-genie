@@ -2,19 +2,19 @@
   "profiles": {
     "dictionary": {
       "commandName": "Project",
-      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_enUS.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 --Verbose"
+      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_enUS.txt\" -p 10 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 --Verbose"
     },
     "hands": {
       "commandName": "Project",
-      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -l 12 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r -ko AlternatingStroke --Verbose"
+      "commandLineArgs": "generate dictionary -d \".\\..\\..\\..\\..\\pg-tests\\Resources\\Dictionaries\\words_alpha_esES.txt\" -p 10 -w 2 -n 1 -s 1 -sc \"-\" -wl 6 -wd 4 -r -ko AlternatingStroke --Verbose"
     },
     "warning": {
       "commandName": "Project",
-      "commandLineArgs": "generate random -p 10 -l 10 -n 1 -s 0 -c 1 --Verbose"
+      "commandLineArgs": "generate random -p 10 -n 1 -s 0 -c 1 --Verbose"
     },
     "low entropy": {
       "commandName": "Project",
-      "commandLineArgs": "generate random -p 10 -l 1 -n 4 -s 0 -c 0 --Verbose"
+      "commandLineArgs": "generate random -p 10 -n 4 -s 0 -c 0 --Verbose"
     },
     "high entropy": {
       "commandName": "Project",

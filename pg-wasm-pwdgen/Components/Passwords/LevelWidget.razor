@@ -1,0 +1,40 @@
+﻿@code {
+	[Parameter]
+	public int Height { get; set; }
+	[Parameter]
+	public int Level { get; set; }
+	[Parameter]
+	public string? CommentHtml { get; set; }
+}
+
+<Tooltip Placement="TooltipPlacement.Right" Title="@CommentHtml" IsHtml="true">
+	<svg version="1.1" height="@Height" viewBox="0 0 43.789 80.83" xmlns="http://www.w3.org/2000/svg">
+		<g transform="translate(-64.36 -27.318)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4552">
+			<rect id="border" x="65.088" y="28.046" width="42.333" height="79.375" ry="5.2917" fill="none" stroke="#262626" style="paint-order:stroke fill markers; display: @GetBorderDisplay()" />
+			<path id="level1" fill="@GetLevelColor(1)" style="paint-order:stroke fill markers" d="m69.056 91.281v8.4667c0 2.0521 1.6521 3.7042 3.7042 3.7042h26.987c2.0521 0 3.7042-1.652 3.7042-3.7042v-8.4667z" />
+			<path id="level2" fill="@GetLevelColor(2)" style="paint-order:stroke fill markers" d="m69.056 76.465v12.17h34.396v-12.17z" />
+			<path id="level3" fill="@GetLevelColor(3)" style="paint-order:stroke fill markers" d="m69.056 61.648v12.17h34.396v-12.17z" />
+			<path id="level4" fill="@GetLevelColor(4)" style="paint-order:stroke fill markers" d="m69.056 46.832v12.17h34.396v-12.17z" />
+			<path id="level5" fill="@GetLevelColor(5)" style="paint-order:stroke fill markers" d="m72.76 32.015c-2.0521 0-3.7042 1.6521-3.7042 3.7042v8.4667h34.396v-8.4667c0-2.0521-1.6521-3.7042-3.7042-3.7042z" />
+		</g>
+	</svg>
+</Tooltip>
+
+@code {
+	private string GetLevelColor(int index)
+	{
+		var color = Level switch
+		{
+			1 => "#ff3333",
+			2 => "#ff8d1a",
+			3 => "#ffd600",
+			4 => "#73e500",
+			5 => "#00cc22",
+			_ => "#383838"
+		};
+
+		return index <= Level ? color : "#383838";
+	}
+
+	private string GetBorderDisplay() => Height >= 48 ? "inline" : "none";
+}

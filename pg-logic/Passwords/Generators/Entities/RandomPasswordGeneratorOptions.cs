@@ -4,6 +4,6 @@
 	{
 		public int NumberOfLetters { get; set; }
 
-		public override string ToString() => $"Q: {NumberOfPasswords}, min: {MinimumLength} (L: {NumberOfLetters}, N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
+		public override string ToString() => $"Q: {NumberOfPasswords} (L: {NumberOfLetters}, N:{NumberOfNumbers}, S:{NumberOfSpecialCharacters})";
 	}
 }

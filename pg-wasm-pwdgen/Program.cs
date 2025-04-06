@@ -18,6 +18,7 @@ builder.Services
 	.AddSingleton<WordExtractorFactory>()
 	.AddSingleton<IDictionaryLoaderFactory, DictionaryLoaderFactory>()
 	.AddSingleton<IDictionariesDataFactory, DictionariesDataFactory>()
+	.AddSingleton<ApplicationService>()
 	.AddTransient<RandomService>()
 	.BuildServiceProvider();
 

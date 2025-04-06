@@ -8,6 +8,12 @@
 
 .validation-message {
 	color: var(--emphasis2-color);
+	list-style-type: none;
+}
+
+.validation-errors {
+	padding: 0;
+	margin: 1px;
 }
 
 #blazor-error-ui {
