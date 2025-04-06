@@ -25,10 +25,10 @@ namespace PG.Logic.Passwords.Generators
 
 		public override void Configure(CommonPasswordGeneratorOptions config)
 		{
-			if (config is not DictionaryPasswordGeneratorOptions options)
+			if (config is not DictionaryPasswordGeneratorOptions dictionaryOptions)
 				throw new ArgumentException($"Invalid configuration type ({config.GetType()}).", nameof(config));
 
-			_options = options;
+			_options = dictionaryOptions;
 		}
 
 		protected override IEnumerable<string> GeneratePasswordParts()
@@ -134,7 +134,7 @@ namespace PG.Logic.Passwords.Generators
 			HandSide currentHand = ChooseFirstHand();
 			_random.CommitEntropy();
 
-			var wordLengths = _random.GetNumbersForAverage(numberOfWords, averageLength);
+			var wordLengths = _random.GenerateNumbersForAverage(numberOfWords, averageLength);
 
 			foreach (int wordLength in wordLengths)
 			{
@@ -221,6 +221,7 @@ namespace PG.Logic.Passwords.Generators
 		/// </remarks>
 		private string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand)
 		{
+			// TODO - 2025-04-06 - Refactor this method to use a more efficient algorithm.
 			var wordBuilder = new StringBuilder();
 
 			ITreeNode<string> startNode = _wordTree?.Root

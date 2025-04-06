@@ -107,7 +107,7 @@ namespace PG.Shared.Services
 		public T[] GetItems<T>(T[] choices, int length, bool updateEntropy = true)
 		{
 			if (updateEntropy)
-			  IncrementEntropy(Math.Max(1, choices.Length * length));
+				IncrementEntropy(Math.Max(1, choices.Length * length));
 
 			return _random.GetItems(choices, length);
 		}
@@ -277,13 +277,18 @@ namespace PG.Shared.Services
 		/// <param name="count">The number of random numbers to generate.</param>
 		/// <param name="average">The average value that the generated numbers should sum up to.</param>
 		/// <returns>A list of random integers that add up to the specified average.</returns>
-		public IEnumerable<int> GetNumbersForAverage(int count, int average)
+		public IEnumerable<int> GenerateNumbersForAverage(int count, int average)
 		{
 			if (count <= 0)
 				throw new ArgumentOutOfRangeException(nameof(count), "The count must be greater than zero.");
 			if (average <= 0)
 				throw new ArgumentOutOfRangeException(nameof(average), "The average must be greater than zero.");
 
+			return GenerateNumbersForAverageInternal(count, average);
+		}
+
+		private IEnumerable<int> GenerateNumbersForAverageInternal(int count, int average)
+		{
 			// Total sum to match the average
 			var totalSumObjective = count * average;
 

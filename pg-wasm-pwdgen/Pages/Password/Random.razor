@@ -68,7 +68,9 @@
 
 	private async Task ShowException(Exception ex)
 	{
+#if DEBUG
 		await JSRuntime.InvokeVoidAsync("console.error", ex.ToString());
+#endif
 
 		ShowMessage(ToastType.Danger, ex.Message);
 	}

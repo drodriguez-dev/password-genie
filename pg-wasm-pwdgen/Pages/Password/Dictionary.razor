@@ -23,9 +23,9 @@
 				<DropdownToggleButton>Dictionary</DropdownToggleButton>
 				<DropdownMenu>
 					<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "en-US")' Disabled='@(SelectedLanguage == "en-US")'
-					@onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
+												@onclick='() => SelectLanguage("en-US")'>English (en-US)</DropdownItem>
 					<DropdownItem Type="DropdownItemType.Button" Active='@(SelectedLanguage == "es-ES")' Disabled='@(SelectedLanguage == "es-ES")'
-					@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
+												@onclick='() => SelectLanguage("es-ES")'>Spanish (es-ES)</DropdownItem>
 				</DropdownMenu>
 			</Dropdown>
 		</div>
@@ -116,7 +116,9 @@
 
 	private async Task ShowException(Exception ex)
 	{
+#if DEBUG
 		await JSRuntime.InvokeVoidAsync("console.error", ex.ToString());
+#endif
 
 		ShowMessage(ToastType.Danger, ex.Message);
 	}

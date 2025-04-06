@@ -20,10 +20,10 @@ namespace PG.Logic.Passwords.Generators
 
 		public override void Configure(CommonPasswordGeneratorOptions config)
 		{
-			if (config is not RandomPasswordGeneratorOptions options)
+			if (config is not RandomPasswordGeneratorOptions randomOptions)
 				throw new ArgumentException($"Invalid configuration type ({config.GetType()}).", nameof(config));
 
-			_options = options;
+			_options = randomOptions;
 		}
 
 		protected override IEnumerable<string> GeneratePasswordParts()

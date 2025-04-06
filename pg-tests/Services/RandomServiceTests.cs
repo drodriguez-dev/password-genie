@@ -16,7 +16,7 @@ namespace PG.Tests.Services
 		[DataRow(6, 10)]
 		public void GetNumbersForAverageTest(int count, int average)
 		{
-			var numbers = _randomService.GetNumbersForAverage(count, average).ToList();
+			var numbers = _randomService.GenerateNumbersForAverage(count, average).ToList();
 
 			Assert.IsTrue(numbers.Count == count, "Count of numbers is not equal to the requested count.");
 			Assert.AreEqual(average * count, numbers.Sum(), "Sum of numbers is not equal to the requested average.");
