@@ -16,6 +16,9 @@ namespace PG.Tests.Business.Passwords.Generators
 	[TestClass()]
 	public class DictionaryPasswordGeneratorTests : PasswordGeneratorTestBase
 	{
+
+
+		public required TestContext TestContext { get; set; }
 		[DataTestMethod]
 		[DataRow(2, 4, 2, 2)]
 		[DataRow(2, 5, 0, 0)]
@@ -39,16 +42,16 @@ namespace PG.Tests.Business.Passwords.Generators
 				RemoveHighAsciiCharacters = true,
 			};
 
-			Debug.WriteLine("Starting password generation...");
+			TestContext.WriteLine("Starting password generation...");
 			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
-			Debug.WriteLine($"Generated passwords:");
+			TestContext.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in result.Passwords)
 			{
-				Debug.WriteLine($"  {passwordPart.Password}");
-				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
-				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
+				TestContext.WriteLine($"  {passwordPart.Password}");
+				TestContext.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
+				TestContext.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
 
 				if (numberOfWords > 0)
 					Assert.IsTrue(passwordPart.Password.Any(char.IsLetter), $"There are no letters in the password: {passwordPart.Password}");
@@ -78,16 +81,16 @@ namespace PG.Tests.Business.Passwords.Generators
 				KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
 			};
 
-			Debug.WriteLine("Starting password generation...");
+			TestContext.WriteLine("Starting password generation...");
 			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
-			Debug.WriteLine($"Generated passwords:");
+			TestContext.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in result.Passwords)
 			{
-				Debug.WriteLine($"  {passwordPart.Password}");
-				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
-				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
+				TestContext.WriteLine($"  {passwordPart.Password}");
+				TestContext.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
+				TestContext.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
 
 				if (options.NumberOfWords > 0)
 					Assert.IsTrue(passwordPart.Password.Any(char.IsLetter), $"There are no letters in the password: {passwordPart.Password}");
@@ -121,14 +124,14 @@ namespace PG.Tests.Business.Passwords.Generators
 				RemoveHighAsciiCharacters = true,
 			};
 
-			Debug.WriteLine("Starting password generation...");
+			TestContext.WriteLine("Starting password generation...");
 
 			// For each keystroke order, generate a password
 			options.KeystrokeOrder = order;
 			var result = new DictionaryPasswordGenerator(options, new RandomService(), GetWordTree(options.File)).Generate();
 			var passwords = result.Passwords.Select(p => p.Password).ToList();
 
-			Debug.WriteLine(string.Join(Environment.NewLine, passwords));
+			TestContext.WriteLine(string.Join(Environment.NewLine, passwords));
 
 			Assert.IsTrue(passwords.All(p => WordPattern().Matches(p).Count == options.NumberOfWords), "Password does not have the expected number of words.");
 
@@ -152,7 +155,7 @@ namespace PG.Tests.Business.Passwords.Generators
     [DataRow(10, 4, 1)]
     [DataRow(11, 4, 1)]
     [DataRow(12, 4, 1)]
-		// TODO - 2025-04-06 - Uncomment when the problema with depth level is fixed
+		// TODO - 2025-04-06 - Uncomment when the problem with depth level is fixed
 		//[DataRow(13, 4, 1)]
 		//[DataRow(14, 5, 1)]
 		//[DataRow(15, 5, 1)]
@@ -179,16 +182,14 @@ namespace PG.Tests.Business.Passwords.Generators
 				KeystrokeOrder = KeystrokeOrder.AlternatingStroke,
 			};
 
-			Debug.WriteLine("Starting password generation...");
+			TestContext.WriteLine("Starting password generation...");
 			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
-			Debug.WriteLine($"Generated passwords:");
+			TestContext.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in result.Passwords)
 			{
-				Debug.WriteLine($"  {passwordPart.Password}");
-				Debug.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
-				Debug.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
+				TracePassword(passwordPart);
 
 				Assert.AreEqual(options.NumberOfWords * options.AverageWordLength, passwordPart.Password.Length, 
 					$"Password does not have the expected length: {passwordPart.Password}");
@@ -217,7 +218,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			SetDefaults();
 			WordDictionaryTree wordTree = GetWordTree(options.File);
 
-			Debug.WriteLine("Starting password generation for exceptions...");
+			TestContext.WriteLine("Starting password generation for exceptions...");
 			try
 			{
 				options.NumberOfPasswords = 0;
@@ -225,7 +226,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				Assert.Fail("Expected exception 'At least one password must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			catch (Exception ex) { TestContext.WriteLine($"Expected exception:\n  {ex}"); }
 			finally { SetDefaults(); }
 
 			try
@@ -236,7 +237,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				Assert.Fail("Expected exception 'At least one word must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			catch (Exception ex) { TestContext.WriteLine($"Expected exception:\n  {ex}"); }
 			finally { SetDefaults(); }
 
 			try
@@ -247,7 +248,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				Assert.Fail("Expected exception 'Average length must be at least X' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			catch (Exception ex) { TestContext.WriteLine($"Expected exception:\n  {ex}"); }
 			finally { SetDefaults(); }
 
 			try
@@ -257,7 +258,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				Assert.Fail("Expected exception 'Depth level must be lower than the average word length (X)' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			catch (Exception ex) { TestContext.WriteLine($"Expected exception:\n  {ex}"); }
 			finally { SetDefaults(); }
 
 			try
@@ -271,7 +272,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				Assert.Fail("Expected exception 'No symbols are available. Either provide custom symbols or enable the default ones.' not thrown");
 			}
 			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			catch (Exception ex) { TestContext.WriteLine($"Expected exception:\n  {ex}"); }
 			finally { SetDefaults(); }
 
 			try
@@ -281,8 +282,15 @@ namespace PG.Tests.Business.Passwords.Generators
 				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
-			catch (Exception ex) { Debug.WriteLine($"Expected exception:\n  {ex}"); }
+			catch (Exception ex) { TestContext.WriteLine($"Expected exception:\n  {ex}"); }
 			finally { SetDefaults(); }
+		}
+
+		private void TracePassword(PasswordResult passwordPart)
+		{
+			TestContext.WriteLine($"  {passwordPart.Password}");
+			TestContext.WriteLine("True entropy is: {0:N2} ({1})", passwordPart.TrueEntropy, passwordPart.TrueStrength);
+			TestContext.WriteLine("Derived entropy is: {0:N2} ({1})", passwordPart.DerivedEntropy, passwordPart.DerivedStrength);
 		}
 
 		private static WordDictionaryTree GetWordTree(Stream fileStream)
