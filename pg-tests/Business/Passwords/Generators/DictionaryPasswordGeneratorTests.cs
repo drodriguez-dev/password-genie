@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PG.Data.Files.DataFiles;
+﻿using PG.Data.Files.DataFiles;
 using PG.Data.Files.DataFiles.Dictionaries;
 using PG.Entities.Files;
 using PG.Entities.WordTrees;
@@ -8,7 +7,6 @@ using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loaders;
 using PG.Shared.Services;
 using PG.Tests.Business.Passwords.Generators.Mockups;
-using System.Diagnostics;
 using System.Text;
 
 namespace PG.Tests.Business.Passwords.Generators
@@ -16,9 +14,30 @@ namespace PG.Tests.Business.Passwords.Generators
 	[TestClass()]
 	public class DictionaryPasswordGeneratorTests : PasswordGeneratorTestBase
 	{
+		/// <summary>
+		/// Tolerance for the entropy difference between true and derived entropy.
+		/// </summary>
+		private const double ENTROPY_TOLERANCE = 0.05;
 
+		/// <summary>
+		/// Maximum depth level for the word tree used in the tests.
+		/// </summary>
+		/// <remarks>
+		/// Increasing this value over 4 will increase the memory usage significantly.
+		/// </remarks>
+		private const int MAX_DEPTH_LEVEL = 4;
 
 		public required TestContext TestContext { get; set; }
+
+		private static WordDictionaryTree? sharedWordTree;
+
+		[ClassInitialize]
+		public static void ClassInitialize(TestContext _)
+		{
+			// Create a shared word tree with all possible combinations (a-z) of the max depth level plus one letter to avoid existing words causing problems.
+			sharedWordTree = GetAbcWordTree(MAX_DEPTH_LEVEL + 1);
+		}
+
 		[DataTestMethod]
 		[DataRow(2, 4, 2, 2)]
 		[DataRow(2, 5, 0, 0)]
@@ -146,15 +165,15 @@ namespace PG.Tests.Business.Passwords.Generators
 		}
 
 		[DataTestMethod]
-    [DataRow(04, 2, 6)]
-    [DataRow(05, 2, 5)]
-    [DataRow(06, 3, 4)]
-    [DataRow(07, 3, 3)]
-    [DataRow(08, 3, 2)]
-    [DataRow(09, 4, 1)]
-    [DataRow(10, 4, 1)]
-    [DataRow(11, 4, 1)]
-    [DataRow(12, 4, 1)]
+		[DataRow(04, 2, 6)]
+		[DataRow(05, 2, 5)]
+		[DataRow(06, 3, 4)]
+		[DataRow(07, 3, 3)]
+		[DataRow(08, 3, 2)]
+		[DataRow(09, 4, 1)]
+		[DataRow(10, 4, 1)]
+		[DataRow(11, 4, 1)]
+		[DataRow(12, 4, 1)]
 		// TODO - 2025-04-06 - Uncomment when the problem with depth level is fixed
 		//[DataRow(13, 4, 1)]
 		//[DataRow(14, 5, 1)]
@@ -191,7 +210,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				TracePassword(passwordPart);
 
-				Assert.AreEqual(options.NumberOfWords * options.AverageWordLength, passwordPart.Password.Length, 
+				Assert.AreEqual(options.NumberOfWords * options.AverageWordLength, passwordPart.Password.Length,
 					$"Password does not have the expected length: {passwordPart.Password}");
 			}
 		}
@@ -286,6 +305,73 @@ namespace PG.Tests.Business.Passwords.Generators
 			finally { SetDefaults(); }
 		}
 
+		[DataTestMethod]
+		[DataRow(04, 3, DisplayName = "Entropy(wl: 04, dl: 3)")]
+		[DataRow(05, 3, DisplayName = "Entropy(wl: 05, dl: 3)")]
+		[DataRow(06, 3, DisplayName = "Entropy(wl: 06, dl: 3)")]
+		[DataRow(07, 4, DisplayName = "Entropy(wl: 07, dl: 4)")]
+		[DataRow(08, 4, DisplayName = "Entropy(wl: 08, dl: 4)")]
+		[DataRow(09, 4, DisplayName = "Entropy(wl: 09, dl: 4)")]
+		[DataRow(10, 4, DisplayName = "Entropy(wl: 10, dl: 4)")]
+		[DataRow(11, 4, DisplayName = "Entropy(wl: 11, dl: 4)")]
+		// Depth level greater than MAX_DEPTH_LEVEL is not supported (see class initialization)
+		[DataRow(12, 4, DisplayName = "Entropy(wl: 12, dl: 4)")]
+		[DataRow(13, 4, DisplayName = "Entropy(wl: 13, dl: 4)")]
+		[DataRow(14, 4, DisplayName = "Entropy(wl: 14, dl: 4)")]
+		[DataRow(15, 4, DisplayName = "Entropy(wl: 15, dl: 4)")]
+		[DataRow(16, 4, DisplayName = "Entropy(wl: 16, dl: 4)")]
+		[DataRow(17, 4, DisplayName = "Entropy(wl: 17, dl: 4)")]
+		[DataRow(18, 4, DisplayName = "Entropy(wl: 18, dl: 4)")]
+		[DataRow(19, 4, DisplayName = "Entropy(wl: 19, dl: 4)")]
+		[DataRow(20, 4, DisplayName = "Entropy(wl: 20, dl: 4)")]
+		[DataRow(21, 4, DisplayName = "Entropy(wl: 21, dl: 4)")]
+		[DataRow(22, 4, DisplayName = "Entropy(wl: 22, dl: 4)")]
+		[DataRow(23, 4, DisplayName = "Entropy(wl: 23, dl: 4)")]
+		[DataRow(24, 4, DisplayName = "Entropy(wl: 24, dl: 4)")]
+		[DataRow(25, 4, DisplayName = "Entropy(wl: 25, dl: 4)")]
+		[DataRow(26, 4, DisplayName = "Entropy(wl: 26, dl: 4)")]
+		[DataRow(27, 4, DisplayName = "Entropy(wl: 27, dl: 4)")]
+		[DataRow(28, 4, DisplayName = "Entropy(wl: 28, dl: 4)")]
+		[DataRow(29, 4, DisplayName = "Entropy(wl: 29, dl: 4)")]
+		[DataRow(30, 4, DisplayName = "Entropy(wl: 30, dl: 4)")]
+		public void EntropyTest(int wordLength, int depth)
+		{
+			if (sharedWordTree == null)
+				throw new InvalidOperationException("Shared word tree is not initialized.");
+
+			if (depth > MAX_DEPTH_LEVEL)
+				throw new ArgumentOutOfRangeException(nameof(depth), $"Depth level cannot be greater than {MAX_DEPTH_LEVEL}.");
+
+			DictionaryPasswordGeneratorOptions options = new()
+			{
+				Type = DictionaryType.PlainTextDictionary,
+				File = null!, // File stream is not used in this test, a word tree is provided directly.
+				NumberOfPasswords = 1,
+				NumberOfWords = 1,
+				AverageWordLength = wordLength,
+				DepthLevel = depth,
+				NumberOfNumbers = 0,
+				NumberOfSpecialCharacters = 0,
+				CustomSpecialCharacters = [],
+				RemoveHighAsciiCharacters = false,
+				KeystrokeOrder = KeystrokeOrder.Random,
+			};
+
+			TestContext.WriteLine("Starting password generation for entropy calculation...");
+			var result = new DictionaryPasswordGenerator(options, new RandomService(), sharedWordTree).Generate();
+
+			TestContext.WriteLine($"Generated passwords:");
+			foreach (var passwordPart in result.Passwords)
+			{
+				TracePassword(passwordPart);
+
+				// With a word tree with all the possible combinations, the true and derived entropy should be roughly the same.
+				// Assert the entropy difference based on a percentage of the derived entropy.
+				Assert.AreEqual(passwordPart.TrueEntropy, passwordPart.DerivedEntropy, passwordPart.DerivedEntropy * ENTROPY_TOLERANCE,
+					$"True entropy is not similar (± {ENTROPY_TOLERANCE * 100}%) to derived entropy: {passwordPart.Password}");
+			}
+		}
+
 		private void TracePassword(PasswordResult passwordPart)
 		{
 			TestContext.WriteLine($"  {passwordPart.Password}");
@@ -298,6 +384,32 @@ namespace PG.Tests.Business.Passwords.Generators
 			IDictionariesData data = new DictionariesDataFactory().CreateForDictionaryFile(DictionaryType.PlainTextDictionary, Encoding.UTF8);
 			WordDictionaryTree wordTree = new WordDictionaryLoader(data).Load(fileStream);
 			return wordTree;
+		}
+
+		/// <summary>
+		/// Creates a plain dictionary with 26^4 combinations (a-z) and implement various tests with an expected entropy
+		/// </summary>
+		/// <remarks>
+		/// This dictionary generation is very memory intensive, a depth of 4 will create 456976 nodes (91 MB)
+		/// </remarks>
+		private static WordDictionaryTree GetAbcWordTree(int depth)
+		{
+			WordDictionaryTree wordTree = new();
+			AddAbcNodes(wordTree.Root, depth - 1);
+
+			return wordTree;
+		}
+
+		private static void AddAbcNodes(ITreeNode<string> node, int depth)
+		{
+			foreach (char c in "abcdefghijklmnopqrstuvwxyz")
+			{
+				var childNode = new TreeNode<string>(c.ToString());
+				node.Children.Add(c.ToString(), childNode);
+
+				if (depth > 0)
+					AddAbcNodes(childNode, depth - 1);
+			}
 		}
 	}
 }
