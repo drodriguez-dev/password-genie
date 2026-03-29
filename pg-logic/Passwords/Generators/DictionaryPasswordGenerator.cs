@@ -3,6 +3,7 @@ using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.Extensions;
 using PG.Shared.Services;
+using System.Numerics;
 using System.Text;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
@@ -178,8 +179,8 @@ namespace PG.Logic.Passwords.Generators
 
 			foreach (var letter in word)
 			{
-				var children = node.Children.Select(kvp => kvp.Value)
-					.FirstOrDefault(tn => tn.Value.ToString().Equals(letter.ToString(), StringComparison.InvariantCultureIgnoreCase));
+				var children = node.Children.Select(c => c.Value)
+					.FirstOrDefault(tn => tn.Value.Equals(letter.ToString(), StringComparison.InvariantCultureIgnoreCase));
 
 				if (children == default) return false;
 
@@ -221,56 +222,69 @@ namespace PG.Logic.Passwords.Generators
 		/// </remarks>
 		private string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand)
 		{
-			// TODO - 2025-04-06 - Refactor this method to use a more efficient algorithm.
-			var wordBuilder = new StringBuilder();
+			Finger? startFinger = null;
+			if (!IsChildrenPossible(string.Empty, wordLength, depthLevel, ref currentHand, ref startFinger, out string word, currentCombinations: 1, finalCombinations: out int finalCombinations))
+				throw new InvalidOperationException("Unable to generate a valid word. Please, try to reduce the restrictions.");
 
-			ITreeNode<string> startNode = _wordTree?.Root
-				?? throw new InvalidOperationException("The word tree has not been initialized.");
+			// Because method "IsChildrenPossible" is recursive, only the last call to the method will have the correct number of possibilities.
+			_random.DiscardEntropy(); 
+			_random.IncrementEntropy(finalCombinations);
+			_random.CommitEntropy();
+			return CapitalizeWord(word);
+		}
 
-			int iterations = 0;
-			do
+		private bool IsChildrenPossible(string word, int length, int depthLevel, ref HandSide hand, ref Finger? finger, out string newWord, int currentCombinations, out int finalCombinations)
+		{
+			if (length == 0)
 			{
-				Finger? curFinger = null;
-				ITreeNode<string> node = startNode;
+				newWord = word;
+				finalCombinations = currentCombinations;
+				return true; // Recursion exit condition, no more characters to add.
+			}
 
-				// If the previos word was not valid, discard the entropy and try again.
-				_random.DiscardEntropy();
-				wordBuilder.Clear();
+			// Start node is the root node or the last node found in the tree up to depth level that matches the current word.
+			_ = TrySearchLastPossibleLeafNode(word, depthLevel, out ITreeNode<string> startNode);
 
-				for (int index = 0; index < wordLength; index++)
-				{
-					HandSide curHand = currentHand;
-					var children = node.Children.Select(kvp => kvp.Value)
-							.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
-							.Where(tn => IsProperHand(tn.Value[0], curHand))
-							.Where(tn => IsProperFinger(tn.Value[0], curHand, curFinger))
-							.Where(tn => !IsInLastChars(tn.Value[0], wordBuilder.ToString(), depthLevel))
-							.ToList();
+			// Local variables to avoid "Cannot use ref parameter inside a lambda expression".
+			HandSide localHand = hand;
+			Finger? localFinger = finger;
 
-					if (children.Count == 0) break;
+			var validChildren = startNode.Children
+				.Select(c => c.Value)
+				.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
+				.Where(tn => IsProperHand(tn.Value[0], localHand))
+				.Where(tn => IsProperFinger(tn.Value[0], localHand, localFinger))
+				.Select(tn => (
+					Node: tn,
+					IsPossible: IsChildrenPossible(word + tn.Value, length - 1, depthLevel, ref localHand, ref localFinger, out string newWord, currentCombinations, out int finalCombos),
+					Word: newWord,
+					Combinations: finalCombos
+				))
+				.Where(ptn => ptn.IsPossible)
+				.ToList();
 
-					var next = children[_random.Next(children.Count)];
-					wordBuilder = wordBuilder.Append(next.Value);
+			if (validChildren.Count <= 0) {
+				newWord = string.Empty;
+				finalCombinations = currentCombinations;
+				return false;
+			}
 
-					curFinger = GetFingerForKeystroke(next.Value);
+			var (node, _, selectedWord, selectedCombinations) = validChildren[_random.Next(validChildren.Count, updateEntropy: false)];
+			selectedCombinations *= validChildren.Count;
 
-					if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-						currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			finger = GetFingerForKeystroke(node.Value);
 
-					node = next;
+			if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
+				hand = hand == HandSide.Left ? HandSide.Right : HandSide.Left;
 
-					// If the word is already in the dictionary, break the loop.
-					if (wordBuilder.Length >= depthLevel && !TrySearchLastPossibleLeafNode(wordBuilder.ToString(), depthLevel, out node))
-						break;
-				}
-			} while (wordBuilder.Length < wordLength && iterations++ < Constants.MAX_ITERATIONS);
+			newWord = selectedWord;
+			finalCombinations = selectedCombinations;
+			return true;
+		}
 
-			if (iterations >= Constants.MAX_ITERATIONS)
-				throw new InvalidOperationException("Max iterations reached without being able to generate a valid word. Try to reduce the restrictions.");
 
-			// Return the word with the first letter capitalized.
-			string word = wordBuilder.ToString();
-
+		private static string CapitalizeWord(string word)
+		{
 			if (word.Length == 0) return string.Empty;
 			else if (word.Length == 1) return word.ToUpper();
 			else return char.ToUpper(word[0]) + word[1..];

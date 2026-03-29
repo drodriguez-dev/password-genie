@@ -25,7 +25,6 @@ namespace PG.Shared.Services
 		private static int _seed = Environment.TickCount;
 		private readonly Random _random = new(Interlocked.Increment(ref _seed));
 		private BigInteger _possibleCombinations;
-
 		private BigInteger _definitiveCombinations;
 
 		public RandomService()

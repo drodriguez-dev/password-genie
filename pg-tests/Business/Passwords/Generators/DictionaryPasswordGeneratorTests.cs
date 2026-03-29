@@ -39,6 +39,7 @@ namespace PG.Tests.Business.Passwords.Generators
 		}
 
 		[DataTestMethod]
+		[DataRow(1, 4, 0, 0)]
 		[DataRow(2, 4, 2, 2)]
 		[DataRow(2, 5, 0, 0)]
 		[DataRow(2, 6, 0, 0)]
