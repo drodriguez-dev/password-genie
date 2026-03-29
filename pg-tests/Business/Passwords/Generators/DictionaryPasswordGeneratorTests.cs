@@ -63,7 +63,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
+			DictionaryPasswordGeneratorV1 passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
@@ -102,7 +102,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
+			DictionaryPasswordGeneratorV1 passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
@@ -148,7 +148,7 @@ namespace PG.Tests.Business.Passwords.Generators
 
 			// For each keystroke order, generate a password
 			options.KeystrokeOrder = order;
-			var result = new DictionaryPasswordGenerator(options, new RandomService(), GetWordTree(options.File)).Generate();
+			var result = new DictionaryPasswordGeneratorV1(options, new RandomService(), GetWordTree(options.File)).Generate();
 			var passwords = result.Passwords.Select(p => p.Password).ToList();
 
 			TestContext.WriteLine(string.Join(Environment.NewLine, passwords));
@@ -203,7 +203,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation...");
-			DictionaryPasswordGenerator passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
+			DictionaryPasswordGeneratorV1 passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
 			var result = passwordGenerator.Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
@@ -242,7 +242,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				options.NumberOfPasswords = 0;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
+				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'At least one password must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -253,7 +253,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				options.NumberOfPasswords = 1;
 				options.NumberOfWords = 0;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
+				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'At least one word must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -264,7 +264,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				options.NumberOfWords = 1;
 				options.AverageWordLength = 2;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
+				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Average length must be at least X' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -274,7 +274,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				options.DepthLevel = 8;
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
+				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'Depth level must be lower than the average word length (X)' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -288,7 +288,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.IncludeSeparatorSymbols = false;
 				options.IncludeSetSymbols = false;
 				options.CustomSpecialCharacters = [];
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), wordTree).Generate();
+				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
 				Assert.Fail("Expected exception 'No symbols are available. Either provide custom symbols or enable the default ones.' not thrown");
 			}
 			catch (AssertFailedException) { throw; }
@@ -298,7 +298,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				var twoWordsTree = new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"])).Load(null!);
-				_ = new DictionaryPasswordGenerator(options, new RandomService(), twoWordsTree).Generate();
+				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), twoWordsTree).Generate();
 				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -359,7 +359,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation for entropy calculation...");
-			var result = new DictionaryPasswordGenerator(options, new RandomService(), sharedWordTree).Generate();
+			var result = new DictionaryPasswordGeneratorV1(options, new RandomService(), sharedWordTree).Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in result.Passwords)

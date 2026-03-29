@@ -9,11 +9,11 @@ using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, RandomService random, WordDictionaryTree wordTree) : PasswordGeneratorBase(random)
+	public abstract class DictionaryPasswordGeneratorBase(DictionaryPasswordGeneratorOptions options, RandomService random, WordDictionaryTree wordTree) : PasswordGeneratorBase(random)
 	{
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 
-		private DictionaryPasswordGeneratorOptions _options = options;
+		protected DictionaryPasswordGeneratorOptions _options = options;
 
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
@@ -22,7 +22,7 @@ namespace PG.Logic.Passwords.Generators
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
 		protected override KeystrokeOrder KeystrokeOrder => _options.KeystrokeOrder;
 
-		private readonly WordDictionaryTree _wordTree = wordTree;
+		protected readonly WordDictionaryTree _wordTree = wordTree;
 
 		public override void Configure(CommonPasswordGeneratorOptions config)
 		{
@@ -213,77 +213,9 @@ namespace PG.Logic.Passwords.Generators
 			return currentHand;
 		}
 
-		/// <summary>
-		/// Generates a word based on the dictionary provided. Word length is variable depending on the average word length, it's variance half of the 
-		/// average length.
-		/// </summary>
-		/// <remarks>
-		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
-		/// </remarks>
-		private string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand)
-		{
-			Finger? startFinger = null;
-			if (!IsChildrenPossible(string.Empty, wordLength, depthLevel, ref currentHand, ref startFinger, out string word, currentCombinations: 1, finalCombinations: out int finalCombinations))
-				throw new InvalidOperationException("Unable to generate a valid word. Please, try to reduce the restrictions.");
+		protected abstract string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand);
 
-			// Because method "IsChildrenPossible" is recursive, only the last call to the method will have the correct number of possibilities.
-			_random.DiscardEntropy(); 
-			_random.IncrementEntropy(finalCombinations);
-			_random.CommitEntropy();
-			return CapitalizeWord(word);
-		}
-
-		private bool IsChildrenPossible(string word, int length, int depthLevel, ref HandSide hand, ref Finger? finger, out string newWord, int currentCombinations, out int finalCombinations)
-		{
-			if (length == 0)
-			{
-				newWord = word;
-				finalCombinations = currentCombinations;
-				return true; // Recursion exit condition, no more characters to add.
-			}
-
-			// Start node is the root node or the last node found in the tree up to depth level that matches the current word.
-			_ = TrySearchLastPossibleLeafNode(word, depthLevel, out ITreeNode<string> startNode);
-
-			// Local variables to avoid "Cannot use ref parameter inside a lambda expression".
-			HandSide localHand = hand;
-			Finger? localFinger = finger;
-
-			var validChildren = startNode.Children
-				.Select(c => c.Value)
-				.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
-				.Where(tn => IsProperHand(tn.Value[0], localHand))
-				.Where(tn => IsProperFinger(tn.Value[0], localHand, localFinger))
-				.Select(tn => (
-					Node: tn,
-					IsPossible: IsChildrenPossible(word + tn.Value, length - 1, depthLevel, ref localHand, ref localFinger, out string newWord, currentCombinations, out int finalCombos),
-					Word: newWord,
-					Combinations: finalCombos
-				))
-				.Where(ptn => ptn.IsPossible)
-				.ToList();
-
-			if (validChildren.Count <= 0) {
-				newWord = string.Empty;
-				finalCombinations = currentCombinations;
-				return false;
-			}
-
-			var (node, _, selectedWord, selectedCombinations) = validChildren[_random.Next(validChildren.Count, updateEntropy: false)];
-			selectedCombinations *= validChildren.Count;
-
-			finger = GetFingerForKeystroke(node.Value);
-
-			if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-				hand = hand == HandSide.Left ? HandSide.Right : HandSide.Left;
-
-			newWord = selectedWord;
-			finalCombinations = selectedCombinations;
-			return true;
-		}
-
-
-		private static string CapitalizeWord(string word)
+		protected static string CapitalizeWord(string word)
 		{
 			if (word.Length == 0) return string.Empty;
 			else if (word.Length == 1) return word.ToUpper();

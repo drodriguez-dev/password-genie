@@ -52,7 +52,7 @@ namespace PG.Shared.Services
 			return BigInteger.Log(_definitiveCombinations, 2);
 		}
 
-		private void IncrementEntropy(BigInteger combinations)
+		public void IncrementEntropy(BigInteger combinations)
 		{
 			if (combinations <= 0)
 				throw new ArgumentOutOfRangeException(nameof(combinations), "The number of combinations must be greater than zero.");
