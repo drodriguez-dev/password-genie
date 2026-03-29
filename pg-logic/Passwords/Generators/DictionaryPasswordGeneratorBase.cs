@@ -152,7 +152,7 @@ namespace PG.Logic.Passwords.Generators
 					_random.DiscardEntropy();
 					word = GenerateWord(wordLength, depthLevel, ref currentHand);
 				}
-				while (iterations++ < Constants.MAX_ITERATIONS && string.IsNullOrEmpty(word) && IsLeafNodeReached(word));
+				while (iterations++ < Constants.MAX_ITERATIONS && string.IsNullOrEmpty(word) && IsWordInDictionary(word));
 
 				if (iterations >= Constants.MAX_ITERATIONS)
 					throw new InvalidOperationException("Max iterations reached without being able to generate a valid word.");
@@ -169,7 +169,7 @@ namespace PG.Logic.Passwords.Generators
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word and returns true if the leaf node is reached; 
 		/// the word is found.
 		/// </summary>
-		public bool IsLeafNodeReached(string word) => TrySearchLeafNode(word, out _);
+		public bool IsWordInDictionary(string word) => TrySearchLeafNode(word, out _);
 
 		/// <summary>
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word. If the word is not found, the search stops at 
@@ -197,16 +197,19 @@ namespace PG.Logic.Passwords.Generators
 		/// Searches for the last possible leaf node in the dictionary tree by successively removing the last character of the word. If there is no valid 
 		/// node, the search stops at the last node that was found and returns false.
 		/// </summary>
-		public bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNode<string> node)
+		protected ITreeNode<string> FindLastPossibleLeafNode(string word, int depthLevel)
 		{
 			if (depthLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(depthLevel), "Depth level must be greater than zero.");
 
+			depthLevel = Math.Min(depthLevel, word.Length);
+
 			bool found;
+			ITreeNode<string> node;
 			do { found = TrySearchLeafNode(word.Right(depthLevel--), out node); }
 			while (!found && depthLevel > 0);
 
-			return found;
+			return node;
 		}
 
 		protected override HandSide ChooseHand(HandSide currentHand)

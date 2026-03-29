@@ -164,12 +164,12 @@ namespace PG.Logic.Passwords.Generators
 		}
 
 		/// <summary>
-		/// Checks if <paramref name="character"/> is in the last <paramref name="maxSearch"/> chars of the <paramref name="text"/>.
+		/// Checks if <paramref name="character"/> is in the last <paramref name="maxSearch"/> chars of the <paramref name="text"/> to avoid repeating the same sequence within the depth level.
 		/// </summary>
-		/// <param name="character"></param>
-		/// <param name="text"></param>
-		/// <param name="maxSearch"></param>
-		/// <returns></returns>
+		/// <param name="character">The character to search for.</param>
+		/// <param name="text">The text to search within.</param>
+		/// <param name="maxSearch">The maximum number of characters to search from the end of the text.</param>
+		/// <returns>True if the <paramref name="character"/> is found in the last <paramref name="maxSearch"/> characters of the <paramref name="text"/>; otherwise, false.</returns>
 		protected static bool IsInLastChars(char character, string text, int maxSearch)
 		{
 			if (text.Length == 0) return false;

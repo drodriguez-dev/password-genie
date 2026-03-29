@@ -16,6 +16,7 @@ namespace PG.Logic.Passwords.Generators
 		/// <remarks>
 		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
 		/// </remarks>
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "<Pending>")]
 		protected override string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand)
 		{
 			// TODO - 2025-04-06 - Refactor this method to use a more efficient algorithm.
@@ -36,13 +37,29 @@ namespace PG.Logic.Passwords.Generators
 
 				for (int index = 0; index < wordLength; index++)
 				{
-					HandSide curHand = currentHand;
-					var children = node.Children.Select(kvp => kvp.Value)
+					int workingDepth = depthLevel;
+					List<TreeNode<string>> children;
+					do
+					{
+						// While the word is still shorter than the minimum depth level, continue with the next node.
+						// Once the minimum depth level is reached, use the node from the last <depth level> amount of characters.
+						if (wordBuilder.Length >= Constants.MIN_DEPTH_LEVEL)
+							node = FindLastPossibleLeafNode(wordBuilder.ToString(), workingDepth);
+						int requiredDepth = Math.Min(wordLength - index, workingDepth);
+
+						HandSide curHand = currentHand;
+						children = node.Children.Select(kvp => kvp.Value)
 							.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
 							.Where(tn => IsProperHand(tn.Value[0], curHand))
 							.Where(tn => IsProperFinger(tn.Value[0], curHand, curFinger))
+							// Filter out characters that are in the last chars of the current word to avoid repetition inside the depth level.
 							.Where(tn => !IsInLastChars(tn.Value[0], wordBuilder.ToString(), depthLevel))
+							// Filter out nodes that do not have enough depth to reach the desired word length.
+							.Where(tn => tn.MaxDepth + 1 >= requiredDepth)
 							.ToList();
+
+					} while (children.Count == 0 && wordBuilder.Length >= Constants.MIN_DEPTH_LEVEL && workingDepth-- > Constants.MIN_DEPTH_LEVEL);
+					// If there are no children, it means that the current path is not valid. Reduce the path until a valid one is found or the minimum depth level is reached.
 
 					if (children.Count == 0) break;
 
@@ -55,17 +72,15 @@ namespace PG.Logic.Passwords.Generators
 						currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
 
 					node = next;
-
-					// If the word is already in the dictionary, break the loop.
-					if (wordBuilder.Length >= depthLevel && !TrySearchLastPossibleLeafNode(wordBuilder.ToString(), depthLevel, out node))
-						break;
 				}
-			} while (wordBuilder.Length < wordLength && iterations++ < Constants.MAX_ITERATIONS);
+			} while (isBelowTargetLength(wordBuilder.Length, wordLength) && iterations++ < Constants.MAX_ITERATIONS);
 
 			if (iterations >= Constants.MAX_ITERATIONS)
 				throw new InvalidOperationException("Max iterations reached without being able to generate a valid word. Try to reduce the restrictions.");
 
 			return CapitalizeWord(wordBuilder.ToString());
+
+			static bool isBelowTargetLength(int current, int target) => current < target;
 		}
 	}
 }

@@ -17,7 +17,7 @@ namespace PG.Tests.Business.Passwords.Generators
 		/// <summary>
 		/// Tolerance for the entropy difference between true and derived entropy.
 		/// </summary>
-		private const double ENTROPY_TOLERANCE = 0.05;
+		private const double ENTROPY_TOLERANCE = 0.045;
 
 		/// <summary>
 		/// Maximum depth level for the word tree used in the tests.
@@ -166,25 +166,24 @@ namespace PG.Tests.Business.Passwords.Generators
 		}
 
 		[DataTestMethod]
-		[DataRow(04, 2, 6)]
-		[DataRow(05, 2, 5)]
-		[DataRow(06, 3, 4)]
-		[DataRow(07, 3, 3)]
-		[DataRow(08, 3, 2)]
-		[DataRow(09, 4, 1)]
-		[DataRow(10, 4, 1)]
-		[DataRow(11, 4, 1)]
-		[DataRow(12, 4, 1)]
-		// TODO - 2025-04-06 - Uncomment when the problem with depth level is fixed
-		//[DataRow(13, 4, 1)]
-		//[DataRow(14, 5, 1)]
-		//[DataRow(15, 5, 1)]
-		//[DataRow(16, 5, 1)]
-		//[DataRow(17, 5, 1)]
-		//[DataRow(18, 5, 1)]
-		//[DataRow(19, 5, 1)]
-		//[DataRow(20, 5, 1)]
-		public void AverageWordLengthTest(int averageWordLength, int depthLevel, int numberOfWords)
+		[DataRow(04, 2, 7, DisplayName = "Average length 04, depth 2")]
+		[DataRow(05, 2, 6, DisplayName = "Average length 05, depth 2")]
+		[DataRow(06, 3, 5, DisplayName = "Average length 06, depth 3")]
+		[DataRow(07, 3, 4, DisplayName = "Average length 07, depth 3")]
+		[DataRow(08, 3, 3, DisplayName = "Average length 08, depth 3")]
+		[DataRow(09, 4, 3, DisplayName = "Average length 09, depth 4")]
+		[DataRow(10, 4, 3, DisplayName = "Average length 10, depth 4")]
+		[DataRow(11, 4, 2, DisplayName = "Average length 11, depth 4")]
+		[DataRow(12, 4, 2, DisplayName = "Average length 12, depth 4")]
+		[DataRow(13, 4, 2, DisplayName = "Average length 13, depth 4")]
+		[DataRow(14, 5, 2, DisplayName = "Average length 14, depth 5")]
+		[DataRow(15, 5, 2, DisplayName = "Average length 15, depth 5")]
+		[DataRow(16, 5, 1, DisplayName = "Average length 16, depth 5")]
+		[DataRow(17, 5, 1, DisplayName = "Average length 17, depth 5")]
+		[DataRow(18, 5, 1, DisplayName = "Average length 18, depth 5")]
+		[DataRow(19, 5, 1, DisplayName = "Average length 19, depth 5")]
+		[DataRow(20, 5, 1, DisplayName = "Average length 20, depth 5")]
+		public void AverageWordLengthTest(int wordLength, int depthLevel, int numberOfWords)
 		{
 			FileStream fileStream = new(@".\Resources\Dictionaries\words_alpha_esES.txt", FileMode.Open, FileAccess.Read, FileShare.Read);
 			DictionaryPasswordGeneratorOptions options = new()
@@ -193,7 +192,7 @@ namespace PG.Tests.Business.Passwords.Generators
 				File = fileStream,
 				NumberOfPasswords = 25,
 				NumberOfWords = numberOfWords,
-				AverageWordLength = averageWordLength,
+				AverageWordLength = wordLength,
 				DepthLevel = depthLevel,
 				NumberOfNumbers = 0,
 				NumberOfSpecialCharacters = 0,
@@ -307,34 +306,24 @@ namespace PG.Tests.Business.Passwords.Generators
 		}
 
 		[DataTestMethod]
-		[DataRow(04, 3, DisplayName = "Entropy(wl: 04, dl: 3)")]
-		[DataRow(05, 3, DisplayName = "Entropy(wl: 05, dl: 3)")]
-		[DataRow(06, 3, DisplayName = "Entropy(wl: 06, dl: 3)")]
-		[DataRow(07, 4, DisplayName = "Entropy(wl: 07, dl: 4)")]
-		[DataRow(08, 4, DisplayName = "Entropy(wl: 08, dl: 4)")]
-		[DataRow(09, 4, DisplayName = "Entropy(wl: 09, dl: 4)")]
-		[DataRow(10, 4, DisplayName = "Entropy(wl: 10, dl: 4)")]
-		[DataRow(11, 4, DisplayName = "Entropy(wl: 11, dl: 4)")]
-		// Depth level greater than MAX_DEPTH_LEVEL is not supported (see class initialization)
-		[DataRow(12, 4, DisplayName = "Entropy(wl: 12, dl: 4)")]
-		[DataRow(13, 4, DisplayName = "Entropy(wl: 13, dl: 4)")]
-		[DataRow(14, 4, DisplayName = "Entropy(wl: 14, dl: 4)")]
-		[DataRow(15, 4, DisplayName = "Entropy(wl: 15, dl: 4)")]
-		[DataRow(16, 4, DisplayName = "Entropy(wl: 16, dl: 4)")]
-		[DataRow(17, 4, DisplayName = "Entropy(wl: 17, dl: 4)")]
-		[DataRow(18, 4, DisplayName = "Entropy(wl: 18, dl: 4)")]
-		[DataRow(19, 4, DisplayName = "Entropy(wl: 19, dl: 4)")]
-		[DataRow(20, 4, DisplayName = "Entropy(wl: 20, dl: 4)")]
-		[DataRow(21, 4, DisplayName = "Entropy(wl: 21, dl: 4)")]
-		[DataRow(22, 4, DisplayName = "Entropy(wl: 22, dl: 4)")]
-		[DataRow(23, 4, DisplayName = "Entropy(wl: 23, dl: 4)")]
-		[DataRow(24, 4, DisplayName = "Entropy(wl: 24, dl: 4)")]
-		[DataRow(25, 4, DisplayName = "Entropy(wl: 25, dl: 4)")]
-		[DataRow(26, 4, DisplayName = "Entropy(wl: 26, dl: 4)")]
-		[DataRow(27, 4, DisplayName = "Entropy(wl: 27, dl: 4)")]
-		[DataRow(28, 4, DisplayName = "Entropy(wl: 28, dl: 4)")]
-		[DataRow(29, 4, DisplayName = "Entropy(wl: 29, dl: 4)")]
-		[DataRow(30, 4, DisplayName = "Entropy(wl: 30, dl: 4)")]
+		[DataRow(04, 2, DisplayName = "Entropy for length 04, depth 2")]
+		[DataRow(05, 2, DisplayName = "Entropy for length 05, depth 2")]
+		[DataRow(06, 3, DisplayName = "Entropy for length 06, depth 3")]
+		[DataRow(07, 3, DisplayName = "Entropy for length 07, depth 3")]
+		[DataRow(08, 3, DisplayName = "Entropy for length 08, depth 3")]
+		[DataRow(09, 4, DisplayName = "Entropy for length 09, depth 4")]
+		[DataRow(10, 4, DisplayName = "Entropy for length 10, depth 4")]
+		[DataRow(11, 4, DisplayName = "Entropy for length 11, depth 4")]
+		[DataRow(12, 4, DisplayName = "Entropy for length 12, depth 4")]
+		[DataRow(13, 4, DisplayName = "Entropy for length 13, depth 4")]
+		// This test use a fabricated word tree of MAX_DEPTH_LEVEL combinations and does not support more than that depth.
+		[DataRow(14, 4, DisplayName = "Entropy for length 14, depth 4")]
+		[DataRow(15, 4, DisplayName = "Entropy for length 15, depth 4")]
+		[DataRow(16, 4, DisplayName = "Entropy for length 16, depth 4")]
+		[DataRow(17, 4, DisplayName = "Entropy for length 17, depth 4")]
+		[DataRow(18, 4, DisplayName = "Entropy for length 18, depth 4")]
+		[DataRow(19, 4, DisplayName = "Entropy for length 19, depth 4")]
+		[DataRow(20, 4, DisplayName = "Entropy for length 20, depth 4")]
 		public void EntropyTest(int wordLength, int depth)
 		{
 			if (sharedWordTree == null)

@@ -39,7 +39,7 @@ namespace PG.Logic.Passwords.Generators
 			}
 
 			// Start node is the root node or the last node found in the tree up to depth level that matches the current word.
-			_ = TrySearchLastPossibleLeafNode(word, depthLevel, out ITreeNode<string> startNode);
+			ITreeNode<string> startNode = FindLastPossibleLeafNode(word, depthLevel);
 
 			// Local variables to avoid "Cannot use ref parameter inside a lambda expression".
 			HandSide localHand = hand;
