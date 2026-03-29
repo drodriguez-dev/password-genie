@@ -397,6 +397,7 @@ namespace PG.Tests.Business.Passwords.Generators
 		{
 			WordDictionaryTree wordTree = new();
 			AddAbcNodes(wordTree.Root, depth - 1);
+			wordTree.Root.CalculateMaxDepth();
 
 			return wordTree;
 		}
