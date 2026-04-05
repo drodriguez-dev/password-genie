@@ -32,7 +32,7 @@ namespace PG.Logic.Passwords.Generators
 			return new RandomPasswordGenerator(randomOptions, random);
 		}
 
-		private DictionaryPasswordGenerator CreateDictionaryBasedPasswordGenerator(CommonPasswordGeneratorOptions options)
+		private DictionaryPasswordGeneratorBase CreateDictionaryBasedPasswordGenerator(CommonPasswordGeneratorOptions options)
 		{
 			var dictionaryOptions = options as DictionaryPasswordGeneratorOptions
 				?? throw new ArgumentException($"Options must be of type {nameof(DictionaryPasswordGeneratorOptions)}.");
@@ -50,7 +50,7 @@ namespace PG.Logic.Passwords.Generators
 				_ => throw new NotSupportedException($"Dictionary type '{dictionaryOptions.Type}' is not implemented."),
 			};
 
-			return new DictionaryPasswordGenerator(dictionaryOptions, random, wordTree);
+			return new DictionaryPasswordGeneratorV1(dictionaryOptions, random, wordTree);
 		}
 	}
 }

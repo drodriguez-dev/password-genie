@@ -1,4 +1,5 @@
 ﻿using PG.Entities.WordTrees;
+using PG.Shared.Extensions;
 using System.IO.Compression;
 using System.Text;
 
@@ -85,6 +86,7 @@ namespace PG.Data.Files.DataFiles.WordTrees
 			// Deserialize the tree
 			WordDictionaryTree tree = new();
 			ReadNode(reader, tree.Root);
+			tree.Root.CalculateMaxDepth();
 
 			return tree;
 		}

@@ -1,5 +1,4 @@
-﻿
-namespace PG.Entities.WordTrees
+﻿namespace PG.Entities.WordTrees
 {
 	/// <summary>
 	/// Represents a node in a tree structure of type <typeparamref name="T"/>.
@@ -17,6 +16,11 @@ namespace PG.Entities.WordTrees
 		/// The children of the node.
 		/// </summary>
 		public Dictionary<string, TreeNode<T>> Children { get; set; } = [];
+
+		/// <summary>
+		/// The maximum depth from this node to any leaf node. Leaf nodes have MaxDepth = 0.
+		/// </summary>
+		public int MaxDepth { get; set; }
 
 		#region IEquatable implementation
 		public override bool Equals(object? obj)

@@ -3,16 +3,17 @@ using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.Extensions;
 using PG.Shared.Services;
+using System.Numerics;
 using System.Text;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
 {
-	public class DictionaryPasswordGenerator(DictionaryPasswordGeneratorOptions options, RandomService random, WordDictionaryTree wordTree) : PasswordGeneratorBase(random)
+	public abstract class DictionaryPasswordGeneratorBase(DictionaryPasswordGeneratorOptions options, RandomService random, WordDictionaryTree wordTree) : PasswordGeneratorBase(random)
 	{
 		private const int MINIMUM_AVERAGE_WORD_LENGTH = 4;
 
-		private DictionaryPasswordGeneratorOptions _options = options;
+		protected DictionaryPasswordGeneratorOptions _options = options;
 
 		protected override bool IncludeSetSymbols => _options.IncludeSetSymbols;
 		protected override bool IncludeMarkSymbols => _options.IncludeMarkSymbols;
@@ -21,7 +22,7 @@ namespace PG.Logic.Passwords.Generators
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
 		protected override KeystrokeOrder KeystrokeOrder => _options.KeystrokeOrder;
 
-		private readonly WordDictionaryTree _wordTree = wordTree;
+		protected readonly WordDictionaryTree _wordTree = wordTree;
 
 		public override void Configure(CommonPasswordGeneratorOptions config)
 		{
@@ -45,6 +46,9 @@ namespace PG.Logic.Passwords.Generators
 			int totalCharacterCount = (_options.AverageWordLength * _options.NumberOfWords) + _options.NumberOfNumbers + _options.NumberOfSpecialCharacters;
 			if (totalCharacterCount <= 0)
 				throw new InvalidOptionException("At least one character group must be included.");
+
+			if (_options.DepthLevel < Constants.MIN_DEPTH_LEVEL)
+				throw new InvalidOperationException($"Depth level must be at least {Constants.MIN_DEPTH_LEVEL}.");
 
 			// Calculate the maximum depth level based on the average word length. This ensures that the depth level
 			// is less than half of the average word length and decreases as the average word length increases. This
@@ -148,7 +152,7 @@ namespace PG.Logic.Passwords.Generators
 					_random.DiscardEntropy();
 					word = GenerateWord(wordLength, depthLevel, ref currentHand);
 				}
-				while (iterations++ < Constants.MAX_ITERATIONS && string.IsNullOrEmpty(word) && IsLeafNodeReached(word));
+				while (iterations++ < Constants.MAX_ITERATIONS && string.IsNullOrEmpty(word) && IsWordInDictionary(word));
 
 				if (iterations >= Constants.MAX_ITERATIONS)
 					throw new InvalidOperationException("Max iterations reached without being able to generate a valid word.");
@@ -165,7 +169,7 @@ namespace PG.Logic.Passwords.Generators
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word and returns true if the leaf node is reached; 
 		/// the word is found.
 		/// </summary>
-		public bool IsLeafNodeReached(string word) => TrySearchLeafNode(word, out _);
+		public bool IsWordInDictionary(string word) => TrySearchLeafNode(word, out _);
 
 		/// <summary>
 		/// Searches for a leaf node in the dictionary tree by traversing the tree using the specified word. If the word is not found, the search stops at 
@@ -178,8 +182,8 @@ namespace PG.Logic.Passwords.Generators
 
 			foreach (var letter in word)
 			{
-				var children = node.Children.Select(kvp => kvp.Value)
-					.FirstOrDefault(tn => tn.Value.ToString().Equals(letter.ToString(), StringComparison.InvariantCultureIgnoreCase));
+				var children = node.Children.Select(c => c.Value)
+					.FirstOrDefault(tn => tn.Value.Equals(letter.ToString(), StringComparison.InvariantCultureIgnoreCase));
 
 				if (children == default) return false;
 
@@ -193,16 +197,19 @@ namespace PG.Logic.Passwords.Generators
 		/// Searches for the last possible leaf node in the dictionary tree by successively removing the last character of the word. If there is no valid 
 		/// node, the search stops at the last node that was found and returns false.
 		/// </summary>
-		public bool TrySearchLastPossibleLeafNode(string word, int depthLevel, out ITreeNode<string> node)
+		protected ITreeNode<string> FindLastPossibleLeafNode(string word, int depthLevel)
 		{
 			if (depthLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(depthLevel), "Depth level must be greater than zero.");
 
+			depthLevel = Math.Min(depthLevel, word.Length);
+
 			bool found;
+			ITreeNode<string> node;
 			do { found = TrySearchLeafNode(word.Right(depthLevel--), out node); }
 			while (!found && depthLevel > 0);
 
-			return found;
+			return node;
 		}
 
 		protected override HandSide ChooseHand(HandSide currentHand)
@@ -212,65 +219,10 @@ namespace PG.Logic.Passwords.Generators
 			return currentHand;
 		}
 
-		/// <summary>
-		/// Generates a word based on the dictionary provided. Word length is variable depending on the average word length, it's variance half of the 
-		/// average length.
-		/// </summary>
-		/// <remarks>
-		/// Uses a tree structure based on the dictionary to generate fictitious but language-like words.
-		/// </remarks>
-		private string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand)
+		protected abstract string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand);
+
+		protected static string CapitalizeWord(string word)
 		{
-			// TODO - 2025-04-06 - Refactor this method to use a more efficient algorithm.
-			var wordBuilder = new StringBuilder();
-
-			ITreeNode<string> startNode = _wordTree?.Root
-				?? throw new InvalidOperationException("The word tree has not been initialized.");
-
-			int iterations = 0;
-			do
-			{
-				Finger? curFinger = null;
-				ITreeNode<string> node = startNode;
-
-				// If the previos word was not valid, discard the entropy and try again.
-				_random.DiscardEntropy();
-				wordBuilder.Clear();
-
-				for (int index = 0; index < wordLength; index++)
-				{
-					HandSide curHand = currentHand;
-					var children = node.Children.Select(kvp => kvp.Value)
-							.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
-							.Where(tn => IsProperHand(tn.Value[0], curHand))
-							.Where(tn => IsProperFinger(tn.Value[0], curHand, curFinger))
-							.Where(tn => !IsInLastChars(tn.Value[0], wordBuilder.ToString(), depthLevel))
-							.ToList();
-
-					if (children.Count == 0) break;
-
-					var next = children[_random.Next(children.Count)];
-					wordBuilder = wordBuilder.Append(next.Value);
-
-					curFinger = GetFingerForKeystroke(next.Value);
-
-					if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-						currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
-
-					node = next;
-
-					// If the word is already in the dictionary, break the loop.
-					if (wordBuilder.Length >= depthLevel && !TrySearchLastPossibleLeafNode(wordBuilder.ToString(), depthLevel, out node))
-						break;
-				}
-			} while (wordBuilder.Length < wordLength && iterations++ < Constants.MAX_ITERATIONS);
-
-			if (iterations >= Constants.MAX_ITERATIONS)
-				throw new InvalidOperationException("Max iterations reached without being able to generate a valid word. Try to reduce the restrictions.");
-
-			// Return the word with the first letter capitalized.
-			string word = wordBuilder.ToString();
-
 			if (word.Length == 0) return string.Empty;
 			else if (word.Length == 1) return word.ToUpper();
 			else return char.ToUpper(word[0]) + word[1..];

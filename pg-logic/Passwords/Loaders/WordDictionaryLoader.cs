@@ -63,6 +63,8 @@ namespace PG.Logic.Passwords.Loaders
 			if (@return.Root.Children.Count == 0)
 				throw new InvalidDictionaryException($"Dictionary file does not contain any valid words. Words must be at least {MINIMUM_WORD_LENGTH} characters long and contain only letters.");
 
+			@return.Root.CalculateMaxDepth();
+
 			return @return;
 		}
 
