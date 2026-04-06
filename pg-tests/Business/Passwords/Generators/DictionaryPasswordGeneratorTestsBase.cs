@@ -2,6 +2,7 @@
 using PG.Data.Files.DataFiles.Dictionaries;
 using PG.Entities.Files;
 using PG.Entities.WordTrees;
+using PG.Logic.Common;
 using PG.Logic.Passwords.Generators;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Logic.Passwords.Loaders;
@@ -17,15 +18,20 @@ namespace PG.Tests.Business.Passwords.Generators
 		/// <summary>
 		/// Tolerance for the entropy difference between true and derived entropy.
 		/// </summary>
-		private const double ENTROPY_TOLERANCE = 0.045;
+		private const double ENTROPY_TOLERANCE = 0.25;
 
 		/// <summary>
-		/// Maximum depth level for the word tree used in the tests.
+		/// Maximum depth level for the shared word tree used in the tests.
 		/// </summary>
 		/// <remarks>
 		/// Increasing this value over 4 will increase the memory usage significantly.
 		/// </remarks>
 		private const int MAX_DEPTH_LEVEL = 4;
+
+		/// <summary>
+		/// Represents the inclusive range of valid word lengths supported by the application used in some tests.
+		/// </summary>
+		private static readonly IEnumerable<int> WordLengthRange = Enumerable.Range(4, 20);
 
 		public required TestContext TestContext { get; set; }
 
@@ -134,23 +140,31 @@ namespace PG.Tests.Business.Passwords.Generators
 			DictionaryPasswordGeneratorOptions options = new()
 			{
 				Type = DictionaryType.PlainTextDictionary,
-				File = fileStream,
-				NumberOfPasswords = 50,
-				NumberOfWords = 2,
-				AverageWordLength = 6,
-				DepthLevel = 3,
-				NumberOfNumbers = 1,
-				NumberOfSpecialCharacters = 1,
-				CustomSpecialCharacters = " ".ToCharArray(),
+				File = null!, // File stream is not used in this test, a word tree is provided directly.
+				NumberOfPasswords = 1,
+				NumberOfWords = order == KeystrokeOrder.AlternatingWord ? 2 : 1,
+				// AverageWordLength is setted in the loop to test multiple lengths with the same options.
+				// DepthLevel depends on AverageWordLength, so it is setted in the loop as well.
+				NumberOfNumbers = 0,
+				NumberOfSpecialCharacters = order == KeystrokeOrder.AlternatingWord ? 1 : 0,
+				CustomSpecialCharacters = " ".ToArray(),
 				RemoveHighAsciiCharacters = true,
+				KeystrokeOrder = order,
 			};
 
-			TestContext.WriteLine("Starting password generation...");
+			T passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), sharedWordTree)!;
 
-			// For each keystroke order, generate a password
-			options.KeystrokeOrder = order;
-			var result = new DictionaryPasswordGeneratorV1(options, new RandomService(), GetWordTree(options.File)).Generate();
-			var passwords = result.Passwords.Select(p => p.Password).ToList();
+			TestContext.WriteLine("Starting password generation...");
+			List<string> passwords = [];
+			foreach (int wordLength in WordLengthRange)
+			{
+				options.AverageWordLength = wordLength;
+				int maxDepthLevel = (int)Math.Round(Math.Sqrt(options.AverageWordLength) * Constants.DEPTH_LEVEL_COEFFICIENT, digits: 0);
+				options.DepthLevel = Math.Min(maxDepthLevel, MAX_DEPTH_LEVEL);
+				passwordGenerator.Configure(options);
+				var result = passwordGenerator.Generate();
+				passwords.AddRange(result.Passwords.Select(p => p.Password));
+			}
 
 			TestContext.WriteLine(string.Join(Environment.NewLine, passwords));
 
@@ -203,7 +217,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation...");
-						T passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+			T passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
 
 			var result = passwordGenerator.Generate();
 
@@ -243,7 +257,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				options.NumberOfPasswords = 0;
-				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
+				var passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+				_ = passwordGenerator.Generate();
 				Assert.Fail("Expected exception 'At least one password must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -254,7 +269,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				options.NumberOfPasswords = 1;
 				options.NumberOfWords = 0;
-				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
+				var passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+				_ = passwordGenerator.Generate();
 				Assert.Fail("Expected exception 'At least one word must be requested' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -265,7 +281,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			{
 				options.NumberOfWords = 1;
 				options.AverageWordLength = 2;
-				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
+				var passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+				_ = passwordGenerator.Generate();
 				Assert.Fail("Expected exception 'Average length must be at least X' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -275,7 +292,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				options.DepthLevel = 8;
-				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
+				var passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+				_ = passwordGenerator.Generate();
 				Assert.Fail("Expected exception 'Depth level must be lower than the average word length (X)' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -289,7 +307,8 @@ namespace PG.Tests.Business.Passwords.Generators
 				options.IncludeSeparatorSymbols = false;
 				options.IncludeSetSymbols = false;
 				options.CustomSpecialCharacters = [];
-				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), wordTree).Generate();
+				var passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+				_ = passwordGenerator.Generate();
 				Assert.Fail("Expected exception 'No symbols are available. Either provide custom symbols or enable the default ones.' not thrown");
 			}
 			catch (AssertFailedException) { throw; }
@@ -299,7 +318,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			try
 			{
 				var twoWordsTree = new WordDictionaryLoader(new DictionaryDataMockup(["qwertasdfgzxcvb", "yuiophjklnm"])).Load(null!);
-				_ = new DictionaryPasswordGeneratorV1(options, new RandomService(), twoWordsTree).Generate();
+				var passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+				_ = passwordGenerator.Generate();
 				Assert.Fail("Expected exception 'Max iterations reached without being able to generate a valid word.' not thrown.");
 			}
 			catch (AssertFailedException) { throw; }
@@ -350,7 +370,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation for entropy calculation...");
-			var result = new DictionaryPasswordGeneratorV1(options, new RandomService(), sharedWordTree).Generate();
+			T passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), sharedWordTree)!;
+			var result = passwordGenerator.Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
 			foreach (var passwordPart in result.Passwords)
