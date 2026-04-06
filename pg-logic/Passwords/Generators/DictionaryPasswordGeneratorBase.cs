@@ -162,7 +162,7 @@ namespace PG.Logic.Passwords.Generators
 
 				_random.CommitEntropy();
 
-				currentHand = ChooseHand(currentHand);
+				currentHand = ChooseHandAfterWord(currentHand);
 			}
 		}
 
@@ -212,13 +212,6 @@ namespace PG.Logic.Passwords.Generators
 			while (!found && depthLevel > 0);
 
 			return node;
-		}
-
-		protected override HandSide ChooseHand(HandSide currentHand)
-		{
-			if (KeystrokeOrder == KeystrokeOrder.AlternatingWord)
-				currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
-			return currentHand;
 		}
 
 		protected abstract string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand);

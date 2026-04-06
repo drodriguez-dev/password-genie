@@ -118,18 +118,9 @@ namespace PG.Logic.Passwords.Generators
 				throw new InvalidOperationException($"There are no more characters available for the current hand ({currentHand}) and finger ({currentFinger}):" +
 					$" '{string.Join(",", aC)}')");
 
-			currentHand = ChooseHand(curHand);
+			currentHand = ChooseHandAfterStroke(curHand);
 
 			return @return;
-		}
-
-		protected override HandSide ChooseHand(HandSide currentHand)
-		{
-			if (KeystrokeOrder == KeystrokeOrder.Random)
-				currentHand = HandSide.Any;
-			else if (KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-				currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
-			return currentHand;
 		}
 
 		private char ChooseCharacter(char[] charList, ref Finger? currentFinger)

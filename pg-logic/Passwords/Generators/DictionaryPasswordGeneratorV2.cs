@@ -9,6 +9,13 @@ namespace PG.Logic.Passwords.Generators
 	{
 		private class WordGenerationState
 		{
+			public WordGenerationState(HandSide hand, Finger? finger, long combinations)
+			{
+				Hand = hand;
+				Finger = finger;
+				Combinations = combinations;
+			}
+
 			public HandSide Hand { get; set; }
 			public Finger? Finger { get; set; }
 			public long Combinations { get; set; }
@@ -31,19 +38,21 @@ namespace PG.Logic.Passwords.Generators
 			int firstHalfLength = wordLength / 2;
 			int secondHalfLength = wordLength - firstHalfLength;
 
+			WordGenerationState state = new(currentHand, null, 1);
 			TraverseDirection = TraverseDirection.Forwards;
-			WordGenerationState state = new() { Hand = currentHand, Finger = null, Combinations = 1 };
 			if (!TryGenerateWord(string.Empty, firstHalfLength, depthLevel, state, output: out WordGenerationResult result))
 				throw new InvalidOperationException("Unable to generate a valid word. Please, try to reduce the restrictions.");
 
 			string finalWord = result.Word;
 			RecordEntropy(result.Combinations);
 
-			TraverseDirection = TraverseDirection.Backwards;
-			if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke && secondHalfLength % 2 == 0)
-				state.Hand = state.Hand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			// Only switch hand if the second half of the word has an odd number of characters, so  
+			// the stroke order is consistent with the first half after reversing the second half.
+			if (secondHalfLength % 2 != 0)
+				state.Hand = ChooseHandAfterStroke(state.Hand);
 			state.Finger = null;
 			state.Combinations = 1;
+			TraverseDirection = TraverseDirection.Backwards;
 			if (!TryGenerateWord(string.Empty, secondHalfLength, depthLevel, state, output: out result))
 				throw new InvalidOperationException("Unable to generate a valid word. Please, try to reduce the restrictions.");
 
@@ -85,11 +94,7 @@ namespace PG.Logic.Passwords.Generators
 			while (validChildren.Count > 0 && selectedChild == null)
 			{
 				var tn = validChildren[_random.Next(validChildren.Count, updateEntropy: false)];
-
-				var testState = new WordGenerationState() { Hand = state.Hand, Finger = GetFingerForKeystroke(tn.Value), Combinations = state.Combinations };
-				if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-					testState.Hand = state.Hand == HandSide.Left ? HandSide.Right : HandSide.Left;
-
+				var testState = new WordGenerationState(ChooseHandAfterStroke(state.Hand), GetFingerForKeystroke(tn.Value), state.Combinations);
 				if (TryGenerateWord(word + tn.Value, length - 1, depthLevel, testState, out WordGenerationResult result))
 				{
 					selectedChild = tn;
@@ -108,8 +113,7 @@ namespace PG.Logic.Passwords.Generators
 			selectedResult.Combinations *= validChildren.Count;
 
 			state.Finger = GetFingerForKeystroke(selectedChild.Value);
-			if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
-				state.Hand = state.Hand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			state.Hand = GetHandForKeyStroke(selectedChild.Value);
 			state.Combinations = selectedResult.Combinations;
 
 			output = new WordGenerationResult(selectedResult.Word, selectedResult.Combinations);
