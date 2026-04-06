@@ -50,7 +50,7 @@ namespace PG.Logic.Passwords.Generators
 				_ => throw new NotSupportedException($"Dictionary type '{dictionaryOptions.Type}' is not implemented."),
 			};
 
-			return new DictionaryPasswordGeneratorV1(dictionaryOptions, random, wordTree);
+			return new DictionaryPasswordGeneratorV2(dictionaryOptions, random, wordTree);
 		}
 	}
 }
