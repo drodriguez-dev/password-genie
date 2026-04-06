@@ -12,7 +12,7 @@ using System.Text;
 namespace PG.Tests.Business.Passwords.Generators
 {
 	[TestClass()]
-	public class DictionaryPasswordGeneratorTests : PasswordGeneratorTestBase
+	public abstract class DictionaryPasswordGeneratorTestsBase<T> : PasswordGeneratorTestBase where T : DictionaryPasswordGeneratorBase
 	{
 		/// <summary>
 		/// Tolerance for the entropy difference between true and derived entropy.
@@ -63,7 +63,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation...");
-			DictionaryPasswordGeneratorV1 passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
+			T passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
 			var result = passwordGenerator.Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
@@ -102,7 +102,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation...");
-			DictionaryPasswordGeneratorV1 passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
+			T passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+
 			var result = passwordGenerator.Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
@@ -202,7 +203,8 @@ namespace PG.Tests.Business.Passwords.Generators
 			};
 
 			TestContext.WriteLine("Starting password generation...");
-			DictionaryPasswordGeneratorV1 passwordGenerator = new(options, new RandomService(), GetWordTree(options.File));
+						T passwordGenerator = (T)Activator.CreateInstance(typeof(T), options, new RandomService(), GetWordTree(options.File))!;
+
 			var result = passwordGenerator.Generate();
 
 			TestContext.WriteLine($"Generated passwords:");
@@ -387,6 +389,7 @@ namespace PG.Tests.Business.Passwords.Generators
 			WordDictionaryTree wordTree = new();
 			AddAbcNodes(wordTree.Root, depth - 1);
 			wordTree.Root.CalculateMaxDepth();
+			wordTree.ReverseRoot = wordTree.Root;
 
 			return wordTree;
 		}
@@ -395,8 +398,9 @@ namespace PG.Tests.Business.Passwords.Generators
 		{
 			foreach (char c in "abcdefghijklmnopqrstuvwxyz")
 			{
-				var childNode = new TreeNode<string>(c.ToString());
-				node.Children.Add(c.ToString(), childNode);
+				string letter = c.ToString();
+				var childNode = new TreeNode<string>(letter);
+				node.Children.Add(letter, childNode);
 
 				if (depth > 0)
 					AddAbcNodes(childNode, depth - 1);

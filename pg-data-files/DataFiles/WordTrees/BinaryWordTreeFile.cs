@@ -47,6 +47,7 @@ namespace PG.Data.Files.DataFiles.WordTrees
 
 			// Serialize the tree
 			WriteNode(writer, tree.Root);
+			WriteNode(writer, tree.ReverseRoot);
 		}
 
 		/// <summary>
@@ -87,6 +88,8 @@ namespace PG.Data.Files.DataFiles.WordTrees
 			WordDictionaryTree tree = new();
 			ReadNode(reader, tree.Root);
 			tree.Root.CalculateMaxDepth();
+			ReadNode(reader, tree.ReverseRoot);
+			tree.ReverseRoot.CalculateMaxDepth();
 
 			return tree;
 		}

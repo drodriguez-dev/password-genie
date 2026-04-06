@@ -22,14 +22,11 @@ namespace PG.Logic.Passwords.Generators
 			// TODO - 2025-04-06 - Refactor this method to use a more efficient algorithm.
 			var wordBuilder = new StringBuilder();
 
-			ITreeNode<string> startNode = _wordTree?.Root
-				?? throw new InvalidOperationException("The word tree has not been initialized.");
-
 			int iterations = 0;
 			do
 			{
 				Finger? curFinger = null;
-				ITreeNode<string> node = startNode;
+				ITreeNode<string> node = GetSelectedRoot();
 
 				// If the previos word was not valid, discard the entropy and try again.
 				_random.DiscardEntropy();

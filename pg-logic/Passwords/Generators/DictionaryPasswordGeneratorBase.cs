@@ -3,8 +3,6 @@ using PG.Logic.Common;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.Extensions;
 using PG.Shared.Services;
-using System.Numerics;
-using System.Text;
 using static PG.Logic.ErrorHandling.BusinessExceptions;
 
 namespace PG.Logic.Passwords.Generators
@@ -22,7 +20,10 @@ namespace PG.Logic.Passwords.Generators
 		protected override bool RemoveHighAsciiCharacters => _options.RemoveHighAsciiCharacters;
 		protected override KeystrokeOrder KeystrokeOrder => _options.KeystrokeOrder;
 
-		protected readonly WordDictionaryTree _wordTree = wordTree;
+		private readonly WordDictionaryTree _wordTree = wordTree;
+
+		internal TraverseDirection TraverseDirection = TraverseDirection.Forwards;
+		protected TreeRoot<string> GetSelectedRoot() => TraverseDirection == TraverseDirection.Forwards ? _wordTree.Root : _wordTree.ReverseRoot;
 
 		public override void Configure(CommonPasswordGeneratorOptions config)
 		{
@@ -177,9 +178,7 @@ namespace PG.Logic.Passwords.Generators
 		/// </summary>
 		private bool TrySearchLeafNode(string word, out ITreeNode<string> node)
 		{
-			node = _wordTree?.Root
-				?? throw new InvalidOperationException("The word tree has not been initialized.");
-
+			node = GetSelectedRoot();
 			foreach (var letter in word)
 			{
 				var children = node.Children.Select(c => c.Value)
@@ -199,6 +198,9 @@ namespace PG.Logic.Passwords.Generators
 		/// </summary>
 		protected ITreeNode<string> FindLastPossibleLeafNode(string word, int depthLevel)
 		{
+			if (word.Length == 0)
+				return GetSelectedRoot();
+
 			if (depthLevel <= 0)
 				throw new ArgumentOutOfRangeException(nameof(depthLevel), "Depth level must be greater than zero.");
 
