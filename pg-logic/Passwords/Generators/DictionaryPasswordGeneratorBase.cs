@@ -139,7 +139,7 @@ namespace PG.Logic.Passwords.Generators
 			HandSide currentHand = ChooseFirstHand();
 			_random.CommitEntropy();
 
-			var wordLengths = _random.GenerateNumbersForAverage(numberOfWords, averageLength);
+			var wordLengths = _random.GenerateNumbersForAverage(numberOfWords, averageLength, Constants.MIN_DEPTH_LEVEL + 1);
 
 			foreach (int wordLength in wordLengths)
 			{

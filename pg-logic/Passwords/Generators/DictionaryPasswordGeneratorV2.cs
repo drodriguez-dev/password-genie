@@ -7,14 +7,14 @@ namespace PG.Logic.Passwords.Generators
 	public class DictionaryPasswordGeneratorV2(DictionaryPasswordGeneratorOptions options, RandomService random, WordDictionaryTree wordTree)
 		: DictionaryPasswordGeneratorBase(options, random, wordTree)
 	{
-		private record struct WordGenerationResult(string Word, int Combinations);
-
 		private class WordGenerationState
 		{
 			public HandSide Hand { get; set; }
 			public Finger? Finger { get; set; }
-			public int Combinations { get; set; }
+			public long Combinations { get; set; }
 		}
+
+		private record struct WordGenerationResult(string Word, long Combinations = 1);
 
 		/// <summary>
 		/// Generates a word based on the dictionary provided. Word length is variable depending on the average word length, it's variance half of the 
@@ -25,16 +25,41 @@ namespace PG.Logic.Passwords.Generators
 		/// </remarks>
 		protected override string GenerateWord(int wordLength, int depthLevel, ref HandSide currentHand)
 		{
-			WordGenerationState initialState = new() { Hand = currentHand, Finger = null, Combinations = 1 };
-			if (!TryGenerateWord(string.Empty, wordLength, depthLevel, initialState, output: out WordGenerationResult result))
+			if (wordLength < 3)
+				throw new ArgumentException("Word length must be at least 3 characters.", nameof(wordLength));
+
+			int firstHalfLength = wordLength / 2;
+			int secondHalfLength = wordLength - firstHalfLength;
+
+			TraverseDirection = TraverseDirection.Forwards;
+			WordGenerationState state = new() { Hand = currentHand, Finger = null, Combinations = 1 };
+			if (!TryGenerateWord(string.Empty, firstHalfLength, depthLevel, state, output: out WordGenerationResult result))
 				throw new InvalidOperationException("Unable to generate a valid word. Please, try to reduce the restrictions.");
 
-			// Because method "TryGenerateWord" is recursive, only the last call to the method will have the correct number of possibilities.
-			_random.DiscardEntropy();
-			_random.IncrementEntropy(result.Combinations);
-			_random.CommitEntropy();
+			string finalWord = result.Word;
+			RecordEntropy(result.Combinations);
 
-			return CapitalizeWord(result.Word);
+			TraverseDirection = TraverseDirection.Backwards;
+			if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke && secondHalfLength % 2 == 0)
+				state.Hand = state.Hand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			state.Finger = null;
+			state.Combinations = 1;
+			if (!TryGenerateWord(string.Empty, secondHalfLength, depthLevel, state, output: out result))
+				throw new InvalidOperationException("Unable to generate a valid word. Please, try to reduce the restrictions.");
+
+			finalWord += new string([.. result.Word.Reverse()]);
+			RecordEntropy(result.Combinations);
+
+			return CapitalizeWord(finalWord);
+		}
+
+		private void RecordEntropy(long combinations)
+		{
+			// Any previous entropy will be discarded, because method "TryGenerateWord" is recursive,
+			// only the last call to the method will have the correct number of possibilities.
+			_random.DiscardEntropy();
+			_random.IncrementEntropy(combinations);
+			_random.CommitEntropy();
 		}
 
 		private bool TryGenerateWord(string word, int length, int depthLevel, WordGenerationState state, out WordGenerationResult output)
@@ -53,30 +78,41 @@ namespace PG.Logic.Passwords.Generators
 				.Where(tn => !RemoveHighAsciiCharacters || tn.Value[0] < 128)
 				.Where(tn => IsProperHand(tn.Value[0], state.Hand))
 				.Where(tn => IsProperFinger(tn.Value[0], state.Hand, state.Finger))
-				.Select(tn => (
-					Node: tn,
-					IsPossible: TryGenerateWord(word + tn.Value, length - 1, depthLevel, state, out WordGenerationResult result),
-					result.Word,
-					result.Combinations
-				))
-				.Where(ptn => ptn.IsPossible)
 				.ToList();
 
-			if (validChildren.Count <= 0)
+			TreeNode<string>? selectedChild = null;
+			WordGenerationResult selectedResult = new(string.Empty, 1);
+			while (validChildren.Count > 0 && selectedChild == null)
+			{
+				var tn = validChildren[_random.Next(validChildren.Count, updateEntropy: false)];
+
+				var testState = new WordGenerationState() { Hand = state.Hand, Finger = GetFingerForKeystroke(tn.Value), Combinations = state.Combinations };
+				if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
+					testState.Hand = state.Hand == HandSide.Left ? HandSide.Right : HandSide.Left;
+
+				if (TryGenerateWord(word + tn.Value, length - 1, depthLevel, testState, out WordGenerationResult result))
+				{
+					selectedChild = tn;
+					selectedResult = result;
+				}
+				else
+					validChildren.Remove(tn);
+			}
+
+			if (selectedChild == null)
 			{
 				output = default;
 				return false;
 			}
 
-			var (node, _, selectedWord, selectedCombinations) = validChildren[_random.Next(validChildren.Count, updateEntropy: false)];
-			selectedCombinations *= validChildren.Count;
+			selectedResult.Combinations *= validChildren.Count;
 
-			state.Finger = GetFingerForKeystroke(node.Value);
-
+			state.Finger = GetFingerForKeystroke(selectedChild.Value);
 			if (_options.KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
 				state.Hand = state.Hand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			state.Combinations = selectedResult.Combinations;
 
-			output = new WordGenerationResult(selectedWord, selectedCombinations);
+			output = new WordGenerationResult(selectedResult.Word, selectedResult.Combinations);
 			return true;
 		}
 	}
