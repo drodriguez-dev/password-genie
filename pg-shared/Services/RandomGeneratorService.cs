@@ -276,24 +276,24 @@ namespace PG.Shared.Services
 		/// <param name="count">The number of random numbers to generate.</param>
 		/// <param name="average">The average value that the generated numbers should sum up to.</param>
 		/// <returns>A list of random integers that add up to the specified average.</returns>
-		public IEnumerable<int> GenerateNumbersForAverage(int count, int average)
+		public IEnumerable<int> GenerateNumbersForAverage(int count, int average, int minimumValue = 0)
 		{
 			if (count <= 0)
 				throw new ArgumentOutOfRangeException(nameof(count), "The count must be greater than zero.");
 			if (average <= 0)
 				throw new ArgumentOutOfRangeException(nameof(average), "The average must be greater than zero.");
 
-			return GenerateNumbersForAverageInternal(count, average);
+			return GenerateNumbersForAverageInternal(count, average, minimumValue);
 		}
 
-		private IEnumerable<int> GenerateNumbersForAverageInternal(int count, int average)
+		private IEnumerable<int> GenerateNumbersForAverageInternal(int count, int average, int minimumValue)
 		{
 			// Total sum to match the average
 			var totalSumObjective = count * average;
 
 			// Calculate the minimum and maximum values based on the variance factor.
 			int numberVariance = (int)Math.Truncate(Math.Max(1, average * AVERAGE_VARIANCE_FACTOR));
-			var minObjective = average - numberVariance;
+			var minObjective = Math.Max(average - numberVariance, minimumValue);
 			var maxObjective = average + numberVariance;
 
 			int currentTotal = 0;
