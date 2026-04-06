@@ -17,7 +17,7 @@ namespace PG.Logic.Common
 		/// </remarks>
 		public const double DEPTH_LEVEL_COEFFICIENT = 1.34;
 
-		public const double MIN_DEPTH_LEVEL = 2;
+		public const int MIN_DEPTH_LEVEL = 2;
 
 		internal static readonly Encoding DictionaryEncoding = Encoding.UTF8;
 	}

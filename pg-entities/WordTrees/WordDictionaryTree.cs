@@ -4,6 +4,7 @@ namespace PG.Entities.WordTrees
 	public class WordDictionaryTree : IEquatable<WordDictionaryTree?>
 	{
 		public TreeRoot<string> Root { get; set; } = new TreeRoot<string>();
+		public TreeRoot<string> ReverseRoot { get; set; } = new TreeRoot<string>();
 
 		#region IEquatable implementation
 		public override bool Equals(object? obj)
@@ -14,7 +15,8 @@ namespace PG.Entities.WordTrees
 		public virtual bool Equals(WordDictionaryTree? other)
 		{
 			return other is not null
-				&& EqualityComparer<TreeRoot<string>>.Default.Equals(Root, other.Root);
+				&& EqualityComparer<TreeRoot<string>>.Default.Equals(Root, other.Root)
+				&& EqualityComparer<TreeRoot<string>>.Default.Equals(ReverseRoot, other.ReverseRoot);
 		}
 
 		public override int GetHashCode()

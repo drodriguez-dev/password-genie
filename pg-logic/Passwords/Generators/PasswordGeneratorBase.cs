@@ -114,7 +114,21 @@ namespace PG.Logic.Passwords.Generators
 			};
 		}
 
-		protected abstract HandSide ChooseHand(HandSide currentHand);
+		protected HandSide ChooseHandAfterWord(HandSide currentHand)
+		{
+			if (KeystrokeOrder == KeystrokeOrder.Random)
+				currentHand = HandSide.Any;
+			else if (new[] { KeystrokeOrder.AlternatingWord, KeystrokeOrder.AlternatingStroke }.Contains(KeystrokeOrder))
+				currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			return currentHand;
+		}
+
+		protected HandSide ChooseHandAfterStroke(HandSide currentHand)
+		{
+			if (KeystrokeOrder == KeystrokeOrder.AlternatingStroke)
+				currentHand = currentHand == HandSide.Left ? HandSide.Right : HandSide.Left;
+			return currentHand;
+		}
 
 		/// <summary>
 		/// Determines if the keystroke is a proper keystroke for the current hand. It will always return true if the keystroke order is random or the hand is any.
@@ -200,6 +214,18 @@ namespace PG.Logic.Passwords.Generators
 			if (_rightIndexKeyStrokes.Contains(@char)) return (Finger?)Finger.Index;
 
 			return null;
+		}
+
+		protected static HandSide GetHandForKeyStroke(string value)
+		{
+			// This method cannot determine the finger for multi-character keystrokes.
+			if (value.Length != 1) return HandSide.Any;
+
+			char @char = value[0];
+
+			if (_leftHandKeyStrokes.Contains(@char)) return HandSide.Left;
+			if (_rightHandKeyStrokes.Contains(@char)) return HandSide.Right;
+			return HandSide.Any;
 		}
 
 		protected double GetAndResetPasswordEntropy()

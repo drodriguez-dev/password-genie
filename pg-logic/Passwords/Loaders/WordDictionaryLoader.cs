@@ -58,12 +58,14 @@ namespace PG.Logic.Passwords.Loaders
 				if (word.ToLowerInvariant().All(VOWEL_AND_DIACRITIC_CHARS.Contains)) continue;
 
 				AddWordToTree(@return.Root, word);
+				AddWordToTree(@return.ReverseRoot, new string([.. word.Reverse()]));
 			}
 
 			if (@return.Root.Children.Count == 0)
 				throw new InvalidDictionaryException($"Dictionary file does not contain any valid words. Words must be at least {MINIMUM_WORD_LENGTH} characters long and contain only letters.");
 
 			@return.Root.CalculateMaxDepth();
+			@return.ReverseRoot.CalculateMaxDepth();
 
 			return @return;
 		}

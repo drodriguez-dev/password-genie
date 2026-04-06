@@ -10,7 +10,7 @@ namespace PG.Entities.WordTrees
 		{
 			int maxChildDepth = -1;
 
-			foreach (var child in node.Children.Values)
+			foreach (var child in node.Children.Select(n => n.Value))
 			{
 				child.CalculateMaxDepth();
 				if (child.MaxDepth > maxChildDepth)
