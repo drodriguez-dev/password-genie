@@ -1,6 +1,7 @@
 ﻿using PG.Entities.WordTrees;
 using PG.Logic.Passwords.Generators.Entities;
 using PG.Shared.Services;
+using System.Numerics;
 
 namespace PG.Logic.Passwords.Generators
 {
@@ -9,7 +10,7 @@ namespace PG.Logic.Passwords.Generators
 	{
 		private class WordGenerationState
 		{
-			public WordGenerationState(HandSide hand, Finger? finger, long combinations)
+			public WordGenerationState(HandSide hand, Finger? finger, BigInteger combinations)
 			{
 				Hand = hand;
 				Finger = finger;
@@ -18,10 +19,10 @@ namespace PG.Logic.Passwords.Generators
 
 			public HandSide Hand { get; set; }
 			public Finger? Finger { get; set; }
-			public long Combinations { get; set; }
+			public BigInteger Combinations { get; set; }
 		}
 
-		private record struct WordGenerationResult(string Word, long Combinations = 1);
+		private record struct WordGenerationResult(string Word, BigInteger Combinations);
 
 		/// <summary>
 		/// Generates a word based on the dictionary provided. Word length is variable depending on the average word length, it's variance half of the 
@@ -43,6 +44,7 @@ namespace PG.Logic.Passwords.Generators
 			if (!TryGenerateWord(string.Empty, firstHalfLength, depthLevel, state, output: out WordGenerationResult result))
 				throw new InvalidOperationException("Unable to generate a valid word. Please, try to reduce the restrictions.");
 
+			System.Diagnostics.Trace.WriteLine($"First half generated: {result.Word}, combinations: {result.Combinations}");
 			string finalWord = result.Word;
 			RecordEntropy(result.Combinations);
 
@@ -62,7 +64,7 @@ namespace PG.Logic.Passwords.Generators
 			return CapitalizeWord(finalWord);
 		}
 
-		private void RecordEntropy(long combinations)
+		private void RecordEntropy(BigInteger combinations)
 		{
 			// Any previous entropy will be discarded, because method "TryGenerateWord" is recursive,
 			// only the last call to the method will have the correct number of possibilities.
